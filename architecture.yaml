@@ -1,0 +1,146 @@
+system: ielts
+architecture_style: modular_monolith
+framework: spring-modulith
+version: 1.0.0
+
+metadata:
+  total_modules: 6
+  expected_cycles: 0
+  target_lambda2: "0.5-1.5"
+  target_modularity: ">0.35"
+
+modules:
+  - id: presentation
+    name: Presentation
+    package: com.ielts.tutor.presentation
+    layer: presentation
+    description: "REST API controllers, HTTP request/response mappings, and web endpoints"
+
+  - id: application
+    name: Application
+    package: com.ielts.tutor.application
+    layer: application
+    description: "Use-case coordinators, application services, and cross-module workflow orchestration"
+
+  - id: domain
+    name: Domain
+    package: com.ielts.tutor.domain
+    layer: domain
+    description: "Core business logic, domain models (user, course, lesson, skill, progress) and rules"
+
+  - id: ai
+    name: AI
+    package: com.ielts.tutor.ai
+    layer: ai
+    description: "AI evaluation modules (api, asr, nlp.writing, nlp.speaking, tts, recommendation, chatbot)"
+
+  - id: infrastructure
+    name: Infrastructure
+    package: com.ielts.tutor.infrastructure
+    layer: infrastructure
+    description: "Technical implementations, database persistence, external integrations, and technical adapters"
+
+  - id: shared
+    name: Shared
+    package: com.ielts.tutor.shared
+    layer: cross_cutting
+    description: "Shared kernel utilities, common value objects, constants, and base exceptions"
+
+edges:
+  # presentation layer
+  - source: presentation
+    target: application
+    weight: 5
+    description: "Presentation delegates use cases directly to application layer"
+
+  - source: presentation
+    target: shared
+    weight: 2
+    description: "Presentation utilizes shared response wrappers and common exceptions"
+
+  # application layer
+  - source: application
+    target: domain
+    weight: 5
+    description: "Application orchestrates domain workflows and aggregates"
+
+  - source: application
+    target: ai
+    weight: 4
+    description: "Application coordinates AI evaluation and scoring workflows"
+
+  - source: application
+    target: infrastructure
+    weight: 3
+    description: "Application coordinates technical infrastructure services"
+
+  - source: application
+    target: shared
+    weight: 2
+    description: "Application uses shared common types and kernel utilities"
+
+  # domain layer
+  - source: domain
+    target: ai
+    weight: 3
+    description: "Domain accesses AI capabilities strictly through ai.api contracts"
+
+  - source: domain
+    target: infrastructure
+    weight: 2
+    description: "Domain accesses technical infrastructure interfaces"
+
+  - source: domain
+    target: shared
+    weight: 3
+    description: "Domain relies on shared kernel value objects and types"
+
+  # ai layer
+  - source: ai
+    target: infrastructure
+    weight: 3
+    description: "AI delegates model persistence, external AI APIs, and storage to infrastructure"
+
+  - source: ai
+    target: shared
+    weight: 2
+    description: "AI utilizes shared kernel types and common utilities"
+
+  # infrastructure layer
+  - source: infrastructure
+    target: shared
+    weight: 2
+    description: "Infrastructure utilizes shared configurations and utilities"
+
+forbidden:
+  - source: presentation
+    target: domain
+    reason: "Presentation layer must not bypass application layer to access domain directly"
+
+  - source: presentation
+    target: ai
+    reason: "Presentation layer must not bypass application layer to access AI directly"
+
+  - source: domain
+    target: presentation
+    reason: "Domain layer must have no dependency on presentation layer"
+
+  - source: ai
+    target: presentation
+    reason: "AI layer must have no dependency on presentation layer"
+
+  - source: ai
+    target: application
+    reason: "AI layer must not depend on application orchestration layer"
+
+  - source: ai
+    target: domain
+    reason: "AI layer must not depend on business domain entities"
+
+  - source: shared
+    target: "*"
+    reason: "Shared kernel is foundational and must not depend on any application modules"
+
+  - source: infrastructure
+    target: "*"
+    reason: "Infrastructure may only depend on shared kernel, forbidden to depend on application/domain/presentation/ai"
