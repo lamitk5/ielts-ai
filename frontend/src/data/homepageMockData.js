@@ -25,6 +25,21 @@ export const skillCards = [
   },
 ]
 
+export const tutorGroundedDemo = {
+  content: 'Mình sẽ giải thích dựa trên rubric và ngữ cảnh bài đang luyện.',
+  grounding: { status: 'grounded', sourceCount: 2 },
+  citations: [
+    { sourceId: 'demo-rubric-01', title: 'Rubric Writing Task 2', section: 'Task Response' },
+    { sourceId: 'demo-guide-01', title: 'Hướng dẫn cải thiện lập luận', section: 'Phát triển ý' },
+  ],
+}
+
+export const tutorInsufficientDemo = {
+  content: 'Chưa đủ thông tin để trả lời chắc chắn. Hãy cung cấp câu hỏi, đoạn văn hoặc bài làm liên quan.',
+  grounding: { status: 'insufficient_context', sourceCount: 0 },
+  citations: [],
+}
+
 export const memberDemo = {
   user: {
     firstName: 'Đăng',
