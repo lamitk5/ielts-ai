@@ -16,6 +16,8 @@ describe('premium hero', () => {
   test('renders the four-skill hero identity and semantic search controls', () => {
     renderApp()
 
+    expect(screen.getByText('IELTS 4 KỸ NĂNG • AI TUTOR 24/7')).toBeInTheDocument()
+    expect(screen.queryByText(/Academic Luxury/)).not.toBeInTheDocument()
     expect(
       screen.getByRole('heading', {
         name: 'Bứt phá Band điểm IELTS cùng Trợ giảng AI Độc quyền',

@@ -19,7 +19,7 @@ function HeroSection({ homepageState }) {
       </div>
       <div className="hero-grid">
         <div className="hero-content">
-          <p className="eyebrow hero-eyebrow">Academic Luxury · AI learning assistant</p>
+          <p className="eyebrow hero-eyebrow">IELTS 4 KỸ NĂNG • AI TUTOR 24/7</p>
           <h1 id="hero-title" className="font-display hero-title">
             Bứt phá Band điểm IELTS cùng Trợ giảng AI Độc quyền
           </h1>
