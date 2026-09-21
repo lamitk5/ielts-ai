@@ -22,9 +22,17 @@ describe('frontend foundation', () => {
         { name: 'Trang chủ' },
       ),
     ).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'IELTS AI' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Bắt đầu đánh giá' })).toBeEnabled()
-    expect(screen.getByText(/A calm foundation for focused IELTS practice/)).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', {
+        name: 'Bứt phá Band điểm IELTS cùng Trợ giảng AI Độc quyền',
+      }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Làm bài Test đánh giá năng lực' })).toBeEnabled()
+    expect(
+      within(screen.getByRole('region', {
+        name: 'Bứt phá Band điểm IELTS cùng Trợ giảng AI Độc quyền',
+      })).getByText(/Reading, Listening, Writing và Speaking/),
+    ).toBeInTheDocument()
     expect(screen.getByRole('contentinfo')).toBeInTheDocument()
   })
 

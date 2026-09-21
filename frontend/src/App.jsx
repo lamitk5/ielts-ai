@@ -17,6 +17,7 @@ function App() {
             />
           }
         />
+        <Route path="practice/search" element={<PlaceholderPage />} />
         <Route path="practice/:skill" element={<PlaceholderPage />} />
         <Route
           path="login"

@@ -28,14 +28,14 @@ describe('app shell and routing', () => {
     expect(screen.getByText('Guest mode')).toBeInTheDocument()
     expect(screen.queryByText(/6\.5/)).not.toBeInTheDocument()
     expect(screen.queryByTestId('member-progress')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Bắt đầu đánh giá' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Làm bài Test đánh giá năng lực' })).toBeEnabled()
   })
 
   test('assessment entry navigates to the safe assessment placeholder', async () => {
     const user = userEvent.setup()
     renderApp('/')
 
-    await user.click(screen.getByRole('button', { name: 'Bắt đầu đánh giá' }))
+    await user.click(screen.getByRole('button', { name: 'Làm bài Test đánh giá năng lực' }))
 
     expect(screen.getByRole('heading', { name: /Assessment/ })).toBeInTheDocument()
   })
