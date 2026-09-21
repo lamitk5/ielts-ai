@@ -18,6 +18,7 @@ describe('premium hero', () => {
 
     expect(screen.getByText('IELTS 4 KỸ NĂNG • AI TUTOR 24/7')).toBeInTheDocument()
     expect(screen.queryByText(/Academic Luxury/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/guest mode/i)).not.toBeInTheDocument()
     expect(
       screen.getByRole('heading', {
         name: 'Bứt phá Band điểm IELTS cùng Trợ giảng AI Độc quyền',
@@ -34,7 +35,17 @@ describe('premium hero', () => {
       'IELTS Writing Task 1 Line Graph',
     )
     expect(screen.getByRole('button', { name: 'Tìm bài luyện' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Làm bài Test đánh giá năng lực' })).toBeInTheDocument()
     expect(screen.getByTestId('hero-visual')).toHaveAttribute('aria-hidden', 'true')
+  })
+
+  test('places assessment actions before quick suggestions', () => {
+    renderApp()
+
+    const primaryAction = screen.getByRole('button', { name: 'Làm bài Test đánh giá năng lực' })
+    const firstSuggestion = screen.getByRole('button', { name: 'Reading' })
+
+    expect(primaryAction.compareDocumentPosition(firstSuggestion)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
   })
 
   test('navigates the assessment CTA to the assessment route', async () => {

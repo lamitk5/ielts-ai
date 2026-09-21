@@ -253,15 +253,6 @@ a:focus-visible {
   line-height: 1.75;
 }
 
-.hero-demo-label {
-  margin: 1rem 0 0;
-  color: var(--muted);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
 .hero-search-wrap {
   max-width: 42rem;
   margin-top: 2rem;
@@ -1035,14 +1026,32 @@ a:focus-visible {
 
 @media (min-width: 1280px) {
   .hero-grid {
+    grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.7fr);
     align-items: start;
-    padding: clamp(4.5rem, 6vw, 6rem) 0 3rem;
+    gap: clamp(3rem, 5vw, 4.5rem);
+    padding: clamp(4rem, 5vw, 5rem) 0 2rem;
   }
 
   .hero-title {
-    max-width: 17ch;
+    max-width: 19ch;
     font-size: clamp(4rem, 4.6vw, 4.75rem);
     line-height: 0.98;
+  }
+
+  .hero-search-wrap {
+    margin-top: 1.5rem;
+  }
+
+  .hero-actions {
+    margin-top: 1.15rem;
+  }
+
+  .hero-suggestions {
+    margin-top: 0.7rem;
+  }
+
+  .hero-trust-row {
+    margin-top: 1.2rem;
   }
 
   .hero-visual {

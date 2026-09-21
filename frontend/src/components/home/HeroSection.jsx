@@ -2,14 +2,11 @@ import { ArrowRight, BarChart3, BookOpen, Sparkles } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import AnimatedSection from '../common/AnimatedSection'
 import Button from '../common/Button'
-import HeroSearch from './HeroSearch'
+import HeroSearch, { HeroSuggestions } from './HeroSearch'
 import HeroVisual from './HeroVisual'
 
-function HeroSection({ homepageState }) {
+function HeroSection() {
   const navigate = useNavigate()
-  const demoLabel = homepageState?.user
-    ? `Member demo · ${homepageState.user.firstName}`
-    : 'Guest mode'
 
   return (
     <AnimatedSection className="hero-section" aria-labelledby="hero-title">
@@ -27,9 +24,6 @@ function HeroSection({ homepageState }) {
             Luyện tập Reading, Listening, Writing và Speaking trên một nền tảng duy nhất.
             Nhận phản hồi theo ngữ cảnh và cải thiện từng kỹ năng cùng trợ giảng AI.
           </p>
-          <p className="hero-demo-label" data-testid="demo-mode">
-            {demoLabel}
-          </p>
           <HeroSearch />
           <div className="hero-actions" aria-label="Assessment actions">
             <Button size="lg" onClick={() => navigate('/assessment')}>
@@ -40,6 +34,7 @@ function HeroSection({ homepageState }) {
               <ArrowRight aria-hidden="true" size={16} />
             </a>
           </div>
+          <HeroSuggestions />
           <div className="hero-trust-row" aria-label="Learning support indicators">
             <span>
               <BookOpen aria-hidden="true" size={15} />

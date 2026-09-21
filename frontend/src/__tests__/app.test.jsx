@@ -25,7 +25,7 @@ describe('app shell and routing', () => {
   test('defaults to guest mode without personal bands and exposes assessment entry', () => {
     renderApp('/')
 
-    expect(screen.getByText('Guest mode')).toBeInTheDocument()
+    expect(screen.queryByText(/guest mode/i)).not.toBeInTheDocument()
     expect(screen.queryByText(/6\.5/)).not.toBeInTheDocument()
     expect(screen.queryByTestId('member-progress')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Làm bài Test đánh giá năng lực' })).toBeEnabled()
@@ -40,10 +40,15 @@ describe('app shell and routing', () => {
     expect(screen.getByRole('heading', { name: /Assessment/ })).toBeInTheDocument()
   })
 
-  test('member demo query selects the centralized member state', () => {
+  test('member demo query keeps the home route usable without exposing mode labels', () => {
     renderApp('/?demo=member')
 
-    expect(screen.getByText('Member demo · Đăng')).toBeInTheDocument()
+    expect(screen.queryByText(/member demo/i)).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', {
+        name: 'Bứt phá Band điểm IELTS cùng Trợ giảng AI Độc quyền',
+      }),
+    ).toBeInTheDocument()
     expect(memberDemo.user.firstName).toBe('Đăng')
     expect(memberDemo.progress.map(({ skill }) => skill)).toEqual([
       'Reading',

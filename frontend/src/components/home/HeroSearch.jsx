@@ -9,6 +9,39 @@ const suggestions = [
   { label: 'Speaking Part 2', query: 'Speaking Part 2' },
 ]
 
+function HeroSuggestions() {
+  const navigate = useNavigate()
+
+  function selectSuggestion(suggestion) {
+    if (suggestion.to) {
+      navigate(suggestion.to)
+      return
+    }
+
+    navigate(`/practice/search?q=${encodeURIComponent(suggestion.query)}`)
+  }
+
+  return (
+    <div className="hero-suggestions" aria-labelledby="hero-suggestions-label">
+      <span id="hero-suggestions-label" className="hero-suggestions-label">
+        Gợi ý nhanh
+      </span>
+      <div className="hero-suggestion-list">
+        {suggestions.map((suggestion) => (
+          <button
+            key={suggestion.label}
+            className="hero-suggestion-chip"
+            type="button"
+            onClick={() => selectSuggestion(suggestion)}
+          >
+            {suggestion.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function HeroSearch() {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
@@ -25,16 +58,6 @@ function HeroSearch() {
 
     setError('')
     navigate(`/practice/search?q=${encodeURIComponent(trimmedQuery)}`)
-  }
-
-  function selectSuggestion(suggestion) {
-    setError('')
-    if (suggestion.to) {
-      navigate(suggestion.to)
-      return
-    }
-
-    navigate(`/practice/search?q=${encodeURIComponent(suggestion.query)}`)
   }
 
   return (
@@ -72,26 +95,9 @@ function HeroSearch() {
           </p>
         ) : null}
       </form>
-
-      <div className="hero-suggestions" aria-labelledby="hero-suggestions-label">
-        <span id="hero-suggestions-label" className="hero-suggestions-label">
-          Gợi ý nhanh
-        </span>
-        <div className="hero-suggestion-list">
-          {suggestions.map((suggestion) => (
-            <button
-              key={suggestion.label}
-              className="hero-suggestion-chip"
-              type="button"
-              onClick={() => selectSuggestion(suggestion)}
-            >
-              {suggestion.label}
-            </button>
-          ))}
-        </div>
-      </div>
     </div>
   )
 }
 
+export { HeroSuggestions }
 export default HeroSearch
