@@ -3,12 +3,10 @@ import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 
 const links = [
-  { label: 'Home', to: '/' },
-  { label: 'Reading', to: '/reading' },
-  { label: 'Listening', to: '/listening' },
-  { label: 'Writing', to: '/writing' },
-  { label: 'Speaking', to: '/speaking' },
-  { label: 'AI Tutor', to: '/tutor' },
+  { label: 'Trang chủ', to: '/' },
+  { label: '4 kỹ năng', to: '/#skills' },
+  { label: 'Trợ giảng AI', to: '/#ai-tutor' },
+  { label: 'Tiến độ', to: '/?demo=member#progress' },
 ]
 
 function Navbar() {
@@ -20,7 +18,7 @@ function Navbar() {
     <header className="site-header">
       <nav className="site-nav" aria-label="Primary navigation">
         <NavLink className="brand" to="/" onClick={closeMenu}>
-          IELTS AI
+          IELTS AI Tutor
         </NavLink>
 
         <button
@@ -52,8 +50,8 @@ function Navbar() {
               </NavLink>
             ))}
           </div>
-          <NavLink className="signin-link" to="/signin" onClick={closeMenu}>
-            Sign in
+          <NavLink className="signin-link" to="/login" onClick={closeMenu}>
+            Đăng nhập
           </NavLink>
         </div>
       </nav>

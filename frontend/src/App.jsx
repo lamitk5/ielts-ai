@@ -1,19 +1,43 @@
 import { Route, Routes } from 'react-router-dom'
-import Navbar from './components/layout/Navbar'
-import Footer from './components/layout/Footer'
+import AppLayout from './components/layout/AppLayout'
 import HomePage from './pages/HomePage'
 import PlaceholderPage from './pages/PlaceholderPage'
 
 function App() {
   return (
-    <div className="app-shell">
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="*" element={<PlaceholderPage />} />
-      </Routes>
-      <Footer />
-    </div>
+    <Routes>
+      <Route element={<AppLayout />}>
+        <Route index element={<HomePage />} />
+        <Route
+          path="assessment"
+          element={
+            <PlaceholderPage
+              title="Assessment is reserved for a later task."
+              description="The assessment entry point is ready without implementing assessment logic yet."
+            />
+          }
+        />
+        <Route path="practice/:skill" element={<PlaceholderPage />} />
+        <Route
+          path="login"
+          element={
+            <PlaceholderPage
+              title="Sign in is reserved for a later task."
+              description="Authentication is intentionally out of scope for this frontend shell."
+            />
+          }
+        />
+        <Route
+          path="*"
+          element={
+            <PlaceholderPage
+              title="Page not found."
+              description="This route is not part of the current foundation shell."
+            />
+          }
+        />
+      </Route>
+    </Routes>
   )
 }
 

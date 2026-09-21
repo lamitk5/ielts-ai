@@ -19,12 +19,13 @@ describe('frontend foundation', () => {
     expect(
       within(screen.getByRole('navigation', { name: 'Primary navigation' })).getByRole(
         'link',
-        { name: 'Home' },
+        { name: 'Trang chủ' },
       ),
     ).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'IELTS AI' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Primary action' })).toBeEnabled()
-    expect(screen.getByText('A calm foundation for focused IELTS practice.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Bắt đầu đánh giá' })).toBeEnabled()
+    expect(screen.getByText(/A calm foundation for focused IELTS practice/)).toBeInTheDocument()
+    expect(screen.getByRole('contentinfo')).toBeInTheDocument()
   })
 
   test('exposes the mobile menu toggle as an accessible button', async () => {
