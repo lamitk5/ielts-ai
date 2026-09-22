@@ -149,6 +149,13 @@ a:focus-visible {
   padding: 0.55rem 0.9rem;
 }
 
+.nav-auth-button {
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
 .menu-toggle {
   display: none;
   align-items: center;

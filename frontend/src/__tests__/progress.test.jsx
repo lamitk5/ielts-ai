@@ -91,4 +91,23 @@ describe('progress overview', () => {
 
     expect(screen.getByRole('status')).toHaveAttribute('aria-busy', 'true')
   })
+
+  test('keeps empty member progress free of null or fake band values', () => {
+    render(
+      <MemoryRouter>
+        <ProgressOverviewSection
+          isAuthenticated
+          state={{
+            user: { firstName: 'Mai', examDate: null },
+            progress: ['Reading', 'Listening', 'Writing', 'Speaking'].map((skill) => ({ skill, band: null })),
+            mistakes: [],
+          }}
+        />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText('Đánh giá trình độ để mở bảng tiến độ cá nhân')).toBeInTheDocument()
+    expect(screen.queryByText('null')).not.toBeInTheDocument()
+    expect(screen.queryByText('Band ước lượng')).not.toBeInTheDocument()
+  })
 })

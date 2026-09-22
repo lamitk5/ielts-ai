@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, test, vi } from 'vitest'
@@ -39,5 +39,29 @@ describe('authentication foundation', () => {
 
     expect(await screen.findByRole('heading', { name: 'Bứt phá Band điểm IELTS cùng Trợ giảng AI Độc quyền' })).toBeInTheDocument()
     expect(localStorage.getItem('ielts-ai-tutor.session')).toContain('opaque-token')
+  })
+
+  test('authenticated navigation exposes logout and real progress anchor', async () => {
+    const user = userEvent.setup()
+    localStorage.setItem('ielts-ai-tutor.session', JSON.stringify({
+      token: 'member-token',
+      user: { id: 'user-1', email: 'student@example.com', firstName: 'Mai', role: 'CUSTOMER' },
+    }))
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 204, json: async () => null }))
+
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByRole('button', { name: 'Đăng xuất' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Đăng nhập' })).not.toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: 'Tiến độ' }).every((link) => link.getAttribute('href') === '/#progress')).toBe(true)
+
+    await user.click(screen.getByRole('button', { name: 'Đăng xuất' }))
+
+    await waitFor(() => expect(screen.getByRole('link', { name: 'Đăng nhập' })).toBeInTheDocument())
+    expect(localStorage.getItem('ielts-ai-tutor.session')).toBeNull()
   })
 })

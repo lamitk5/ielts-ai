@@ -8,6 +8,10 @@ import ExamCountdownCard from './ExamCountdownCard'
 import { Link } from 'react-router-dom'
 
 function ProgressOverviewSection({ isAuthenticated, state, loading = false }) {
+  const hasMeasuredProgress = Array.isArray(state?.progress)
+    && state.progress.some(({ band }) => Number.isFinite(band))
+  const showMemberProgress = isAuthenticated && hasMeasuredProgress
+
   return (
     <AnimatedSection
       id="progress"
@@ -19,7 +23,7 @@ function ProgressOverviewSection({ isAuthenticated, state, loading = false }) {
           eyebrow="THEO DÕI TIẾN BỘ"
           title="Tiến độ luyện tập của bạn"
           description={
-            isAuthenticated
+            showMemberProgress
               ? 'Một góc nhìn bình tĩnh về bốn kỹ năng để bạn biết nên tập trung vào đâu tiếp theo.'
               : 'Bắt đầu bằng một bài đánh giá để mở bảng theo dõi cá nhân và luyện tập có định hướng.'
           }
@@ -29,7 +33,7 @@ function ProgressOverviewSection({ isAuthenticated, state, loading = false }) {
           <GlassCard className="progress-loading-card">
             <SkeletonBlock label="Đang tải tiến độ luyện tập" />
           </GlassCard>
-        ) : isAuthenticated && state?.progress ? (
+        ) : showMemberProgress ? (
           <div className="progress-layout">
             <GlassCard className="progress-radar-card">
               <div className="progress-card-heading">
@@ -44,7 +48,7 @@ function ProgressOverviewSection({ isAuthenticated, state, loading = false }) {
                 {state.progress.map(({ skill, band }) => (
                   <li key={skill}>
                     <span>{skill}</span>
-                    <strong>{band}</strong>
+                    <strong>{Number.isFinite(band) ? band : 'Chưa có dữ liệu'}</strong>
                   </li>
                 ))}
               </ul>

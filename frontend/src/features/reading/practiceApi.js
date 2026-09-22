@@ -2,7 +2,13 @@ export async function fetchPracticeSet(skill) {
   const response = await fetch(`/api/practice/${skill}/sets`)
   if (!response.ok) throw new Error('Không thể tải bộ đề luyện tập.')
   const sets = await response.json()
-  return sets[0]
+  const practiceSet = sets[0]
+  if (!practiceSet) return undefined
+  return {
+    ...practiceSet,
+    name: practiceSet.name ?? practiceSet.skill,
+    setId: practiceSet.setId ?? practiceSet.id,
+  }
 }
 
 export async function submitPracticeAttempt(skill, setId, answers) {

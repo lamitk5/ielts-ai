@@ -4,7 +4,7 @@ const footerLinks = [
   { label: 'Trang chủ', to: '/' },
   { label: '4 kỹ năng', to: '/#skills' },
   { label: 'Trợ giảng AI', to: '/#ai-tutor' },
-  { label: 'Tiến độ', to: '/?demo=member#progress' },
+  { label: 'Tiến độ', to: '/#progress' },
 ]
 
 function Footer() {

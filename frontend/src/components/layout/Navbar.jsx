@@ -1,18 +1,25 @@
 import { Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
+import { useAuth } from '../../features/auth/AuthProvider'
 
 const links = [
   { label: 'Trang chủ', to: '/' },
   { label: '4 kỹ năng', to: '/#skills' },
   { label: 'Trợ giảng AI', to: '/#ai-tutor' },
-  { label: 'Tiến độ', to: '/?demo=member#progress' },
+  { label: 'Tiến độ', to: '/#progress' },
 ]
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { isAuthenticated, logout } = useAuth()
 
   const closeMenu = () => setIsMenuOpen(false)
+
+  const handleLogout = async () => {
+    closeMenu()
+    await logout()
+  }
 
   return (
     <header className="site-header">
@@ -50,9 +57,15 @@ function Navbar() {
               </NavLink>
             ))}
           </div>
-          <NavLink className="signin-link" to="/login" onClick={closeMenu}>
-            Đăng nhập
-          </NavLink>
+          {isAuthenticated ? (
+            <button className="signin-link nav-auth-button" type="button" onClick={handleLogout}>
+              Đăng xuất
+            </button>
+          ) : (
+            <NavLink className="signin-link" to="/login" onClick={closeMenu}>
+              Đăng nhập
+            </NavLink>
+          )}
         </div>
       </nav>
     </header>
