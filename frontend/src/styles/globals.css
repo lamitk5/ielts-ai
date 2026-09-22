@@ -2005,6 +2005,94 @@ a:focus-visible {
   }
 }
 
+.practice-page {
+  width: min(100% - 2rem, 860px);
+  margin: 0 auto;
+  padding: clamp(3rem, 7vw, 5rem) 0;
+}
+
+.practice-page-header {
+  max-width: 48rem;
+  margin-bottom: 2rem;
+}
+
+.practice-page-header h1 {
+  margin: .75rem 0 0;
+  font-size: clamp(2.4rem, 6vw, 4rem);
+}
+
+.practice-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.practice-question {
+  padding: clamp(1.25rem, 4vw, 2rem);
+}
+
+.practice-question-number {
+  margin: 0;
+  color: var(--gold);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+
+.practice-question h2 {
+  margin: .6rem 0 1.25rem;
+  color: var(--text);
+  font-size: clamp(1.05rem, 2.5vw, 1.35rem);
+  line-height: 1.45;
+}
+
+.practice-options {
+  display: grid;
+  gap: .55rem;
+}
+
+.practice-option {
+  display: flex;
+  align-items: flex-start;
+  gap: .65rem;
+  border: 1px solid var(--border);
+  border-radius: .75rem;
+  padding: .75rem .85rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.practice-option:has(input:checked) {
+  border-color: var(--border-strong);
+  background: rgba(207, 174, 103, .1);
+  color: var(--text);
+}
+
+.practice-option input {
+  margin-top: .2rem;
+  accent-color: var(--gold);
+}
+
+.practice-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  align-items: center;
+}
+
+.practice-result {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  color: var(--text-secondary);
+}
+
+.practice-result strong {
+  color: var(--gold-light);
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.7rem;
+}
+
 .auth-page {
   display: grid;
   min-height: calc(100vh - 13rem);

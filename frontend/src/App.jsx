@@ -5,6 +5,7 @@ import PlaceholderPage from './pages/PlaceholderPage'
 import AdminRagPage from './pages/AdminRagPage'
 import LoginPage from './pages/LoginPage'
 import { AuthProvider } from './features/auth/AuthProvider'
+import PracticePage from './pages/PracticePage'
 
 function App() {
   return (
@@ -23,7 +24,7 @@ function App() {
           }
         />
         <Route path="practice/search" element={<PlaceholderPage />} />
-        <Route path="practice/:skill" element={<PlaceholderPage />} />
+        <Route path="practice/:skill" element={<PracticePage />} />
         <Route path="login" element={<LoginPage />} />
         <Route
           path="*"
