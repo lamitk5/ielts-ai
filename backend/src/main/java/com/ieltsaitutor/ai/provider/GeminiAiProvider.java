@@ -16,11 +16,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import com.ieltsaitutor.ai.routing.AiProviderAdapter;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 
 @Component
-public class GeminiAiProvider implements AiProvider {
+public class GeminiAiProvider implements AiProvider, AiProviderAdapter {
     private static final Logger log = LoggerFactory.getLogger(GeminiAiProvider.class);
     private final WebClient webClient;
     private final GeminiProperties properties;
@@ -30,6 +31,23 @@ public class GeminiAiProvider implements AiProvider {
         this.webClient = geminiWebClient;
         this.properties = properties;
         this.objectMapper = objectMapper;
+    }
+
+    @Override
+    public ProviderId id() {
+        return ProviderId.GEMINI;
+    }
+
+    @Override
+    public java.util.Set<ProviderCapability> capabilities() {
+        return properties.getApiKey().isBlank() || properties.getModel().isBlank()
+                ? java.util.Set.of()
+                : java.util.Set.of(ProviderCapability.CHAT);
+    }
+
+    @Override
+    public boolean enabled() {
+        return capabilities().contains(ProviderCapability.CHAT);
     }
 
     @Override
