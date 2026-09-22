@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -22,6 +23,7 @@ public class WritingAssessmentService {
     private final WritingRepository repository;
     private final ObjectMapper objectMapper;
 
+    @Autowired
     public WritingAssessmentService(AiProvider provider, WritingRepository repository) {
         this(provider, repository, new ObjectMapper());
     }

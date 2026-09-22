@@ -2,6 +2,7 @@ package com.ieltsaitutor.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 class AuthServiceTest {
     private final PasswordHasher hasher = new PasswordHasher();
@@ -18,6 +20,20 @@ class AuthServiceTest {
     private final FakeSessionRepository sessions = new FakeSessionRepository();
     private final AuthService service = new AuthService(users, sessions, hasher,
             Clock.fixed(Instant.parse("2026-09-22T00:00:00Z"), ZoneOffset.UTC));
+
+    @Test
+    void springContextInstantiatesAuthServiceThroughDependencyInjection() {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+            context.registerBean(AuthUserRepository.class, () -> mock(AuthUserRepository.class));
+            context.registerBean(AuthSessionRepository.class, () -> mock(AuthSessionRepository.class));
+            context.registerBean(PasswordHasher.class);
+            context.registerBean(AuthService.class);
+
+            context.refresh();
+
+            assertThat(context.getBean(AuthService.class)).isNotNull();
+        }
+    }
 
     @Test
     void registersWithHashedPasswordAndReturnsAuthenticatedSession() {

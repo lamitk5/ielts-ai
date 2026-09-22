@@ -10,14 +10,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public class JdbcWritingRepository implements WritingRepository {
     private final NamedParameterJdbcTemplate jdbc;
-    private final ObjectMapper objectMapper;
-    public JdbcWritingRepository(NamedParameterJdbcTemplate jdbc, ObjectMapper objectMapper) {
-        this.jdbc = jdbc; this.objectMapper = objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    public JdbcWritingRepository(NamedParameterJdbcTemplate jdbc) {
+        this.jdbc = jdbc;
     }
 
     @Override

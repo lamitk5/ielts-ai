@@ -11,6 +11,7 @@ import java.util.Base64;
 import java.util.HexFormat;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +24,7 @@ public class AuthService {
     private final Clock clock;
     private final SecureRandom random = new SecureRandom();
 
+    @Autowired
     public AuthService(AuthUserRepository users, AuthSessionRepository sessions, PasswordHasher passwords) {
         this(users, sessions, passwords, Clock.systemUTC());
     }

@@ -5,12 +5,14 @@ import java.io.IOException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import com.ieltsaitutor.auth.AuthInterceptor;
 import com.ieltsaitutor.auth.AuthPrincipal;
 import com.ieltsaitutor.auth.UserRole;
 
+@Component
 public class AdminTokenInterceptor implements HandlerInterceptor {
     private final AdminAuthorizationService authorization;
 
