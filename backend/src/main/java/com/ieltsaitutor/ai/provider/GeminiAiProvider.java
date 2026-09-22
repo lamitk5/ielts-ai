@@ -95,7 +95,9 @@ public class GeminiAiProvider implements AiProvider {
             addContent(contents, historyItem.role().equals("ASSISTANT") ? "model" : "user", historyItem.content());
         }
         addContent(contents, "user", buildUserPrompt(command));
-        root.putObject("generationConfig").put("temperature", 0.4);
+        ObjectNode generationConfig = root.putObject("generationConfig");
+        generationConfig.putObject("thinkingConfig").put("thinkingLevel", "low");
+        generationConfig.put("temperature", 0.4);
         return root.toString();
     }
 

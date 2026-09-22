@@ -7,7 +7,7 @@ import java.time.Duration;
 @ConfigurationProperties(prefix = "google.gemini")
 public class GeminiProperties {
     private String apiKey = "";
-    private String model = "gemini-2.5-flash";
+    private String model = "gemini-3.8-flash";
     private String baseUrl = "https://generativelanguage.googleapis.com/v1beta/models";
     private Duration connectTimeout = Duration.ofSeconds(3);
     private Duration responseTimeout = Duration.ofSeconds(20);

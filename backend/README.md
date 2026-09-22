@@ -7,7 +7,7 @@ PowerShell local run:
 ```powershell
 cd backend
 $env:GEMINI_API_KEY="your-real-key"
-$env:GEMINI_MODEL="gemini-2.5-flash"
+$env:GEMINI_MODEL="gemini-3.8-flash"
 ./mvnw.cmd spring-boot:run
 ```
 

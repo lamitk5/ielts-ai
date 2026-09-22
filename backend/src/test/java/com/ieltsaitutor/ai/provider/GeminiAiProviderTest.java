@@ -68,6 +68,13 @@ class GeminiAiProviderTest {
         assertThat(requestBody.get()).contains("\"role\":\"model\"");
         assertThat(requestBody.get()).contains("Earlier question");
         assertThat(requestBody.get()).contains("Selected text");
+        assertThat(requestBody.get()).contains("\"thinkingConfig\"");
+        assertThat(requestBody.get()).contains("\"thinkingLevel\":\"low\"");
+    }
+
+    @Test
+    void defaultsToGemini38FlashWithoutOverridingEnvironmentConfiguration() {
+        assertThat(new GeminiProperties().getModel()).isEqualTo("gemini-3.8-flash");
     }
 
     @Test
