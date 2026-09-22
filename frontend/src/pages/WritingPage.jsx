@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Button from '../components/common/Button'
 import GlassCard from '../components/common/GlassCard'
 import { useAuth } from '../features/auth/AuthProvider'
-import { submitWriting } from '../features/writing/writingApi'
+import { getWritingSubmissions, submitWriting } from '../features/writing/writingApi'
 import FloatingTutor from '../components/tutor/FloatingTutor'
 
 const tasks = [
@@ -16,8 +16,22 @@ function WritingPage() {
   const [responseText, setResponseText] = useState('')
   const [assessment, setAssessment] = useState(null)
   const [error, setError] = useState('')
+  const [history, setHistory] = useState({ status: 'idle', items: [] })
   const selectedTask = tasks.find((task) => task.id === taskId) ?? tasks[0]
   const wordCount = responseText.trim() ? responseText.trim().split(/\s+/).length : 0
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setHistory({ status: 'idle', items: [] })
+      return undefined
+    }
+    let active = true
+    setHistory({ status: 'loading', items: [] })
+    getWritingSubmissions()
+      .then((items) => active && setHistory({ status: 'ready', items: Array.isArray(items) ? items : [] }))
+      .catch(() => active && setHistory({ status: 'error', items: [] }))
+    return () => { active = false }
+  }, [isAuthenticated])
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -66,6 +80,32 @@ function WritingPage() {
         ) : null}
         <Button type="submit" variant="primary" size="lg">Gửi bài viết</Button>
       </form>
+      {isAuthenticated ? (
+        <GlassCard className="practice-history" aria-labelledby="writing-history-title">
+          <div className="practice-history-heading">
+            <div>
+              <p className="progress-card-kicker">BÀI ĐÃ LƯU</p>
+              <h2 id="writing-history-title" className="font-display">Lịch sử Writing</h2>
+            </div>
+          </div>
+          {history.status === 'loading' ? <p className="practice-history-muted">Đang tải lịch sử…</p> : null}
+          {history.status === 'error' ? <p className="practice-history-muted" role="status">Chưa thể tải lịch sử lúc này.</p> : null}
+          {history.status === 'ready' && history.items.length === 0 ? <p className="practice-history-muted">Chưa có bài viết đã lưu.</p> : null}
+          {history.status === 'ready' && history.items.length > 0 ? (
+            <ul className="practice-history-list">
+              {history.items.map((item, index) => (
+                <li key={`${item.taskId}-${item.createdAt ?? index}`}>
+                  <div>
+                    <strong>{item.taskId?.startsWith('task-2') ? 'Task 2 · Essay' : 'Task 1 · Academic'}</strong>
+                    <span>{item.wordCount ?? 0} từ</span>
+                  </div>
+                  <span>{item.overallBandEstimate == null ? 'Chưa có band ước lượng' : `Band ước lượng ${item.overallBandEstimate}`}</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </GlassCard>
+      ) : null}
       <FloatingTutor context={{ skill: 'WRITING', exerciseId: taskId, taskType: selectedTask.label }} />
     </section>
   )

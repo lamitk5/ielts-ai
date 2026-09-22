@@ -12,3 +12,13 @@ export async function submitWriting(taskId, responseText) {
   if (!response.ok) throw new Error(body?.error?.message ?? 'Không thể gửi bài viết.')
   return body
 }
+
+export async function getWritingSubmissions() {
+  const session = JSON.parse(localStorage.getItem('ielts-ai-tutor.session') ?? 'null')
+  const response = await fetch('/api/practice/writing/submissions', {
+    headers: session?.token ? { Authorization: `Bearer ${session.token}` } : {},
+  })
+  const body = await response.json().catch(() => null)
+  if (!response.ok) throw new Error(body?.error?.message ?? 'Không thể tải lịch sử Writing.')
+  return body
+}

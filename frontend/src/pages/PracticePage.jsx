@@ -53,6 +53,12 @@ function PracticePage() {
         <p className="foundation-copy">{practiceSet.description}</p>
       </div>
       <form className="practice-form" onSubmit={handleSubmit}>
+        {skill === 'listening' ? (
+          <GlassCard className="practice-boundary" role="status">
+            <strong>Phát audio chưa được cấu hình</strong>
+            <span>Bộ đề synthetic hiện dùng nội dung văn bản để kiểm tra luồng trả lời và chấm điểm deterministic.</span>
+          </GlassCard>
+        ) : null}
         {practiceSet.questions.map((question, index) => (
           <GlassCard className="practice-question" key={question.id}>
             <p className="practice-question-number">CÂU {index + 1}</p>

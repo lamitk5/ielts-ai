@@ -18,6 +18,16 @@ describe('deterministic practice routes', () => {
     expect(screen.getByText(/synthetic practice set/i)).toBeInTheDocument()
   })
 
+  test('states the safe audio boundary for the synthetic Listening fixture', () => {
+    render(
+      <MemoryRouter initialEntries={['/practice/listening']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText(/phát audio chưa được cấu hình/i)).toBeInTheDocument()
+  })
+
   test('unknown skill keeps a safe fallback', () => {
     render(
       <MemoryRouter initialEntries={['/practice/unknown']}>

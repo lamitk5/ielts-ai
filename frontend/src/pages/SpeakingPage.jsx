@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Button from '../components/common/Button'
 import GlassCard from '../components/common/GlassCard'
 import { useAuth } from '../features/auth/AuthProvider'
-import { saveSpeakingAttempt } from '../features/speaking/speakingApi'
+import { getSpeakingAttempts, saveSpeakingAttempt } from '../features/speaking/speakingApi'
 import FloatingTutor from '../components/tutor/FloatingTutor'
 
 const prompts = [
@@ -17,7 +17,21 @@ function SpeakingPage() {
   const [transcript, setTranscript] = useState('')
   const [status, setStatus] = useState('')
   const [error, setError] = useState('')
+  const [history, setHistory] = useState({ status: 'idle', items: [] })
   const prompt = prompts.find((item) => item.id === promptId) ?? prompts[0]
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setHistory({ status: 'idle', items: [] })
+      return undefined
+    }
+    let active = true
+    setHistory({ status: 'loading', items: [] })
+    getSpeakingAttempts()
+      .then((items) => active && setHistory({ status: 'ready', items: Array.isArray(items) ? items : [] }))
+      .catch(() => active && setHistory({ status: 'error', items: [] }))
+    return () => { active = false }
+  }, [isAuthenticated])
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -57,6 +71,32 @@ function SpeakingPage() {
         {status ? <GlassCard className="speaking-status" role="status">Trạng thái: {status}</GlassCard> : null}
         <Button type="submit" variant="primary" size="lg">Lưu câu trả lời</Button>
       </form>
+      {isAuthenticated ? (
+        <GlassCard className="practice-history" aria-labelledby="speaking-history-title">
+          <div className="practice-history-heading">
+            <div>
+              <p className="progress-card-kicker">CÂU TRẢ LỜI ĐÃ LƯU</p>
+              <h2 id="speaking-history-title" className="font-display">Lịch sử Speaking</h2>
+            </div>
+          </div>
+          {history.status === 'loading' ? <p className="practice-history-muted">Đang tải lịch sử…</p> : null}
+          {history.status === 'error' ? <p className="practice-history-muted" role="status">Chưa thể tải lịch sử lúc này.</p> : null}
+          {history.status === 'ready' && history.items.length === 0 ? <p className="practice-history-muted">Chưa có câu trả lời đã lưu.</p> : null}
+          {history.status === 'ready' && history.items.length > 0 ? (
+            <ul className="practice-history-list">
+              {history.items.map((item, index) => (
+                <li key={`${item.promptId}-${item.createdAt ?? index}`}>
+                  <div>
+                    <strong>{item.promptId?.includes('p2') ? 'Part 2' : item.promptId?.includes('p3') ? 'Part 3' : 'Part 1'}</strong>
+                    <span>{item.transcript ? `${item.transcript.length} ký tự` : 'Input văn bản trống'}</span>
+                  </div>
+                  <span>{item.status ?? 'Đã lưu'}</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </GlassCard>
+      ) : null}
       <FloatingTutor context={{ skill: 'SPEAKING', exerciseId: promptId }} />
     </section>
   )
