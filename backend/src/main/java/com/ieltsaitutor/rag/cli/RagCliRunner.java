@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,6 +21,7 @@ public class RagCliRunner implements CommandLineRunner {
     private final RagManifestParser parser;
     private final RagCliProperties properties;
 
+    @Autowired
     public RagCliRunner(DocumentIngestionService ingestion, RagCliProperties properties) {
         this.ingestion = ingestion;
         this.parser = new RagManifestParser(Path.of("backend/rag-data/files"));

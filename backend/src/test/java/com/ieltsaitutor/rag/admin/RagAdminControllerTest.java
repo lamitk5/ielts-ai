@@ -24,6 +24,7 @@ import com.ieltsaitutor.rag.admin.dto.RagDocumentDetail;
 import com.ieltsaitutor.rag.admin.dto.RagDocumentSummary;
 import com.ieltsaitutor.rag.admin.dto.RagPreviewResponse;
 import com.ieltsaitutor.rag.ingestion.RagInvalidStateException;
+import com.ieltsaitutor.rag.ingestion.RagValidationException;
 
 class RagAdminControllerTest {
     private RagAdminService service;
@@ -76,5 +77,12 @@ class RagAdminControllerTest {
         when(service.detail(id)).thenThrow(new RagInvalidStateException("RAG_INVALID_STATE", "not available"));
         mvc.perform(get("/api/admin/rag/documents/{id}", id)).andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error.code").value("RAG_INVALID_STATE"));
+    }
+    @Test
+    void mapsValidationFailuresToBadRequest() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(service.detail(id)).thenThrow(new RagValidationException("RAG_PATH_INVALID", "invalid path"));
+        mvc.perform(get("/api/admin/rag/documents/{id}", id)).andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("RAG_PATH_INVALID"));
     }
 }

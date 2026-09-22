@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.sql.Types;
+import java.time.ZoneOffset;
 
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -56,7 +58,8 @@ public class RagIngestionJobJdbcRepository implements RagIngestionJobRepository 
         return new MapSqlParameterSource().addValue("id", job.id()).addValue("documentId", job.documentId())
                 .addValue("documentVersionId", job.documentVersionId()).addValue("status", job.status().name())
                 .addValue("errorCode", job.errorCode()).addValue("errorMessage", job.errorMessage())
-                .addValue("startedAt", job.startedAt()).addValue("finishedAt", job.finishedAt())
-                .addValue("createdAt", job.createdAt());
+                .addValue("startedAt", job.startedAt() == null ? null : job.startedAt().atOffset(ZoneOffset.UTC), Types.TIMESTAMP_WITH_TIMEZONE)
+                .addValue("finishedAt", job.finishedAt() == null ? null : job.finishedAt().atOffset(ZoneOffset.UTC), Types.TIMESTAMP_WITH_TIMEZONE)
+                .addValue("createdAt", job.createdAt().atOffset(ZoneOffset.UTC), Types.TIMESTAMP_WITH_TIMEZONE);
     }
 }

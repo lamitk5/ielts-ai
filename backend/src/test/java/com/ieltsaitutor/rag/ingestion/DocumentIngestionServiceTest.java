@@ -18,6 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
@@ -80,6 +81,21 @@ class DocumentIngestionServiceTest {
     }
 
     @Test
+    void createsDocumentBeforeLinkingCurrentVersion() {
+        MockMultipartFile file = new MockMultipartFile("file", "guide.pdf", "application/pdf", "content".getBytes());
+        when(checksums.sha256(any())).thenReturn("checksum");
+        when(versions.findByChecksum("checksum")).thenReturn(Optional.empty());
+        when(storage.store(any(), any(), any())).thenReturn(stored("checksum"));
+
+        service.upload(new UploadCommand("Guide", "UPLOAD", "author", "org", "en", Skill.GENERAL, file));
+
+        ArgumentCaptor<RagDocument> captor = ArgumentCaptor.forClass(RagDocument.class);
+        verify(documents).create(captor.capture());
+        assertThat(captor.getValue().currentVersionId()).isNull();
+        verify(documents).setCurrentVersion(any(), any());
+    }
+
+    @Test
     void extractsPreviewWithoutApproval() {
         UUID documentId = UUID.randomUUID();
         UUID versionId = UUID.randomUUID();
@@ -92,6 +108,24 @@ class DocumentIngestionServiceTest {
 
         assertThat(preview.text()).isEqualTo("preview text");
         verify(versions).updateExtractionStatus(versionId, ExtractionStatus.READY_FOR_REVIEW);
+    }
+
+    @Test
+    void resolvesStoredDocumentPathAgainstConfiguredStorageRoot() {
+        properties.setStorageRoot("target/rag-test-uploads");
+        UUID documentId = UUID.randomUUID();
+        UUID versionId = UUID.randomUUID();
+        when(versions.findById(versionId)).thenReturn(Optional.of(version(documentId, versionId, null,
+                ExtractionStatus.PENDING, IndexStatus.NOT_INDEXED)));
+        when(extractor.extract(any())).thenReturn(ExtractionResult.ready(
+                new ExtractedDocument("preview text", List.of(new ExtractedSection(null, "preview text", null, Map.of())), Map.of())));
+
+        service.extractPreview(documentId, versionId);
+
+        ArgumentCaptor<StoredDocument> captor = ArgumentCaptor.forClass(StoredDocument.class);
+        verify(extractor).extract(captor.capture());
+        assertThat(captor.getValue().absolutePath()).isEqualTo(properties.storageRootPath().toAbsolutePath().normalize()
+                .resolve("doc/version/guide.pdf").normalize());
     }
 
     @Test

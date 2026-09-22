@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.ieltsaitutor.ai.dto.AiGrounding;
@@ -26,6 +27,7 @@ public class DefaultRagChatService implements RagChatService {
     private final GroundingValidator groundingValidator;
     private final RagIntentClassifier classifier;
 
+    @Autowired
     public DefaultRagChatService(AiProvider provider, VectorRetrievalService retrieval,
             RagContextBuilder contextBuilder, GroundingValidator groundingValidator) {
         this(provider, retrieval, contextBuilder, groundingValidator, new RagIntentClassifier());

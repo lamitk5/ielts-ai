@@ -1,6 +1,8 @@
 package com.ieltsaitutor.rag.repository;
 
 import java.time.Instant;
+import java.sql.Types;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -69,13 +71,15 @@ public class RagDocumentVersionJdbcRepository implements RagDocumentVersionRepos
     @Override
     public void setApprovedAt(UUID id, Instant approvedAt) {
         jdbc.update("UPDATE rag_document_versions SET approved_at = :approvedAt WHERE id = :id",
-                new MapSqlParameterSource().addValue("id", id).addValue("approvedAt", approvedAt));
+                new MapSqlParameterSource().addValue("id", id).addValue("approvedAt", approvedAt == null ? null : approvedAt.atOffset(ZoneOffset.UTC),
+                        Types.TIMESTAMP_WITH_TIMEZONE));
     }
 
     @Override
     public void setIndexedAt(UUID id, Instant indexedAt) {
         jdbc.update("UPDATE rag_document_versions SET indexed_at = :indexedAt WHERE id = :id",
-                new MapSqlParameterSource().addValue("id", id).addValue("indexedAt", indexedAt));
+                new MapSqlParameterSource().addValue("id", id).addValue("indexedAt", indexedAt == null ? null : indexedAt.atOffset(ZoneOffset.UTC),
+                        Types.TIMESTAMP_WITH_TIMEZONE));
     }
 
     private MapSqlParameterSource params(RagDocumentVersion version) {
@@ -85,7 +89,9 @@ public class RagDocumentVersionJdbcRepository implements RagDocumentVersionRepos
                 .addValue("mimeType", version.mimeType()).addValue("fileSizeBytes", version.fileSizeBytes())
                 .addValue("checksum", version.checksum()).addValue("storagePath", version.storagePath())
                 .addValue("extractionStatus", version.extractionStatus().name())
-                .addValue("indexStatus", version.indexStatus().name()).addValue("approvedAt", version.approvedAt())
-                .addValue("indexedAt", version.indexedAt()).addValue("createdAt", version.createdAt());
+                .addValue("indexStatus", version.indexStatus().name())
+                .addValue("approvedAt", version.approvedAt() == null ? null : version.approvedAt().atOffset(ZoneOffset.UTC), Types.TIMESTAMP_WITH_TIMEZONE)
+                .addValue("indexedAt", version.indexedAt() == null ? null : version.indexedAt().atOffset(ZoneOffset.UTC), Types.TIMESTAMP_WITH_TIMEZONE)
+                .addValue("createdAt", version.createdAt().atOffset(ZoneOffset.UTC), Types.TIMESTAMP_WITH_TIMEZONE);
     }
 }

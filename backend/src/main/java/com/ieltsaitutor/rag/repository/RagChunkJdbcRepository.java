@@ -3,6 +3,8 @@ package com.ieltsaitutor.rag.repository;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.sql.Types;
+import java.time.ZoneOffset;
 
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -72,7 +74,7 @@ public class RagChunkJdbcRepository implements RagChunkRepository {
                 .addValue("content", chunk.content()).addValue("pageNumber", chunk.pageNumber())
                 .addValue("sectionTitle", chunk.sectionTitle()).addValue("tokenCount", chunk.tokenCount())
                 .addValue("embedding", vectorLiteral(chunk.embedding())).addValue("metadata", "{}")
-                .addValue("createdAt", chunk.createdAt());
+                .addValue("createdAt", chunk.createdAt().atOffset(ZoneOffset.UTC), Types.TIMESTAMP_WITH_TIMEZONE);
     }
 
     private static String vectorLiteral(List<Float> values) {

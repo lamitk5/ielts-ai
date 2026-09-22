@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.sql.Types;
+import java.time.ZoneOffset;
 
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -75,7 +77,8 @@ public class RagDocumentJdbcRepository implements RagDocumentRepository {
                 .addValue("organization", document.organization()).addValue("language", document.language())
                 .addValue("skill", document.skill().name()).addValue("rightsStatus", document.rightsStatus().name())
                 .addValue("rightsNote", document.rightsNote()).addValue("active", document.active())
-                .addValue("currentVersionId", document.currentVersionId()).addValue("createdAt", document.createdAt())
-                .addValue("updatedAt", document.updatedAt());
+                .addValue("currentVersionId", document.currentVersionId())
+                .addValue("createdAt", document.createdAt().atOffset(ZoneOffset.UTC), Types.TIMESTAMP_WITH_TIMEZONE)
+                .addValue("updatedAt", document.updatedAt().atOffset(ZoneOffset.UTC), Types.TIMESTAMP_WITH_TIMEZONE);
     }
 }

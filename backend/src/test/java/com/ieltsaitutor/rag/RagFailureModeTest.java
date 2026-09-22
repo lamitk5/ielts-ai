@@ -29,6 +29,7 @@ import com.ieltsaitutor.rag.chat.RagContextBuilder;
 import com.ieltsaitutor.rag.config.RagProperties;
 import com.ieltsaitutor.rag.domain.ExtractionStatus;
 import com.ieltsaitutor.rag.domain.IndexStatus;
+import com.ieltsaitutor.rag.domain.IngestionJobStatus;
 import com.ieltsaitutor.rag.domain.RagDocument;
 import com.ieltsaitutor.rag.domain.RagDocumentVersion;
 import com.ieltsaitutor.rag.domain.RightsStatus;
@@ -102,6 +103,7 @@ class RagFailureModeTest {
         when(embeddings.embedBatch(any())).thenThrow(new RuntimeException("provider down"));
         assertThatThrownBy(() -> service().index(documentId, versionId, IndexMode.SYNC)).isInstanceOf(RagInvalidStateException.class);
         verify(versions).updateIndexStatus(versionId, IndexStatus.FAILED);
+        verify(jobs).updateStatus(org.mockito.ArgumentMatchers.argThat(job -> job.status() == IngestionJobStatus.FAILED));
         verify(chunks, never()).insertBatch(any());
     }
 

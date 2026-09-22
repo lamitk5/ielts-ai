@@ -102,7 +102,7 @@ public class DefaultDocumentIngestionService implements DocumentIngestionService
     }
 
     @Override
-    @Transactional
+    @Transactional(noRollbackFor = RagInvalidStateException.class)
     public IndexReceipt index(UUID documentId, UUID versionId, IndexMode mode) {
         var document = documents.findById(documentId)
                 .orElseThrow(() -> invalid("RAG_DOCUMENT_NOT_FOUND", "Không tìm thấy tài liệu."));
@@ -172,7 +172,12 @@ public class DefaultDocumentIngestionService implements DocumentIngestionService
     }
 
     private StoredDocument storedDocument(RagDocumentVersion version) {
-        return new StoredDocument(java.nio.file.Path.of(version.storagePath()), version.storagePath(),
+        java.nio.file.Path root = properties.storageRootPath().toAbsolutePath().normalize();
+        java.nio.file.Path absolute = root.resolve(version.storagePath()).normalize();
+        if (!absolute.startsWith(root)) {
+            throw invalid("RAG_PATH_INVALID", "Đường dẫn tài liệu không hợp lệ.");
+        }
+        return new StoredDocument(absolute, version.storagePath(),
                 version.originalFilename(), version.mimeType(), version.fileSizeBytes(), version.checksum());
     }
 
