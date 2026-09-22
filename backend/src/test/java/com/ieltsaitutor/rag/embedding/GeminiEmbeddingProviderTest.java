@@ -6,12 +6,16 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import com.sun.net.httpserver.HttpServer;
 
@@ -49,6 +53,28 @@ class GeminiEmbeddingProviderTest {
 
         assertThat(result.values()).containsExactly(0.1f, 0.2f);
         assertThat(requestBody.get()).contains("RETRIEVAL_DOCUMENT", "document text");
+    }
+
+    @Test
+    void requestsConfiguredOutputDimensionality() throws Exception {
+        respond(200, embeddingResponse(768));
+
+        provider("model", 768).embed(new EmbeddingRequest("text", EmbeddingTask.DOCUMENT));
+
+        JsonNode request = new ObjectMapper().readTree(requestBody.get());
+        assertThat(request.get("output_dimensionality")).isNotNull();
+        assertThat(request.get("output_dimensionality").intValue()).isEqualTo(768);
+    }
+
+    @Test
+    void requestsConfiguredOutputDimensionalityForAlternateConfiguration() throws Exception {
+        respond(200, embeddingResponse(1536));
+
+        provider("model", 1536).embed(new EmbeddingRequest("text", EmbeddingTask.DOCUMENT));
+
+        JsonNode request = new ObjectMapper().readTree(requestBody.get());
+        assertThat(request.get("output_dimensionality")).isNotNull();
+        assertThat(request.get("output_dimensionality").intValue()).isEqualTo(1536);
     }
 
     @Test
@@ -134,5 +160,11 @@ class GeminiEmbeddingProviderTest {
                 output.write(bytes);
             }
         });
+    }
+
+    private String embeddingResponse(int dimension) {
+        return "{\"embedding\":{\"values\":["
+                + String.join(",", Collections.nCopies(dimension, "0.1"))
+                + "]}}";
     }
 }

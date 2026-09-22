@@ -97,6 +97,7 @@ public class GeminiEmbeddingProvider implements EmbeddingProvider {
         ObjectNode root = objectMapper.createObjectNode();
         root.put("model", "models/" + properties.getEmbeddingModel());
         root.put("taskType", request.task() == EmbeddingTask.QUERY ? "RETRIEVAL_QUERY" : "RETRIEVAL_DOCUMENT");
+        root.put("output_dimensionality", properties.getEmbeddingDimension());
         root.putObject("content").putArray("parts").addObject().put("text", request.text());
         return root.toString();
     }
