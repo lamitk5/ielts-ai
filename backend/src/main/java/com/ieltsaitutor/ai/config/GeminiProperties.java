@@ -25,4 +25,5 @@ public class GeminiProperties {
     public void setResponseTimeout(Duration responseTimeout) { this.responseTimeout = responseTimeout; }
     public int getMaxRetries() { return Math.max(0, Math.min(maxRetries, 1)); }
     public void setMaxRetries(int maxRetries) { this.maxRetries = maxRetries; }
+
 }
