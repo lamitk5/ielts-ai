@@ -43,8 +43,11 @@ function FloatingTutor() {
     }
   }, [open])
 
-  useEffect(() => () => {
-    mountedRef.current = false
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+    }
   }, [])
 
   async function sendMessage(content) {

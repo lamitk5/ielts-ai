@@ -1,5 +1,6 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { StrictMode } from 'react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import App from '../App'
@@ -84,6 +85,52 @@ describe('floating AI tutor', () => {
     await waitFor(() => expect(screen.getByText('Gemini trả lời dựa trên câu hỏi của bạn.')).toBeInTheDocument())
     expect(screen.queryByText('Rubric Writing Task 2')).not.toBeInTheDocument()
     expect(screen.queryByText('Dựa trên nguồn tham chiếu đã kiểm chứng')).not.toBeInTheDocument()
+  })
+
+  test('renders the real answer and clears loading when mounted under StrictMode', async () => {
+    const user = userEvent.setup()
+    let resolveRequest
+    global.fetch.mockReturnValueOnce(new Promise((resolve) => { resolveRequest = resolve }))
+    render(
+      <StrictMode>
+        <FloatingTutor />
+      </StrictMode>,
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
+    await user.type(
+      screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' }),
+      'Giải thích sự khác nhau giữa FALSE và NOT GIVEN trong IELTS Reading.',
+    )
+    await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }))
+
+    expect(screen.getByRole('status')).toBeInTheDocument()
+    resolveRequest({
+      ok: true,
+      status: 200,
+      json: async () => answeredResponse('FALSE mâu thuẫn với thông tin trong bài, còn NOT GIVEN là thông tin không được nêu.'),
+    })
+    await waitFor(() => expect(screen.getByText('FALSE mâu thuẫn với thông tin trong bài, còn NOT GIVEN là thông tin không được nêu.')).toBeInTheDocument())
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  })
+
+  test('clears loading and renders a friendly error when the request rejects under StrictMode', async () => {
+    const user = userEvent.setup()
+    global.fetch.mockRejectedValueOnce(new TypeError('network failure'))
+    render(
+      <StrictMode>
+        <FloatingTutor />
+      </StrictMode>,
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
+    const input = screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' })
+    await user.type(input, 'Câu hỏi cần kết nối')
+    await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }))
+
+    await waitFor(() => expect(screen.getByText('Không thể kết nối tới Trợ giảng AI. Vui lòng thử lại.')).toBeInTheDocument())
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(screen.getByText('Câu hỏi cần kết nối')).toBeInTheDocument()
   })
 
   test('renders insufficient context from the backend without invented citations', async () => {
