@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import FloatingTutorButton from './FloatingTutorButton'
 import TutorPanel from './TutorPanel'
-import { tutorGroundedDemo, tutorInsufficientDemo } from '../../data/homepageMockData'
+import { MAX_HISTORY_MESSAGES, sendTutorMessage } from '../../services/aiTutorApi'
 
 const welcomeMessage = {
   id: 'welcome',
@@ -15,8 +15,8 @@ function FloatingTutor() {
   const [loading, setLoading] = useState(false)
   const buttonRef = useRef(null)
   const inputRef = useRef(null)
-  const timeoutRef = useRef(null)
   const openedRef = useRef(false)
+  const mountedRef = useRef(true)
 
   useEffect(() => {
     if (!open) {
@@ -43,27 +43,46 @@ function FloatingTutor() {
     }
   }, [open])
 
-  useEffect(() => () => clearTimeout(timeoutRef.current), [])
+  useEffect(() => () => {
+    mountedRef.current = false
+  }, [])
 
-  function sendMessage(content) {
+  async function sendMessage(content) {
+    if (loading) return
+    const history = messages.slice(-MAX_HISTORY_MESSAGES).map((message) => ({
+      role: message.role === 'user' ? 'USER' : 'ASSISTANT',
+      content: message.content,
+    }))
     setMessages((current) => [
       ...current,
       { id: `user-${Date.now()}`, role: 'user', content },
     ])
     setLoading(true)
-    clearTimeout(timeoutRef.current)
-
-    timeoutRef.current = setTimeout(() => {
-      const response = content.toLowerCase().includes('ngữ cảnh')
-        ? tutorInsufficientDemo
-        : tutorGroundedDemo
-
+    try {
+      const response = await sendTutorMessage({ message: content, context: { skill: 'GENERAL' }, history })
+      if (!mountedRef.current) return
       setMessages((current) => [
         ...current,
-        { id: `assistant-${Date.now()}`, role: 'assistant', ...response },
+        {
+          id: `assistant-${Date.now()}`,
+          role: 'assistant',
+          status: response.status,
+          content: response.answer,
+          grounding: response.status === 'INSUFFICIENT_CONTEXT'
+            ? { status: 'insufficient_context', sourceCount: 0 }
+            : response.grounding,
+          citations: response.sources,
+        },
       ])
-      setLoading(false)
-    }, 300)
+    } catch (error) {
+      if (!mountedRef.current) return
+      setMessages((current) => [
+        ...current,
+        { id: `assistant-error-${Date.now()}`, role: 'assistant', isError: true, content: error.message },
+      ])
+    } finally {
+      if (mountedRef.current) setLoading(false)
+    }
   }
 
   return (

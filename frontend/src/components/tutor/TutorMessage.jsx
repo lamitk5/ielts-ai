@@ -3,15 +3,18 @@ import TutorGroundingBadge from './TutorGroundingBadge'
 
 function TutorMessage({ message }) {
   const isUser = message.role === 'user'
+  const groundingStatus = message.status === 'INSUFFICIENT_CONTEXT'
+    ? 'insufficient_context'
+    : message.grounding?.status
 
   return (
-    <li className={`tutor-message ${isUser ? 'tutor-message-user' : 'tutor-message-assistant'}`.trim()}>
+    <li className={`tutor-message ${isUser ? 'tutor-message-user' : 'tutor-message-assistant'} ${message.isError ? 'tutor-message-error' : ''}`.trim()}>
       <p>{message.content}</p>
-      {!isUser && message.grounding ? (
+      {!isUser && groundingStatus && groundingStatus !== 'NOT_ENABLED' ? (
         <div className="tutor-message-meta">
           <TutorGroundingBadge
-            status={message.grounding.status}
-            sourceCount={message.grounding.sourceCount}
+            status={groundingStatus}
+            sourceCount={message.grounding?.sourceCount ?? 0}
           />
           {message.citations?.length ? (
             <div className="tutor-source-list" aria-label="Nguồn tham chiếu">
