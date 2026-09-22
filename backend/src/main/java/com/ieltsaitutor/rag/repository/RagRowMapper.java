@@ -38,11 +38,18 @@ public final class RagRowMapper {
             rs.getTimestamp("indexed_at") == null ? null : rs.getTimestamp("indexed_at").toInstant(),
             rs.getTimestamp("created_at").toInstant());
 
-    public static final RowMapper<RagChunk> CHUNK = (rs, rowNum) -> new RagChunk(
-            rs.getObject("id", UUID.class), rs.getObject("document_version_id", UUID.class),
-            rs.getInt("chunk_index"), rs.getString("content"), (Integer) rs.getObject("page_number"),
-            rs.getString("section_title"), rs.getInt("token_count"), List.of(), Map.of(),
-            rs.getTimestamp("created_at").toInstant());
+    public static final RowMapper<RagChunk> CHUNK = (rs, rowNum) -> {
+        Map<String, Object> metadata = new java.util.LinkedHashMap<>();
+        try { metadata.put("documentId", rs.getObject("document_id", UUID.class).toString()); } catch (SQLException ignored) {}
+        try { metadata.put("title", rs.getString("document_title")); } catch (SQLException ignored) {}
+        try { metadata.put("version", rs.getString("document_version")); } catch (SQLException ignored) {}
+        try { metadata.put("sourceId", rs.getString("source_id")); } catch (SQLException ignored) {}
+        try { metadata.put("similarity", rs.getDouble("similarity")); } catch (SQLException ignored) {}
+        return new RagChunk(rs.getObject("id", UUID.class), rs.getObject("document_version_id", UUID.class),
+                rs.getInt("chunk_index"), rs.getString("content"), (Integer) rs.getObject("page_number"),
+                rs.getString("section_title"), rs.getInt("token_count"), List.of(), metadata,
+                rs.getTimestamp("created_at").toInstant());
+    };
 
     public static final RowMapper<RagIngestionJob> JOB = (rs, rowNum) -> new RagIngestionJob(
             rs.getObject("id", UUID.class), rs.getObject("document_id", UUID.class),

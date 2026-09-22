@@ -13,7 +13,10 @@ import com.ieltsaitutor.rag.domain.RagChunk;
 @Repository
 public class RagChunkJdbcRepository implements RagChunkRepository {
     public static final String GOVERNED_CANDIDATE_SQL = """
-            SELECT c.* FROM rag_chunks c
+            SELECT c.*, d.id AS document_id, d.title AS document_title, v.version AS document_version,
+                   v.original_filename AS source_id,
+                   1 - (c.embedding <=> CAST(:embedding AS vector)) AS similarity
+            FROM rag_chunks c
             JOIN rag_document_versions v ON v.id = c.document_version_id
             JOIN rag_documents d ON d.id = v.document_id
             WHERE d.rights_status = 'APPROVED'
@@ -22,6 +25,8 @@ public class RagChunkJdbcRepository implements RagChunkRepository {
               AND v.index_status = 'INDEXED'
               AND v.approved_at IS NOT NULL
               AND v.indexed_at >= v.approved_at
+              AND (:skill IS NULL OR d.skill = :skill OR d.skill = 'GENERAL')
+              AND (:language IS NULL OR d.language = :language)
               AND c.embedding IS NOT NULL
               AND 1 - (c.embedding <=> CAST(:embedding AS vector)) >= :minSimilarity
             ORDER BY c.embedding <=> CAST(:embedding AS vector)
@@ -55,6 +60,8 @@ public class RagChunkJdbcRepository implements RagChunkRepository {
     public List<RagChunk> findGovernedCandidates(RagQueryParameters parameters) {
         return jdbc.query(GOVERNED_CANDIDATE_SQL, new MapSqlParameterSource()
                 .addValue("embedding", vectorLiteral(parameters.embedding()))
+                .addValue("skill", parameters.skill() == null ? null : parameters.skill().name())
+                .addValue("language", parameters.language())
                 .addValue("minSimilarity", parameters.minSimilarity()).addValue("topK", parameters.topK()),
                 RagRowMapper.CHUNK);
     }
