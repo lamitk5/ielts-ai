@@ -1,4 +1,13 @@
 const TOKEN_KEY = 'rag-admin-token'
+const SESSION_KEY = 'ielts-ai-tutor.session'
+
+function readSession() {
+  try {
+    return JSON.parse(window.localStorage.getItem(SESSION_KEY) ?? 'null')
+  } catch {
+    return null
+  }
+}
 
 export function readAdminToken(storage = window.sessionStorage) {
   return storage.getItem(TOKEN_KEY) ?? ''
@@ -24,9 +33,14 @@ export function createRagAdminApi({ fetchImpl = window.fetch.bind(window), stora
   async function request(path, options = {}) {
     if (!path.startsWith('/api/admin/rag/')) throw new Error('RAG admin requests must be same-origin')
     const token = readAdminToken(storage)
+    const session = readSession()
     const response = await fetchImpl(path, {
       ...options,
-      headers: { ...(options.headers ?? {}), ...(token ? { 'X-Admin-Token': token } : {}) },
+      headers: {
+        ...(options.headers ?? {}),
+        ...(session?.token ? { Authorization: `Bearer ${session.token}` } : {}),
+        ...(token ? { 'X-Admin-Token': token } : {}),
+      },
     })
     const payload = await response.json().catch(() => null)
     if (!response.ok) {

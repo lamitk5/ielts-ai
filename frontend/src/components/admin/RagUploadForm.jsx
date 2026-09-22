@@ -5,15 +5,21 @@ import GlassCard from '../common/GlassCard'
 function RagUploadForm({ onUpload }) {
   const [form, setForm] = useState({ title: '', language: 'en', skill: 'GENERAL', rightsNote: '' })
   const [file, setFile] = useState(null)
+  const [submitting, setSubmitting] = useState(false)
 
   function update(field, value) { setForm((current) => ({ ...current, [field]: value })) }
   async function submit(event) {
     event.preventDefault()
     if (!file) return
-    await onUpload(form, file)
-    setForm({ title: '', language: 'en', skill: 'GENERAL', rightsNote: '' })
-    setFile(null)
-    event.target.reset()
+    setSubmitting(true)
+    try {
+      await onUpload(form, file)
+      setForm({ title: '', language: 'en', skill: 'GENERAL', rightsNote: '' })
+      setFile(null)
+      event.target.reset()
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -25,7 +31,7 @@ function RagUploadForm({ onUpload }) {
         <label>Kỹ năng<select value={form.skill} onChange={(event) => update('skill', event.target.value)}>{['GENERAL', 'READING', 'LISTENING', 'WRITING', 'SPEAKING'].map((skill) => <option key={skill}>{skill}</option>)}</select></label>
         <label>Ghi chú quyền sử dụng<textarea required value={form.rightsNote} onChange={(event) => update('rightsNote', event.target.value)} /></label>
         <label>File<input required type="file" accept=".pdf,.docx,.txt" onChange={(event) => setFile(event.target.files?.[0] ?? null)} /></label>
-        <Button type="submit" disabled={!file}>Tải lên chờ duyệt</Button>
+        <Button type="submit" disabled={!file || submitting}>{submitting ? 'Đang tải lên…' : 'Tải lên chờ duyệt'}</Button>
       </form>
     </GlassCard>
   )
