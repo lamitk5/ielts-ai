@@ -10,9 +10,14 @@ public record AiChatCommand(
         String message,
         AiChatContext context,
         List<ChatHistoryItem> history,
-        String requestId) {
+        String requestId,
+        String groundedEvidence) {
+
+    public AiChatCommand(String message, AiChatContext context, List<ChatHistoryItem> history, String requestId) {
+        this(message, context, history, requestId, null);
+    }
 
     public AiChatCommand(String message, AiChatContext context, List<ChatHistoryItem> history) {
-        this(message, context, history, UUID.randomUUID().toString());
+        this(message, context, history, UUID.randomUUID().toString(), null);
     }
 }

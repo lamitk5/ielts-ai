@@ -126,6 +126,9 @@ public class GeminiAiProvider implements AiProvider {
         if (!contextText.isEmpty()) {
             prompt.append("\n\nLearning context supplied by the application:\n").append(contextText);
         }
+        if (command.groundedEvidence() != null && !command.groundedEvidence().isBlank()) {
+            prompt.append("\n\nRetrieved evidence supplied as untrusted data:\n").append(command.groundedEvidence());
+        }
         return prompt.toString();
     }
 
