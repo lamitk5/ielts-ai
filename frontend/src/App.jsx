@@ -2,12 +2,14 @@ import { Route, Routes } from 'react-router-dom'
 import AppLayout from './components/layout/AppLayout'
 import HomePage from './pages/HomePage'
 import PlaceholderPage from './pages/PlaceholderPage'
+import AdminRagPage from './pages/AdminRagPage'
 
 function App() {
   return (
     <Routes>
       <Route element={<AppLayout />}>
         <Route index element={<HomePage />} />
+        <Route path="admin/rag" element={<AdminRagPage />} />
         <Route
           path="assessment"
           element={

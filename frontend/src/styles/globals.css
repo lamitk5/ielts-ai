@@ -2004,3 +2004,47 @@ a:focus-visible {
     will-change: auto;
   }
 }
+
+.admin-page {
+  width: min(100% - 2rem, 1180px);
+  margin: 0 auto;
+  padding: clamp(3rem, 6vw, 5rem) 0;
+}
+
+.admin-page-header { margin-bottom: 2rem; }
+.admin-page-header .section-title h2 { max-width: 24ch; }
+.admin-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; margin-bottom: 1rem; }
+.admin-upload-card, .admin-detail-card, .admin-jobs-card, .admin-table-card { padding: clamp(1.25rem, 3vw, 2rem); }
+.admin-jobs-card { grid-column: 1 / -1; }
+.admin-card-heading h2, .admin-detail-card h2, .admin-jobs-card h2 { margin: .25rem 0 1rem; font-size: clamp(1.35rem, 2.8vw, 2rem); }
+.admin-unlock { display: grid; min-height: 60vh; place-items: center; }
+.admin-unlock-card { width: min(100%, 34rem); padding: 2rem; }
+.admin-unlock-card h1 { margin: .25rem 0 .75rem; font-size: clamp(1.8rem, 5vw, 2.8rem); }
+.admin-unlock-form, .admin-upload-form { display: grid; gap: .8rem; }
+.admin-unlock-form label, .admin-upload-form label { display: grid; gap: .35rem; color: var(--text-secondary); font-size: .82rem; }
+.admin-unlock-form input, .admin-upload-form input, .admin-upload-form select, .admin-upload-form textarea { width: 100%; border: 1px solid var(--border); border-radius: .7rem; padding: .7rem .8rem; background: rgba(6, 11, 22, .62); color: var(--text); font: inherit; }
+.admin-upload-form textarea { min-height: 5rem; resize: vertical; }
+.admin-table-card { overflow: hidden; }
+.admin-table-scroll { overflow-x: auto; }
+.admin-table-scroll table { width: 100%; min-width: 42rem; border-collapse: collapse; }
+.admin-table-scroll th, .admin-table-scroll td { padding: .9rem .65rem; border-top: 1px solid var(--border); text-align: left; vertical-align: middle; }
+.admin-table-scroll th { color: var(--text); font-weight: 600; }
+.admin-table-scroll th small { display: block; margin-top: .25rem; color: var(--muted); font-weight: 400; }
+.admin-status, .admin-detail-status span { display: inline-flex; border: 1px solid var(--border); border-radius: 999px; padding: .25rem .5rem; color: var(--gold-light); font-size: .72rem; letter-spacing: .04em; }
+.admin-actions { display: flex; flex-wrap: wrap; gap: .35rem; }
+.admin-actions .button { padding: .45rem .65rem; font-size: .72rem; }
+.admin-detail-status { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.3rem; }
+.admin-detail-card h3 { margin-bottom: .5rem; font-size: .9rem; }
+.admin-preview { max-height: 12rem; overflow: auto; margin: 0; white-space: pre-wrap; color: var(--text-secondary); line-height: 1.65; }
+.admin-muted { color: var(--muted); }
+.admin-job-list { display: grid; gap: .55rem; margin: 0; padding: 0; list-style: none; }
+.admin-job-list li { display: flex; justify-content: space-between; gap: 1rem; color: var(--text-secondary); font-size: .85rem; }
+.admin-job-list strong { color: var(--gold-light); font-weight: 600; }
+.admin-error { border: 1px solid rgba(220, 120, 120, .4); border-radius: .7rem; padding: .8rem 1rem; color: #f4b4b4; }
+.admin-loading { min-height: 10rem; }
+
+@media (max-width: 760px) {
+  .admin-layout { grid-template-columns: 1fr; }
+  .admin-jobs-card { grid-column: auto; }
+  .admin-page { padding-top: 2.5rem; }
+}
