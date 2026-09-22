@@ -36,6 +36,7 @@ class AiChatServiceTest {
         var command = org.mockito.ArgumentCaptor.forClass(AiChatCommand.class);
         verify(provider).chat(command.capture());
         assertThat(command.getValue().message()).isEqualTo("Hello IELTS");
+        assertThat(command.getValue().requestId()).isEqualTo(response.meta().requestId());
         assertThat(command.getValue().history()).hasSize(8);
         assertThat(command.getValue().history().getFirst().content()).isEqualTo("message-4");
     }

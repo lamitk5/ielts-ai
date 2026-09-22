@@ -35,6 +35,8 @@ public class GeminiAiProvider implements AiProvider {
     @Override
     public AiChatResult chat(AiChatCommand command) {
         if (properties.getApiKey().isBlank()) {
+            log.warn("Gemini provider unavailable requestId={} model={} endpoint={} reason=missing_api_key",
+                    command.requestId(), properties.getModel(), sanitizedEndpointUri());
             throw new AiProviderException(
                     "AI_TEMPORARILY_UNAVAILABLE", HttpStatus.SERVICE_UNAVAILABLE,
                     "Trợ giảng AI tạm thời chưa sẵn sàng.");
@@ -45,6 +47,7 @@ public class GeminiAiProvider implements AiProvider {
                 String responseBody = request(command);
                 return AiChatResult.answered(extractAnswer(responseBody));
             } catch (GeminiHttpException exception) {
+                logUpstreamFailure(command, exception);
                 if (isRetryable(exception.statusCode()) && attempt < properties.getMaxRetries()) {
                     pauseBeforeRetry(attempt);
                     continue;
@@ -55,6 +58,8 @@ public class GeminiAiProvider implements AiProvider {
                         "AI_PROVIDER_ERROR", HttpStatus.BAD_GATEWAY,
                         "AI provider returned an invalid response.", exception);
             } catch (WebClientRequestException exception) {
+                log.warn("Gemini network failure requestId={} model={} endpoint={} type={}",
+                        command.requestId(), properties.getModel(), sanitizedEndpointUri(), exception.getClass().getSimpleName());
                 if (isTimeout(exception)) {
                     throw timeoutException(exception);
                 }
@@ -62,6 +67,8 @@ public class GeminiAiProvider implements AiProvider {
                         "AI_TEMPORARILY_UNAVAILABLE", HttpStatus.SERVICE_UNAVAILABLE,
                         "Trợ giảng AI tạm thời chưa sẵn sàng.", exception);
             } catch (IllegalStateException exception) {
+                log.warn("Gemini client failure requestId={} model={} endpoint={} type={}",
+                        command.requestId(), properties.getModel(), sanitizedEndpointUri(), exception.getClass().getSimpleName());
                 if (exception.getMessage() != null && exception.getMessage().contains("Timeout")) {
                     throw timeoutException(exception);
                 }
@@ -73,7 +80,9 @@ public class GeminiAiProvider implements AiProvider {
     }
 
     private String request(AiChatCommand command) {
-        String uri = properties.getBaseUrl().replaceAll("/$", "") + "/" + properties.getModel() + ":generateContent";
+        String uri = endpointUri();
+        log.debug("Gemini request requestId={} model={} endpoint={}",
+                command.requestId(), properties.getModel(), sanitizedEndpointUri());
         return webClient.post()
                 .uri(uri)
                 .header("x-goog-api-key", properties.getApiKey())
@@ -152,19 +161,58 @@ public class GeminiAiProvider implements AiProvider {
     }
 
     private AiProviderException mapHttpException(GeminiHttpException exception) {
+        if (exception.statusCode() == 400) {
+            return new AiProviderException("AI_PROVIDER_ERROR", HttpStatus.BAD_GATEWAY,
+                    "AI provider rejected the request.");
+        }
+        if (exception.statusCode() == 401 || exception.statusCode() == 403) {
+            return new AiProviderException("AI_PROVIDER_ERROR", HttpStatus.BAD_GATEWAY,
+                    "AI provider authentication is not configured correctly.");
+        }
         if (exception.statusCode() == 429) {
-            log.warn("Gemini provider rate limit status={}", exception.statusCode());
             return new AiProviderException("AI_RATE_LIMITED", HttpStatus.TOO_MANY_REQUESTS,
                     "Trợ giảng AI đang nhận quá nhiều yêu cầu. Vui lòng thử lại sau.");
         }
         if (exception.statusCode() == 503) {
-            log.warn("Gemini provider unavailable status={}", exception.statusCode());
             return new AiProviderException("AI_TEMPORARILY_UNAVAILABLE", HttpStatus.SERVICE_UNAVAILABLE,
                     "Trợ giảng AI tạm thời chưa sẵn sàng.");
         }
-        log.warn("Gemini provider error status={}", exception.statusCode());
         return new AiProviderException("AI_PROVIDER_ERROR", HttpStatus.BAD_GATEWAY,
                 "Trợ giảng AI chưa thể trả lời lúc này.");
+    }
+
+    private String endpointUri() {
+        return properties.getBaseUrl().replaceAll("/$", "") + "/" + properties.getModel() + ":generateContent";
+    }
+
+    private void logUpstreamFailure(AiChatCommand command, GeminiHttpException exception) {
+        String code = "UNPARSED";
+        String message = "No upstream message";
+        try {
+            JsonNode error = objectMapper.readTree(exception.providerBody()).path("error");
+            if (error.has("status")) code = error.path("status").asText(code);
+            else if (error.has("code")) code = error.path("code").asText(code);
+            if (error.has("message")) message = error.path("message").asText(message);
+        } catch (JacksonException ignored) {
+            // Keep diagnostics safe when the provider returns a non-JSON body.
+        }
+        log.warn("Gemini upstream failure requestId={} model={} endpoint={} status={} code={} message={}",
+                command.requestId(), properties.getModel(), sanitizedEndpointUri(), exception.statusCode(),
+                sanitizeLogValue(code), sanitizeLogValue(message));
+    }
+
+    private String sanitizedEndpointUri() {
+        String uri = endpointUri();
+        int queryStart = uri.indexOf('?');
+        int fragmentStart = uri.indexOf('#');
+        int end = uri.length();
+        if (queryStart >= 0) end = Math.min(end, queryStart);
+        if (fragmentStart >= 0) end = Math.min(end, fragmentStart);
+        return uri.substring(0, end);
+    }
+
+    private String sanitizeLogValue(String value) {
+        return value.replaceAll("[\\r\\n\\t]", " ").substring(0, Math.min(value.length(), 240));
     }
 
     private boolean isTimeout(WebClientRequestException exception) {
@@ -188,5 +236,7 @@ public class GeminiAiProvider implements AiProvider {
         }
 
         private int statusCode() { return statusCode; }
+
+        private String providerBody() { return providerBody; }
     }
 }

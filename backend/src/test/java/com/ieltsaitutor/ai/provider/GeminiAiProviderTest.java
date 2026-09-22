@@ -28,6 +28,8 @@ class GeminiAiProviderTest {
     private HttpServer server;
     private AtomicReference<String> requestBody;
     private AtomicReference<String> requestKey;
+    private AtomicReference<String> requestPath;
+    private AtomicReference<String> requestContentType;
     private AtomicInteger requestCount;
     private GeminiProperties properties;
     private GeminiAiProvider provider;
@@ -36,6 +38,8 @@ class GeminiAiProviderTest {
     void setUp() throws IOException {
         requestBody = new AtomicReference<>();
         requestKey = new AtomicReference<>();
+        requestPath = new AtomicReference<>();
+        requestContentType = new AtomicReference<>();
         requestCount = new AtomicInteger();
         server = HttpServer.create(new InetSocketAddress(0), 0);
         properties = new GeminiProperties();
@@ -63,7 +67,9 @@ class GeminiAiProviderTest {
                         new ChatHistoryItem("ASSISTANT", "Earlier answer"))));
 
         assertThat(result.answer()).isEqualTo("Gemini answer");
+        assertThat(requestPath.get()).isEqualTo("/v1beta/models/gemini-test:generateContent");
         assertThat(requestKey.get()).isEqualTo("server-only-test-key");
+        assertThat(requestContentType.get()).startsWith("application/json");
         assertThat(requestBody.get()).contains("You are an AI learning assistant");
         assertThat(requestBody.get()).contains("\"role\":\"model\"");
         assertThat(requestBody.get()).contains("Earlier question");
@@ -86,6 +92,35 @@ class GeminiAiProviderTest {
                 .isInstanceOfSatisfying(AiProviderException.class, exception -> {
                     assertThat(exception.code()).isEqualTo("AI_RATE_LIMITED");
                     assertThat(exception.status().value()).isEqualTo(429);
+        });
+    }
+
+    @Test
+    void mapsMalformedAndAuthErrorsWithoutExposingProviderDetails() {
+        server.createContext("/v1beta/models/gemini-test:generateContent", exchange -> respond(exchange, 400,
+                "{\"error\":{\"message\":\"invalid request\"}}"));
+        server.start();
+
+        assertThatThrownBy(() -> provider.chat(command()))
+                .isInstanceOfSatisfying(AiProviderException.class, exception -> {
+                    assertThat(exception.code()).isEqualTo("AI_PROVIDER_ERROR");
+                    assertThat(exception.status().value()).isEqualTo(502);
+                    assertThat(exception.getMessage()).isEqualTo("AI provider rejected the request.");
+                });
+    }
+
+    @Test
+    void mapsAuthenticationErrorsAsProviderConfigurationFailures() {
+        server.createContext("/v1beta/models/gemini-test:generateContent", exchange -> respond(exchange, 403,
+                "{\"error\":{\"message\":\"invalid credentials\"}}"));
+        server.start();
+
+        assertThatThrownBy(() -> provider.chat(command()))
+                .isInstanceOfSatisfying(AiProviderException.class, exception -> {
+                    assertThat(exception.code()).isEqualTo("AI_PROVIDER_ERROR");
+                    assertThat(exception.status().value()).isEqualTo(502);
+                    assertThat(exception.getMessage()).isEqualTo(
+                            "AI provider authentication is not configured correctly.");
                 });
     }
 
@@ -145,6 +180,8 @@ class GeminiAiProviderTest {
     private void respond(HttpExchange exchange, int status, String body) throws IOException {
         requestBody.set(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
         requestKey.set(exchange.getRequestHeaders().getFirst("x-goog-api-key"));
+        requestPath.set(exchange.getRequestURI().getPath());
+        requestContentType.set(exchange.getRequestHeaders().getFirst("Content-Type"));
         byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
         exchange.sendResponseHeaders(status, bytes.length);
         try (var output = exchange.getResponseBody()) { output.write(bytes); }

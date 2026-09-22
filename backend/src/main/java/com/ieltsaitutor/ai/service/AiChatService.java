@@ -30,6 +30,7 @@ public class AiChatService {
     }
 
     public AiChatResponse chat(AiChatRequest request) {
+        String requestId = UUID.randomUUID().toString();
         String message = request.message().trim();
         AiChatContext context = request.context() == null
                 ? new AiChatContext("GENERAL", null, null, null, null, null, null)
@@ -40,14 +41,14 @@ public class AiChatService {
 
         AiChatResult result = hasNoRelevantContext(message, context)
                 ? AiChatResult.insufficientContext(INSUFFICIENT_CONTEXT_ANSWER)
-                : provider.chat(new AiChatCommand(message, context, history));
+                : provider.chat(new AiChatCommand(message, context, history, requestId));
 
         return new AiChatResponse(
                 result.status(),
                 result.answer(),
                 List.<AiSource>of(),
                 new com.ieltsaitutor.ai.dto.AiGrounding("NOT_ENABLED", false),
-                new AiChatResponse.Meta(UUID.randomUUID().toString()),
+                new AiChatResponse.Meta(requestId),
                 Instant.now());
     }
 
