@@ -2178,6 +2178,88 @@ a:focus-visible {
   font-size: 1.45rem;
 }
 
+.speaking-page {
+  width: min(100% - 2rem, 860px);
+  margin: 0 auto;
+  padding: clamp(3rem, 7vw, 5rem) 0;
+}
+
+.speaking-page-header h1 {
+  margin: .75rem 0 0;
+  font-size: clamp(2.4rem, 6vw, 4rem);
+}
+
+.speaking-form {
+  display: grid;
+  gap: .8rem;
+  margin-top: 2rem;
+}
+
+.speaking-prompt-card {
+  display: grid;
+  gap: .65rem;
+  padding: clamp(1.25rem, 4vw, 2rem);
+}
+
+.speaking-prompt-card label,
+.speaking-form > label {
+  color: var(--text-secondary);
+  font-size: .82rem;
+  font-weight: 700;
+}
+
+.speaking-prompt-card select {
+  min-height: 2.75rem;
+  border: 1px solid var(--border);
+  border-radius: .7rem;
+  padding: 0 .75rem;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.speaking-part {
+  margin: .8rem 0 0;
+  color: var(--gold);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+
+.speaking-prompt-card h2 {
+  margin: 0;
+  font-size: clamp(1.2rem, 3vw, 1.65rem);
+  line-height: 1.45;
+}
+
+.speaking-form textarea {
+  min-height: 14rem;
+  resize: vertical;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 1rem;
+  background: rgba(12, 20, 36, .8);
+  color: var(--text);
+  font: inherit;
+  line-height: 1.7;
+}
+
+.speaking-form textarea:focus-visible,
+.speaking-prompt-card select:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.speaking-boundary,
+.speaking-status {
+  color: var(--muted);
+  font-size: .82rem;
+}
+
+.speaking-status {
+  padding: .9rem 1rem;
+}
+
 .auth-page {
   display: grid;
   min-height: calc(100vh - 13rem);

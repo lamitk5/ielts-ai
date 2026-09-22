@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage'
 import { AuthProvider } from './features/auth/AuthProvider'
 import PracticePage from './pages/PracticePage'
 import WritingPage from './pages/WritingPage'
+import SpeakingPage from './pages/SpeakingPage'
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
         />
         <Route path="practice/search" element={<PlaceholderPage />} />
         <Route path="practice/writing" element={<WritingPage />} />
+        <Route path="practice/speaking" element={<SpeakingPage />} />
         <Route path="practice/:skill" element={<PracticePage />} />
         <Route path="login" element={<LoginPage />} />
         <Route
