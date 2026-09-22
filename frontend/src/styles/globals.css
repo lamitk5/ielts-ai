@@ -2093,6 +2093,91 @@ a:focus-visible {
   font-size: 1.7rem;
 }
 
+.writing-page {
+  width: min(100% - 2rem, 860px);
+  margin: 0 auto;
+  padding: clamp(3rem, 7vw, 5rem) 0;
+}
+
+.writing-page-header h1 {
+  margin: .75rem 0 0;
+  font-size: clamp(2.4rem, 6vw, 4rem);
+}
+
+.writing-form {
+  display: grid;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.writing-prompt-card {
+  display: grid;
+  gap: .65rem;
+  padding: clamp(1.25rem, 4vw, 2rem);
+}
+
+.writing-prompt-card label {
+  color: var(--text-secondary);
+  font-size: .82rem;
+  font-weight: 700;
+}
+
+.writing-prompt-card select {
+  width: 100%;
+  min-height: 2.75rem;
+  border: 1px solid var(--border);
+  border-radius: .7rem;
+  padding: 0 .75rem;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.writing-prompt-card h2 {
+  margin: .75rem 0 0;
+  font-size: 1.2rem;
+  line-height: 1.5;
+}
+
+.writing-prompt-card p,
+.writing-boundary {
+  margin: 0;
+  color: var(--muted);
+  font-size: .82rem;
+}
+
+.writing-form textarea {
+  min-height: 22rem;
+  width: 100%;
+  resize: vertical;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 1rem;
+  background: rgba(12, 20, 36, .8);
+  color: var(--text);
+  font: inherit;
+  line-height: 1.7;
+}
+
+.writing-form textarea:focus-visible,
+.writing-prompt-card select:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.writing-assessment {
+  display: grid;
+  gap: .4rem;
+  padding: 1rem 1.25rem;
+  color: var(--text-secondary);
+}
+
+.writing-assessment strong {
+  color: var(--gold-light);
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.45rem;
+}
+
 .auth-page {
   display: grid;
   min-height: calc(100vh - 13rem);

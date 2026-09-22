@@ -6,6 +6,7 @@ import AdminRagPage from './pages/AdminRagPage'
 import LoginPage from './pages/LoginPage'
 import { AuthProvider } from './features/auth/AuthProvider'
 import PracticePage from './pages/PracticePage'
+import WritingPage from './pages/WritingPage'
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
           }
         />
         <Route path="practice/search" element={<PlaceholderPage />} />
+        <Route path="practice/writing" element={<WritingPage />} />
         <Route path="practice/:skill" element={<PracticePage />} />
         <Route path="login" element={<LoginPage />} />
         <Route
