@@ -114,6 +114,22 @@ describe('floating AI tutor', () => {
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 
+  test('renders every sentence from a long answer without a preview truncation', async () => {
+    const user = userEvent.setup()
+    const longAnswer = 'Đây là một câu trả lời dài gồm nhiều câu. Nội dung phải được hiển thị đầy đủ. Không được cắt sau vài từ.'
+    global.fetch.mockResolvedValueOnce({ ok: true, status: 200, json: async () => answeredResponse(longAnswer) })
+    render(<FloatingTutor />)
+
+    await user.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
+    await user.type(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' }), 'Câu hỏi dài')
+    await user.keyboard('{Enter}')
+
+    await waitFor(() => expect(screen.getByText(longAnswer)).toBeInTheDocument())
+    expect(screen.getByText(longAnswer)).toHaveTextContent('Đây là một câu trả lời dài gồm nhiều câu.')
+    expect(screen.getByText(longAnswer)).toHaveTextContent('Nội dung phải được hiển thị đầy đủ.')
+    expect(screen.getByText(longAnswer)).toHaveTextContent('Không được cắt sau vài từ.')
+  })
+
   test('clears loading and renders a friendly error when the request rejects under StrictMode', async () => {
     const user = userEvent.setup()
     global.fetch.mockRejectedValueOnce(new TypeError('network failure'))

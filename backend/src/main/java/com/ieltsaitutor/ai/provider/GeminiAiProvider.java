@@ -45,7 +45,9 @@ public class GeminiAiProvider implements AiProvider {
         for (int attempt = 0; ; attempt++) {
             try {
                 String responseBody = request(command);
-                return AiChatResult.answered(extractAnswer(responseBody));
+                ParsedResponse parsedResponse = parseResponse(responseBody);
+                logResponse(command, parsedResponse);
+                return AiChatResult.answered(parsedResponse.answer());
             } catch (GeminiHttpException exception) {
                 logUpstreamFailure(command, exception);
                 if (isRetryable(exception.statusCode()) && attempt < properties.getMaxRetries()) {
@@ -137,13 +139,37 @@ public class GeminiAiProvider implements AiProvider {
         content.putArray("parts").addObject().put("text", text);
     }
 
-    private String extractAnswer(String responseBody) throws JacksonException {
+    private ParsedResponse parseResponse(String responseBody) throws JacksonException {
         JsonNode root = objectMapper.readTree(responseBody);
-        JsonNode text = root.path("candidates").path(0).path("content").path("parts").path(0).path("text");
-        if (!text.isTextual() || text.asText().isBlank()) {
+        JsonNode candidate = root.path("candidates").path(0);
+        JsonNode parts = candidate.path("content").path("parts");
+        if (!parts.isArray()) {
             throw new IllegalArgumentException("missing answer text");
         }
-        return text.asText().trim();
+
+        StringBuilder answer = new StringBuilder();
+        for (JsonNode part : parts) {
+            if (part.path("thought").asBoolean(false) || part.has("thoughtSignature")) continue;
+            JsonNode text = part.path("text");
+            if (text.isTextual() && !text.asText().isBlank()) answer.append(text.asText());
+        }
+        if (answer.isEmpty()) throw new IllegalArgumentException("missing answer text");
+
+        String finishReason = candidate.path("finishReason").asText("UNKNOWN");
+        int candidateTokenCount = root.path("usageMetadata").path("candidatesTokenCount").asInt(-1);
+        return new ParsedResponse(answer.toString().trim(), parts.size(), finishReason, candidateTokenCount);
+    }
+
+    private void logResponse(AiChatCommand command, ParsedResponse response) {
+        if ("MAX_TOKENS".equals(response.finishReason())) {
+            log.warn("Gemini response truncated requestId={} model={} chars={} parts={} finishReason={} candidateTokens={}",
+                    command.requestId(), properties.getModel(), response.answer().length(), response.partsCount(),
+                    response.finishReason(), response.candidateTokenCount());
+            return;
+        }
+        log.debug("Gemini response requestId={} model={} chars={} parts={} finishReason={} candidateTokens={}",
+                command.requestId(), properties.getModel(), response.answer().length(), response.partsCount(),
+                response.finishReason(), response.candidateTokenCount());
     }
 
     private boolean isRetryable(int statusCode) {
@@ -238,5 +264,8 @@ public class GeminiAiProvider implements AiProvider {
         private int statusCode() { return statusCode; }
 
         private String providerBody() { return providerBody; }
+    }
+
+    private record ParsedResponse(String answer, int partsCount, String finishReason, int candidateTokenCount) {
     }
 }

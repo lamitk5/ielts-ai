@@ -57,7 +57,12 @@ class GeminiAiProviderTest {
     @Test
     void sendsServerKeyMapsHistoryAndParsesAnswer() {
         server.createContext("/v1beta/models/gemini-test:generateContent", exchange -> respond(exchange, 200,
-                "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"Gemini answer\"}]}}]}"));
+                "{\"candidates\":[{\"finishReason\":\"STOP\",\"content\":{\"parts\":["
+                        + "{\"thought\":true,\"text\":\"internal reasoning\"},"
+                        + "{\"text\":\"Để đánh giá \"},"
+                        + "{\"text\":\"website hiện tại, \"},"
+                        + "{\"text\":\"mình sẽ xem xét các chức năng chính.\"}]},"
+                        + "\"usageMetadata\":{\"candidatesTokenCount\":12}}]}"));
         server.start();
 
         var result = provider.chat(new AiChatCommand(
@@ -66,7 +71,8 @@ class GeminiAiProviderTest {
                 List.of(new ChatHistoryItem("USER", "Earlier question"),
                         new ChatHistoryItem("ASSISTANT", "Earlier answer"))));
 
-        assertThat(result.answer()).isEqualTo("Gemini answer");
+        assertThat(result.answer()).isEqualTo(
+                "Để đánh giá website hiện tại, mình sẽ xem xét các chức năng chính.");
         assertThat(requestPath.get()).isEqualTo("/v1beta/models/gemini-test:generateContent");
         assertThat(requestKey.get()).isEqualTo("server-only-test-key");
         assertThat(requestContentType.get()).startsWith("application/json");
