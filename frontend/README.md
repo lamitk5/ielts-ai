@@ -1,10 +1,10 @@
 # IELTS AI Tutor frontend
 
-The frontend consumes provider-independent AI and RAG response fields. Tutor citations use normalized `sourceId`, `title`, `section`, `version`, `page`, and `chunkId` values; vendor-specific provider payloads are ignored by the client.
+The frontend consumes provider-independent AI and RAG response fields. Tutor citations use normalized `sourceId`, `title`, `section`, `version`, `page`, and `chunkId` values; vendor-specific provider payloads are ignored by the client. The app supports guest mode, persistent login/register sessions, explicit member demo mode, four skill practice routes, and fixture-backed search.
 
 ## Temporary RAG Admin CMS
 
-Run the backend and frontend locally, then open `/admin/rag`. Enter the value configured as `RAG_ADMIN_TOKEN` to unlock the local CMS. The token is kept in `sessionStorage` for the current browser session only and is sent as `X-Admin-Token` on admin requests. The page supports upload, bounded preview, rights review, indexing, activation/deactivation, and recent ingestion job status.
+Run the backend and frontend locally, then open `/admin/rag`. An authenticated ADMIN session is used automatically. For local compatibility, enter the value configured as `RAG_ADMIN_TOKEN`; it is kept in `sessionStorage` for the current browser session only and is sent as `X-Admin-Token`. The page supports upload, bounded preview, rights review, indexing, activation/deactivation, and recent ingestion job status, with visible loading and error states.
 
 The intended workflow is upload → preview → approve → index → activate. The frontend does not approve content automatically and does not call Gemini or any vector provider directly.
 
@@ -14,6 +14,10 @@ npm run dev
 ```
 
 The Vite development server proxies `/api` to the local Spring Boot service.
+
+## Main routes
+
+`/`, `/assessment`, `/register`, `/login`, `/practice/reading`, `/practice/listening`, `/practice/writing`, `/practice/speaking`, `/practice/search?q=...`, and `/admin/rag`.
 
 ## Verification
 

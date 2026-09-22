@@ -44,7 +44,25 @@ class WritingAssessmentServiceTest {
         }
     }
 
+    @Test
+    void malformedProviderResultPersistsOneHistoryEntry() {
+        AiProvider provider = mock(AiProvider.class);
+        when(provider.chat(any())).thenReturn(AiChatResult.answered("not-json"));
+        CountingWritingRepository repository = new CountingWritingRepository();
+
+        WritingAssessment result = new WritingAssessmentService(provider, repository).assess(
+                UUID.randomUUID(), "task-1", "This is a sufficiently long writing response with a clear position and supporting examples for review.");
+
+        assertEquals("UNAVAILABLE", result.status());
+        assertEquals(1, repository.saves);
+    }
+
     static final class FakeWritingRepository implements WritingRepository {
         @Override public void save(WritingAssessment assessment) {}
+    }
+
+    static final class CountingWritingRepository implements WritingRepository {
+        int saves;
+        @Override public void save(WritingAssessment assessment) { saves++; }
     }
 }
