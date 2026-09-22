@@ -759,7 +759,7 @@ a:focus-visible {
 .section-title h2 {
   margin: 0.65rem 0 0;
   color: var(--text);
-  font-size: clamp(2rem, 4vw, 3.25rem);
+  font-size: clamp(1.85rem, 3.6vw, 3rem);
   line-height: 1.1;
 }
 
@@ -819,7 +819,8 @@ a:focus-visible {
 
 .skills-section {
   position: relative;
-  padding: clamp(4rem, 8vw, 7rem) 0;
+  scroll-margin-top: 5.5rem;
+  padding: clamp(3rem, 5vw, 4.5rem) 0;
 }
 
 .skills-inner {
@@ -837,7 +838,7 @@ a:focus-visible {
 .skill-card {
   position: relative;
   display: flex;
-  min-height: 18rem;
+  min-height: 16.25rem;
   flex-direction: column;
   overflow: hidden;
   padding: 1.5rem;
@@ -878,7 +879,7 @@ a:focus-visible {
 .skill-card h3 {
   position: relative;
   z-index: 1;
-  margin: 2rem 0 0;
+  margin: 1.5rem 0 0;
   color: var(--text);
   font-size: clamp(1.7rem, 3vw, 2.2rem);
   line-height: 1;
@@ -898,7 +899,7 @@ a:focus-visible {
   align-items: flex-end;
   gap: 1rem;
   margin-top: auto;
-  padding-top: 2rem;
+  padding-top: 1.5rem;
 }
 
 .skill-card-metric {
@@ -939,7 +940,8 @@ a:focus-visible {
 
 .progress-section {
   position: relative;
-  padding: clamp(4rem, 8vw, 7rem) 0;
+  scroll-margin-top: 5.5rem;
+  padding: clamp(3.25rem, 6vw, 5.5rem) 0;
   background: linear-gradient(180deg, transparent, rgba(12, 20, 36, 0.24));
 }
 
@@ -1115,12 +1117,17 @@ a:focus-visible {
 }
 
 .progress-guest-card {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) auto minmax(17rem, 0.8fr);
   align-items: center;
   justify-content: space-between;
   gap: 2rem;
-  margin-top: 3rem;
+  margin-top: 2.25rem;
   background: linear-gradient(145deg, rgba(12, 20, 36, 0.92), rgba(16, 39, 70, 0.62));
+}
+
+.progress-guest-copy {
+  min-width: 0;
 }
 
 .progress-guest-card h3 {
@@ -1138,6 +1145,127 @@ a:focus-visible {
   flex: 0 0 auto;
 }
 
+.progress-guest-preview {
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+  padding: 0.9rem;
+  background: rgba(6, 11, 22, 0.28);
+}
+
+.progress-guest-preview-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.progress-guest-preview-heading > span {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.progress-guest-preview-chart {
+  position: relative;
+  min-height: 8.25rem;
+  margin-top: 0.7rem;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  background: rgba(16, 39, 70, 0.34);
+}
+
+.progress-guest-preview-chart > .skeleton-block {
+  position: absolute;
+  inset: 2.25rem 3.5rem;
+  z-index: 0;
+  min-height: 0;
+  opacity: 0.3;
+}
+
+.progress-guest-preview-chart > [role='img'] {
+  position: absolute;
+  inset: 0;
+}
+
+.progress-preview-ring,
+.progress-preview-axis,
+.progress-preview-shape {
+  position: absolute;
+  pointer-events: none;
+}
+
+.progress-preview-ring {
+  top: 50%;
+  left: 50%;
+  border: 1px solid rgba(183, 192, 207, 0.22);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.progress-preview-ring-outer {
+  width: 7.25rem;
+  height: 7.25rem;
+}
+
+.progress-preview-ring-inner {
+  width: 4.5rem;
+  height: 4.5rem;
+  border-color: rgba(229, 201, 130, 0.2);
+}
+
+.progress-preview-axis {
+  top: 50%;
+  left: 50%;
+  background: rgba(183, 192, 207, 0.18);
+  transform: translate(-50%, -50%);
+}
+
+.progress-preview-axis-horizontal {
+  width: 7.25rem;
+  height: 1px;
+}
+
+.progress-preview-axis-vertical {
+  width: 1px;
+  height: 7.25rem;
+}
+
+.progress-preview-shape {
+  top: 50%;
+  left: 50%;
+  width: 5.5rem;
+  height: 5.5rem;
+  border: 1px solid rgba(229, 201, 130, 0.46);
+  background: rgba(207, 174, 103, 0.15);
+  clip-path: polygon(50% 4%, 94% 34%, 77% 88%, 24% 88%, 6% 34%);
+  transform: translate(-50%, -50%) rotate(8deg);
+}
+
+.progress-guest-skill-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem 0.75rem;
+  margin: 0.7rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.progress-guest-skill-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+}
+
+.progress-guest-skill-list li > span {
+  width: 0.4rem;
+  height: 0.4rem;
+  border: 1px solid var(--muted);
+  border-radius: 50%;
+}
+
 .progress-loading-card {
   margin-top: 3rem;
 }
@@ -1147,7 +1275,8 @@ a:focus-visible {
 }
 
 .tutor-preview-section {
-  padding: clamp(4rem, 8vw, 7rem) 0;
+  scroll-margin-top: 5.5rem;
+  padding: clamp(3.25rem, 6vw, 5.5rem) 0;
 }
 
 .tutor-preview-inner,
@@ -1178,7 +1307,7 @@ a:focus-visible {
   max-width: 34rem;
   margin: 0.65rem 0 0;
   color: var(--text);
-  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-size: clamp(1.7rem, 3.6vw, 2.55rem);
   line-height: 1.05;
 }
 
@@ -1217,7 +1346,7 @@ a:focus-visible {
 }
 
 .final-cta-section {
-  padding: 2rem 0 clamp(5rem, 10vw, 8rem);
+  padding: 1rem 0 clamp(4rem, 8vw, 6rem);
 }
 
 .final-cta-inner {
@@ -1233,7 +1362,7 @@ a:focus-visible {
   max-width: 46rem;
   margin: 0.75rem auto 0;
   color: var(--text);
-  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-size: clamp(1.85rem, 4.5vw, 3.15rem);
   line-height: 1.05;
 }
 
@@ -1321,13 +1450,14 @@ a:focus-visible {
   bottom: 1.25rem;
   display: flex;
   width: min(420px, calc(100vw - 2rem));
-  max-height: min(72vh, 42rem);
+  max-height: min(76vh, 42rem);
   flex-direction: column;
   border: 1px solid var(--border-strong);
   border-radius: 1.25rem;
   background: rgba(12, 20, 36, 0.97);
   box-shadow: 0 28px 80px rgba(0, 0, 0, 0.48);
   pointer-events: auto;
+  overflow: hidden;
 }
 
 .tutor-panel-header {
@@ -1369,6 +1499,7 @@ a:focus-visible {
   min-height: 12rem;
   margin: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 1rem 1.25rem;
   list-style: none;
 }
@@ -1680,6 +1811,27 @@ a:focus-visible {
   }
 }
 
+@media (min-width: 761px) and (max-width: 920px) {
+  .progress-guest-card {
+    grid-template-columns: minmax(0, 1fr) minmax(15rem, 0.7fr);
+    align-items: center;
+  }
+
+  .progress-guest-copy {
+    grid-column: 1;
+  }
+
+  .progress-guest-card > .button {
+    grid-column: 1;
+    justify-self: start;
+  }
+
+  .progress-guest-preview {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+}
+
 @media (max-width: 540px) {
   .hero-grid {
     width: min(100% - 1.25rem, 1180px);
@@ -1719,6 +1871,11 @@ a:focus-visible {
   .hero-secondary-action {
     justify-content: center;
     width: 100%;
+  }
+
+  .tutor-input-form .tutor-send-button {
+    width: auto;
+    flex: 0 0 auto;
   }
 
   .hero-visual {

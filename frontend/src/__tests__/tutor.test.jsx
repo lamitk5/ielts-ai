@@ -29,6 +29,7 @@ describe('floating AI tutor', () => {
 
     expect(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' })).toHaveFocus()
+    expect(screen.getByRole('button', { name: 'Gửi câu hỏi' })).toHaveClass('tutor-send-button')
 
     await user.keyboard('{Escape}')
 

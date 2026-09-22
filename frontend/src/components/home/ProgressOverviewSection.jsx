@@ -56,7 +56,7 @@ function ProgressOverviewSection({ isAuthenticated, state, loading = false }) {
           </div>
         ) : (
           <GlassCard className="progress-guest-card">
-            <div>
+            <div className="progress-guest-copy">
               <p className="progress-card-kicker">LỘ TRÌNH CÁ NHÂN</p>
               <h3 className="font-display">Đánh giá trình độ để mở bảng tiến độ cá nhân</h3>
               <p>
@@ -67,6 +67,30 @@ function ProgressOverviewSection({ isAuthenticated, state, loading = false }) {
             <Link className="button btn-liquid button-primary button-md" to="/assessment">
               <span className="button-label">Bắt đầu đánh giá</span>
             </Link>
+            <div className="progress-guest-preview">
+              <div className="progress-guest-preview-heading">
+                <p className="progress-card-kicker">XEM TRƯỚC LỘ TRÌNH</p>
+                <span>4 kỹ năng</span>
+              </div>
+              <div className="progress-guest-preview-chart">
+                <SkeletonBlock label="Xem trước tiến độ bốn kỹ năng" />
+                <div role="img" aria-label="Xem trước tiến độ theo 4 kỹ năng">
+                  <span className="progress-preview-ring progress-preview-ring-outer" />
+                  <span className="progress-preview-ring progress-preview-ring-inner" />
+                  <span className="progress-preview-axis progress-preview-axis-horizontal" />
+                  <span className="progress-preview-axis progress-preview-axis-vertical" />
+                  <span className="progress-preview-shape" />
+                </div>
+              </div>
+              <ul className="progress-guest-skill-list" aria-label="Bốn kỹ năng trong lộ trình">
+                {['Reading', 'Listening', 'Writing', 'Speaking'].map((skill) => (
+                  <li key={skill}>
+                    <span aria-hidden="true" />
+                    {skill}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </GlassCard>
         )}
       </div>

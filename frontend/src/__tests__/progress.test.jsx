@@ -19,11 +19,20 @@ describe('progress overview', () => {
   test('keeps personal analytics out of the guest homepage', () => {
     renderApp('/')
 
+    const progress = screen.getByRole('region', { name: 'Tiến độ luyện tập của bạn' })
+
     expect(screen.getByText('Đánh giá trình độ để mở bảng tiến độ cá nhân')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Bắt đầu đánh giá' })).toHaveAttribute(
       'href',
       '/assessment',
     )
+    expect(
+      within(progress).getByRole('img', { name: 'Xem trước tiến độ theo 4 kỹ năng' }),
+    ).toBeInTheDocument()
+    for (const skill of ['Reading', 'Listening', 'Writing', 'Speaking']) {
+      expect(within(progress).getByText(skill)).toBeInTheDocument()
+    }
+    expect(within(progress).getByRole('status')).toHaveAttribute('aria-busy', 'true')
     expect(screen.queryByText(/Reading.*6\.5/)).not.toBeInTheDocument()
     expect(screen.queryByText('Lỗi thường gặp tuần này')).not.toBeInTheDocument()
   })

@@ -65,7 +65,13 @@ function TutorPanel({ messages, loading, onClose, onSend, inputRef }) {
           placeholder="Hỏi về bài luyện của bạn..."
           disabled={loading}
         />
-        <Button type="submit" size="sm" aria-label="Gửi câu hỏi" disabled={loading || !draft.trim()}>
+        <Button
+          className="tutor-send-button"
+          type="submit"
+          size="sm"
+          aria-label="Gửi câu hỏi"
+          disabled={loading || !draft.trim()}
+        >
           <Send aria-hidden="true" size={16} />
         </Button>
       </form>
