@@ -3,6 +3,7 @@ import Button from '../components/common/Button'
 import GlassCard from '../components/common/GlassCard'
 import { useAuth } from '../features/auth/AuthProvider'
 import { submitWriting } from '../features/writing/writingApi'
+import FloatingTutor from '../components/tutor/FloatingTutor'
 
 const tasks = [
   { id: 'task-1-academic-01', label: 'Task 1 · Academic', prompt: 'Summarise the information in a chart or process.', minimumWords: 150 },
@@ -65,6 +66,7 @@ function WritingPage() {
         ) : null}
         <Button type="submit" variant="primary" size="lg">Gửi bài viết</Button>
       </form>
+      <FloatingTutor context={{ skill: 'WRITING', exerciseId: taskId, taskType: selectedTask.label }} />
     </section>
   )
 }

@@ -3,6 +3,7 @@ import Button from '../components/common/Button'
 import GlassCard from '../components/common/GlassCard'
 import { useAuth } from '../features/auth/AuthProvider'
 import { saveSpeakingAttempt } from '../features/speaking/speakingApi'
+import FloatingTutor from '../components/tutor/FloatingTutor'
 
 const prompts = [
   { id: 'speaking-p1-01', part: 'PART 1', text: 'Do you enjoy reading in your free time?' },
@@ -56,6 +57,7 @@ function SpeakingPage() {
         {status ? <GlassCard className="speaking-status" role="status">Trạng thái: {status}</GlassCard> : null}
         <Button type="submit" variant="primary" size="lg">Lưu câu trả lời</Button>
       </form>
+      <FloatingTutor context={{ skill: 'SPEAKING', exerciseId: promptId }} />
     </section>
   )
 }

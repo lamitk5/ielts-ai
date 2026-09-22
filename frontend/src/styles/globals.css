@@ -2322,6 +2322,19 @@ a:focus-visible {
   color: var(--gold-light);
 }
 
+.assessment-page {
+  width: min(100% - 2rem, 1180px);
+  margin: 0 auto;
+  padding: clamp(3rem, 7vw, 6rem) 0;
+}
+
+.assessment-page-header { max-width: 50rem; margin-bottom: 2rem; }
+.assessment-page-header h1 { margin: .35rem 0 .75rem; font-size: clamp(2.4rem, 6vw, 4.8rem); }
+.assessment-paths { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.assessment-path { display: grid; gap: .7rem; padding: clamp(1.25rem, 3vw, 2rem); }
+.assessment-path p { margin: 0; color: var(--text-secondary); }
+.assessment-path-label { color: var(--gold-light) !important; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+
 .admin-page {
   width: min(100% - 2rem, 1180px);
   margin: 0 auto;
@@ -2360,7 +2373,29 @@ a:focus-visible {
 .admin-error { border: 1px solid rgba(220, 120, 120, .4); border-radius: .7rem; padding: .8rem 1rem; color: #f4b4b4; }
 .admin-loading { min-height: 10rem; }
 
+.search-page {
+  width: min(100% - 2rem, 1180px);
+  margin: 0 auto;
+  padding: clamp(3rem, 7vw, 6rem) 0;
+}
+
+.search-page-header { max-width: 46rem; margin-bottom: 2rem; }
+.search-page-header h1 { margin: .35rem 0 .75rem; font-size: clamp(2.4rem, 6vw, 4.8rem); }
+.search-status, .search-empty { color: var(--muted); }
+.search-results { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.search-result-card { display: grid; gap: .6rem; padding: clamp(1.25rem, 3vw, 2rem); }
+.search-result-skill { margin: 0; color: var(--gold-light); font-size: .72rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.search-result-card h2 { margin: 0; font-size: clamp(1.35rem, 2.4vw, 2rem); }
+.search-result-card h2 a { color: var(--text); text-decoration: none; }
+.search-result-card h2 a:hover, .search-result-card h2 a:focus-visible { color: var(--gold-light); }
+.search-result-card p:not(.search-result-skill) { margin: 0; color: var(--text-secondary); }
+.search-result-action { margin-top: .6rem; color: var(--gold-light); font-weight: 700; text-decoration: none; }
+.search-result-action:focus-visible, .search-result-card h2 a:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; }
+.search-empty { padding: 1.25rem; }
+
 @media (max-width: 760px) {
+  .assessment-paths { grid-template-columns: 1fr; }
+  .search-results { grid-template-columns: 1fr; }
   .admin-layout { grid-template-columns: 1fr; }
   .admin-jobs-card { grid-column: auto; }
   .admin-page { padding-top: 2.5rem; }

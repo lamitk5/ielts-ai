@@ -55,7 +55,7 @@ describe('premium hero', () => {
     await user.click(screen.getByRole('button', { name: 'Làm bài Test đánh giá năng lực' }))
 
     expect(
-      screen.getByRole('heading', { name: 'Assessment is reserved for a later task.' }),
+      screen.getByRole('heading', { name: 'Đánh giá năng lực IELTS' }),
     ).toBeInTheDocument()
   })
 

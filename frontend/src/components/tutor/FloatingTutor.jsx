@@ -9,7 +9,7 @@ const welcomeMessage = {
   content: 'Mình có thể giúp bạn hiểu bài, xem lại lỗi và chọn bước luyện tập tiếp theo.',
 }
 
-function FloatingTutor() {
+function FloatingTutor({ context = { skill: 'GENERAL' } }) {
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState([welcomeMessage])
   const [loading, setLoading] = useState(false)
@@ -62,7 +62,7 @@ function FloatingTutor() {
     ])
     setLoading(true)
     try {
-      const response = await sendTutorMessage({ message: content, context: { skill: 'GENERAL' }, history })
+      const response = await sendTutorMessage({ message: content, context, history })
       if (!mountedRef.current) return
       setMessages((current) => [
         ...current,

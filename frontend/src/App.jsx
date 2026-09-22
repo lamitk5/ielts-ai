@@ -8,6 +8,9 @@ import { AuthProvider } from './features/auth/AuthProvider'
 import PracticePage from './pages/PracticePage'
 import WritingPage from './pages/WritingPage'
 import SpeakingPage from './pages/SpeakingPage'
+import SearchPage from './pages/SearchPage'
+import AssessmentPage from './pages/AssessmentPage'
+import RegisterPage from './pages/RegisterPage'
 
 function App() {
   return (
@@ -16,20 +19,13 @@ function App() {
         <Route element={<AppLayout />}>
         <Route index element={<HomePage />} />
         <Route path="admin/rag" element={<AdminRagPage />} />
-        <Route
-          path="assessment"
-          element={
-            <PlaceholderPage
-              title="Assessment is reserved for a later task."
-              description="The assessment entry point is ready without implementing assessment logic yet."
-            />
-          }
-        />
-        <Route path="practice/search" element={<PlaceholderPage />} />
+        <Route path="assessment" element={<AssessmentPage />} />
+        <Route path="practice/search" element={<SearchPage />} />
         <Route path="practice/writing" element={<WritingPage />} />
         <Route path="practice/speaking" element={<SpeakingPage />} />
         <Route path="practice/:skill" element={<PracticePage />} />
         <Route path="login" element={<LoginPage />} />
+        <Route path="register" element={<RegisterPage />} />
         <Route
           path="*"
           element={

@@ -87,6 +87,20 @@ describe('floating AI tutor', () => {
     expect(screen.queryByText('Dựa trên nguồn tham chiếu đã kiểm chứng')).not.toBeInTheDocument()
   })
 
+  test('preserves the active practice context for Tutor requests', async () => {
+    const user = userEvent.setup()
+    global.fetch.mockResolvedValueOnce({ ok: true, status: 200, json: async () => answeredResponse() })
+    render(<FloatingTutor context={{ skill: 'WRITING', exerciseId: 'task-1-academic-01', taskType: 'Task 1 · Academic' }} />)
+
+    await user.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
+    await user.type(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' }), 'Giải thích Task Achievement')
+    await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }))
+
+    await waitFor(() => expect(screen.getByText('Gemini trả lời dựa trên câu hỏi của bạn.')).toBeInTheDocument())
+    const payload = JSON.parse(global.fetch.mock.calls[0][1].body)
+    expect(payload.context).toEqual({ skill: 'WRITING', exerciseId: 'task-1-academic-01', taskType: 'Task 1 · Academic' })
+  })
+
   test('renders the real answer and clears loading when mounted under StrictMode', async () => {
     const user = userEvent.setup()
     let resolveRequest

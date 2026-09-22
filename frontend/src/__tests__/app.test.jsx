@@ -31,13 +31,13 @@ describe('app shell and routing', () => {
     expect(screen.getByRole('button', { name: 'Làm bài Test đánh giá năng lực' })).toBeEnabled()
   })
 
-  test('assessment entry navigates to the safe assessment placeholder', async () => {
+  test('assessment entry navigates to the assessment entry flow', async () => {
     const user = userEvent.setup()
     renderApp('/')
 
     await user.click(screen.getByRole('button', { name: 'Làm bài Test đánh giá năng lực' }))
 
-    expect(screen.getByRole('heading', { name: /Assessment/ })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Đánh giá năng lực IELTS' })).toBeInTheDocument()
   })
 
   test('member demo query keeps the home route usable without exposing mode labels', () => {

@@ -6,6 +6,7 @@ import PlaceholderPage from './PlaceholderPage'
 import { useAuth } from '../features/auth/AuthProvider'
 import { practiceFixtures } from '../features/reading/practiceFixtures'
 import { fetchPracticeSet, submitPracticeAttempt } from '../features/reading/practiceApi'
+import FloatingTutor from '../components/tutor/FloatingTutor'
 
 function PracticePage() {
   const { skill } = useParams()
@@ -76,6 +77,7 @@ function PracticePage() {
           <Link className="button button-secondary button-lg" to="/">Về trang chủ</Link>
         </div>
       </form>
+      <FloatingTutor context={{ skill: skill.toUpperCase(), lessonId: practiceSet.setId ?? practiceSet.id }} />
     </section>
   )
 }
