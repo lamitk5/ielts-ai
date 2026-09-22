@@ -1,0 +1,11 @@
+sources:
+  - file: sample-guide.txt
+    title: IELTS AI Tutor sample guide
+    author: IELTS AI Tutor project
+    organization: IELTS AI Tutor
+    version: '1'
+    language: en
+    skill: GENERAL
+    rightsStatus: PENDING_REVIEW
+    rightsNote: Project-owned sample content for local ingestion verification.
+    sourceType: PROJECT_CREATED
