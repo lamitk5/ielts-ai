@@ -79,6 +79,13 @@ describe('progress overview', () => {
     vi.useRealTimers()
   })
 
+  test('does not invent a target exam date for a newly authenticated member', () => {
+    render(<ExamCountdownCard />)
+
+    expect(screen.getByText('Chưa đặt ngày thi')).toBeInTheDocument()
+    expect(screen.queryByText('undefined')).not.toBeInTheDocument()
+  })
+
   test('uses the shared skeleton semantics while progress data loads', () => {
     render(<ProgressOverviewSection isAuthenticated state={memberDemo} loading />)
 

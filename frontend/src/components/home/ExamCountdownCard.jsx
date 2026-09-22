@@ -16,6 +16,19 @@ function getRemainingDays(examDate, now = new Date()) {
 }
 
 function ExamCountdownCard({ examDate }) {
+  if (!examDate) {
+    return (
+      <GlassCard className="exam-countdown-card">
+        <div className="progress-card-kicker">
+          <CalendarDays aria-hidden="true" size={18} />
+          <span>Ngày thi mục tiêu</span>
+        </div>
+        <p className="exam-countdown-days">Chưa đặt ngày thi</p>
+        <p className="exam-countdown-copy">Bạn có thể thêm ngày thi sau khi sẵn sàng.</p>
+      </GlassCard>
+    )
+  }
+
   const remainingDays = getRemainingDays(examDate)
   const isPastOrToday = remainingDays === 0
 
