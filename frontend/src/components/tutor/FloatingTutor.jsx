@@ -73,7 +73,7 @@ function FloatingTutor() {
           content: response.answer,
           grounding: response.status === 'INSUFFICIENT_CONTEXT'
             ? { status: 'insufficient_context', sourceCount: 0 }
-            : response.grounding,
+            : { ...response.grounding, sourceCount: response.sources.length },
           citations: response.sources,
         },
       ])

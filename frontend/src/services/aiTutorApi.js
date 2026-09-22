@@ -50,8 +50,8 @@ export async function sendTutorMessage({ message, context = { skill: 'GENERAL' }
     return {
       status: payload.status,
       answer: payload.answer,
-      sources: Array.isArray(payload.sources) ? payload.sources : [],
-      grounding: payload.grounding ?? { status: 'NOT_ENABLED', ragEnabled: false },
+      sources: normalizeSources(payload.sources),
+      grounding: normalizeGrounding(payload.grounding),
       meta: payload.meta,
       timestamp: payload.timestamp,
     }
@@ -62,6 +62,28 @@ export async function sendTutorMessage({ message, context = { skill: 'GENERAL' }
   } finally {
     window.clearTimeout(timeoutId)
     removeAbortListener()
+  }
+}
+
+function normalizeSources(sources) {
+  if (!Array.isArray(sources)) return []
+
+  return sources.map((source) => ({
+    sourceId: typeof source?.sourceId === 'string' ? source.sourceId : '',
+    title: typeof source?.title === 'string' ? source.title : '',
+    section: typeof source?.section === 'string' ? source.section : '',
+    version: typeof source?.version === 'string' ? source.version : '',
+    page: Number.isFinite(source?.page) ? source.page : null,
+    chunkId: typeof source?.chunkId === 'string' ? source.chunkId : '',
+  })).filter((source) => source.sourceId && source.title)
+}
+
+function normalizeGrounding(grounding) {
+  if (!grounding || typeof grounding !== 'object') return { status: 'NOT_ENABLED', ragEnabled: false }
+
+  return {
+    status: typeof grounding.status === 'string' ? grounding.status.toUpperCase() : 'NOT_ENABLED',
+    ragEnabled: Boolean(grounding.ragEnabled),
   }
 }
 
