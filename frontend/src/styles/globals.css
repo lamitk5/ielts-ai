@@ -2005,6 +2005,68 @@ a:focus-visible {
   }
 }
 
+.auth-page {
+  display: grid;
+  min-height: calc(100vh - 13rem);
+  place-items: center;
+  padding: 3rem 1rem;
+}
+
+.auth-card {
+  width: min(100%, 30rem);
+  padding: clamp(1.5rem, 5vw, 3rem);
+}
+
+.auth-card h1 {
+  margin: .75rem 0 0;
+  font-size: clamp(2.2rem, 6vw, 3.5rem);
+}
+
+.auth-form {
+  display: grid;
+  gap: .6rem;
+  margin-top: 1.75rem;
+}
+
+.auth-form label {
+  color: var(--text-secondary);
+  font-size: .85rem;
+  font-weight: 600;
+}
+
+.auth-form input {
+  width: 100%;
+  min-height: 3rem;
+  margin-bottom: .5rem;
+  border: 1px solid var(--border);
+  border-radius: .7rem;
+  padding: 0 .8rem;
+  background: rgba(6, 11, 22, .62);
+  color: var(--text);
+  font: inherit;
+}
+
+.auth-form input:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.auth-error {
+  margin: .25rem 0 .5rem;
+  color: #f4b4b4;
+}
+
+.auth-footer-copy {
+  margin: 1.25rem 0 0;
+  color: var(--muted);
+  font-size: .85rem;
+  text-align: center;
+}
+
+.auth-footer-copy a {
+  color: var(--gold-light);
+}
+
 .admin-page {
   width: min(100% - 2rem, 1180px);
   margin: 0 auto;

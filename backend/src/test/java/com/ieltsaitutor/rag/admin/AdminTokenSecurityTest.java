@@ -11,6 +11,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ieltsaitutor.auth.AuthInterceptor;
+import com.ieltsaitutor.auth.AuthPrincipal;
+import com.ieltsaitutor.auth.UserRole;
+
 class AdminTokenSecurityTest {
     @Test
     void missingTokenReturns401() throws Exception { mvc("secret").perform(get("/api/admin/rag/protected")).andExpect(status().isUnauthorized()); }
@@ -39,6 +43,30 @@ class AdminTokenSecurityTest {
     void tokenDoesNotAppearInErrorBody() throws Exception {
         mvc("secret").perform(get("/api/admin/rag/protected").header("X-Admin-Token", "wrong"))
                 .andExpect(status().isForbidden()).andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("secret"))));
+    }
+
+    @Test
+    void authenticatedAdminRoleAuthorizesWithoutCompatibilityToken() throws Exception {
+        MockMvc secured = MockMvcBuilders.standaloneSetup(new ProtectedController())
+                .addInterceptors(new AdminTokenInterceptor(new AdminTokenAuthorizationService("")))
+                .build();
+
+        secured.perform(get("/api/admin/rag/protected")
+                        .requestAttr(AuthInterceptor.PRINCIPAL_ATTRIBUTE,
+                                new AuthPrincipal(java.util.UUID.randomUUID(), "admin@example.com", "Admin", UserRole.ADMIN)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void authenticatedCustomerRoleCannotAuthorizeAdminRoute() throws Exception {
+        MockMvc secured = MockMvcBuilders.standaloneSetup(new ProtectedController())
+                .addInterceptors(new AdminTokenInterceptor(new AdminTokenAuthorizationService("")))
+                .build();
+
+        secured.perform(get("/api/admin/rag/protected")
+                        .requestAttr(AuthInterceptor.PRINCIPAL_ATTRIBUTE,
+                                new AuthPrincipal(java.util.UUID.randomUUID(), "student@example.com", "Student", UserRole.CUSTOMER)))
+                .andExpect(status().isUnauthorized());
     }
 
     private MockMvc mvc(String configuredToken) {

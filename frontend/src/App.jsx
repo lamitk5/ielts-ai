@@ -3,11 +3,14 @@ import AppLayout from './components/layout/AppLayout'
 import HomePage from './pages/HomePage'
 import PlaceholderPage from './pages/PlaceholderPage'
 import AdminRagPage from './pages/AdminRagPage'
+import LoginPage from './pages/LoginPage'
+import { AuthProvider } from './features/auth/AuthProvider'
 
 function App() {
   return (
-    <Routes>
-      <Route element={<AppLayout />}>
+    <AuthProvider>
+      <Routes>
+        <Route element={<AppLayout />}>
         <Route index element={<HomePage />} />
         <Route path="admin/rag" element={<AdminRagPage />} />
         <Route
@@ -21,15 +24,7 @@ function App() {
         />
         <Route path="practice/search" element={<PlaceholderPage />} />
         <Route path="practice/:skill" element={<PlaceholderPage />} />
-        <Route
-          path="login"
-          element={
-            <PlaceholderPage
-              title="Sign in is reserved for a later task."
-              description="Authentication is intentionally out of scope for this frontend shell."
-            />
-          }
-        />
+        <Route path="login" element={<LoginPage />} />
         <Route
           path="*"
           element={
@@ -39,8 +34,9 @@ function App() {
             />
           }
         />
-      </Route>
-    </Routes>
+        </Route>
+      </Routes>
+    </AuthProvider>
   )
 }
 

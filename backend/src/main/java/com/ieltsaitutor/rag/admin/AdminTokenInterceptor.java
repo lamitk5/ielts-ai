@@ -7,6 +7,10 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import com.ieltsaitutor.auth.AuthInterceptor;
+import com.ieltsaitutor.auth.AuthPrincipal;
+import com.ieltsaitutor.auth.UserRole;
+
 public class AdminTokenInterceptor implements HandlerInterceptor {
     private final AdminAuthorizationService authorization;
 
@@ -15,6 +19,8 @@ public class AdminTokenInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException {
         if (!request.getRequestURI().startsWith("/api/admin/rag/")) return true;
+        Object principal = request.getAttribute(AuthInterceptor.PRINCIPAL_ATTRIBUTE);
+        if (principal instanceof AuthPrincipal authenticated && authenticated.role() == UserRole.ADMIN) return true;
         AuthorizationDecision decision = authorization.authorize(request.getHeader("X-Admin-Token"));
         if (decision.authorized()) return true;
         response.setStatus(decision.statusCode());
