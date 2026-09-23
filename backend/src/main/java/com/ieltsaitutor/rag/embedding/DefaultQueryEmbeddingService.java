@@ -13,6 +13,6 @@ public class DefaultQueryEmbeddingService implements QueryEmbeddingService {
     @Override
     public EmbeddingVector embedQuery(String query) {
         EmbeddingResult result = provider.embed(new EmbeddingRequest(query, EmbeddingTask.QUERY));
-        return new EmbeddingVector(result.dimension(), result.values());
+        return new EmbeddingVector(result.dimension(), result.values(), result.space());
     }
 }

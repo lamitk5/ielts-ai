@@ -33,6 +33,23 @@ public class GeminiEmbeddingProvider implements EmbeddingProvider {
     }
 
     @Override
+    public com.ieltsaitutor.ai.provider.ProviderId providerId() {
+        return com.ieltsaitutor.ai.provider.ProviderId.GEMINI;
+    }
+
+    @Override
+    public boolean isEmbeddingConfigured() {
+        return !properties.getApiKey().isBlank() && !properties.getEmbeddingModel().isBlank()
+                && !properties.getBaseUrl().isBlank() && properties.getEmbeddingDimension() == 768;
+    }
+
+    @Override
+    public EmbeddingSpace embeddingSpace() {
+        return new EmbeddingSpace(providerId(), properties.getEmbeddingModel(), properties.getEmbeddingDimension(),
+                "v1");
+    }
+
+    @Override
     public EmbeddingResult embed(EmbeddingRequest request) {
         validateConfiguration();
         for (int attempt = 0; ; attempt++) {
@@ -116,7 +133,8 @@ public class GeminiEmbeddingProvider implements EmbeddingProvider {
             throw new RagEmbeddingException("RAG_EMBEDDING_DIMENSION_MISMATCH", 502,
                     "Embedding dimension không khớp cấu hình.");
         }
-        return new EmbeddingResult(properties.getEmbeddingModel(), vector.size(), vector);
+        EmbeddingSpace space = vector.size() == 768 ? embeddingSpace() : null;
+        return new EmbeddingResult(properties.getEmbeddingModel(), vector.size(), vector, space);
     }
 
     private String endpointUri() {

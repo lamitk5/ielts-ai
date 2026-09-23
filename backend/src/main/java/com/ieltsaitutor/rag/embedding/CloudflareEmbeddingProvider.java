@@ -3,7 +3,6 @@ package com.ieltsaitutor.rag.embedding;
 import com.ieltsaitutor.ai.config.AiProviderProperties;
 import com.ieltsaitutor.rag.config.RagProperties;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -16,7 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-@Primary
 public class CloudflareEmbeddingProvider implements EmbeddingProvider {
     private final WebClient webClient;
     private final AiProviderProperties.Cloudflare properties;
@@ -29,6 +27,23 @@ public class CloudflareEmbeddingProvider implements EmbeddingProvider {
         this.properties = properties.getCloudflare();
         this.ragProperties = ragProperties;
         this.objectMapper = objectMapper;
+    }
+
+    @Override
+    public com.ieltsaitutor.ai.provider.ProviderId providerId() {
+        return com.ieltsaitutor.ai.provider.ProviderId.CLOUDFLARE;
+    }
+
+    @Override
+    public boolean isEmbeddingConfigured() {
+        return !properties.getAccountId().isBlank() && !properties.getApiToken().isBlank()
+                && !properties.getEmbeddingModel().isBlank() && !properties.getBaseUrl().isBlank();
+    }
+
+    @Override
+    public EmbeddingSpace embeddingSpace() {
+        return new EmbeddingSpace(providerId(), properties.getEmbeddingModel(), ragProperties.embeddingDimension(),
+                "v1");
     }
 
     @Override
@@ -95,7 +110,8 @@ public class CloudflareEmbeddingProvider implements EmbeddingProvider {
             throw new RagEmbeddingException("RAG_EMBEDDING_DIMENSION_MISMATCH", 502,
                     "Embedding dimension không khớp cấu hình.");
         }
-        return new EmbeddingResult(properties.getEmbeddingModel(), vector.size(), vector);
+        EmbeddingSpace space = embeddingSpace();
+        return new EmbeddingResult(properties.getEmbeddingModel(), vector.size(), vector, space);
     }
 
     private String endpoint() {
