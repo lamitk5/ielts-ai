@@ -14,18 +14,27 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ObjectNode;
 
+import com.ieltsaitutor.rag.config.RagProperties;
+
 @Component
 public class GeminiEmbeddingProvider implements EmbeddingProvider {
     private final WebClient webClient;
     private final GeminiEmbeddingProperties properties;
     private final ObjectMapper objectMapper;
+    private final RagProperties ragProperties;
 
     @Autowired
     public GeminiEmbeddingProvider(WebClient geminiWebClient, GeminiEmbeddingProperties properties,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper, RagProperties ragProperties) {
         this.webClient = geminiWebClient;
         this.properties = properties;
         this.objectMapper = objectMapper;
+        this.ragProperties = ragProperties;
+    }
+
+    public GeminiEmbeddingProvider(WebClient geminiWebClient, GeminiEmbeddingProperties properties,
+            ObjectMapper objectMapper) {
+        this(geminiWebClient, properties, objectMapper, new RagProperties());
     }
 
     public GeminiEmbeddingProvider(WebClient geminiWebClient, GeminiEmbeddingProperties properties) {
@@ -46,7 +55,7 @@ public class GeminiEmbeddingProvider implements EmbeddingProvider {
     @Override
     public EmbeddingSpace embeddingSpace() {
         return new EmbeddingSpace(providerId(), properties.getEmbeddingModel(), properties.getEmbeddingDimension(),
-                "v1");
+                ragProperties.embeddingVersion());
     }
 
     @Override

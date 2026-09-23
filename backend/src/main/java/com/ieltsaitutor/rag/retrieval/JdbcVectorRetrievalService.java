@@ -35,7 +35,7 @@ public class JdbcVectorRetrievalService implements VectorRetrievalService {
         int topK = query.topK() > 0 ? query.topK() : properties.topK();
         double minSimilarity = query.minSimilarity() > 0 ? query.minSimilarity() : properties.minSimilarity();
         List<RagChunk> candidates = chunks.findGovernedCandidates(new RagQueryParameters(embedding.values(), query.skill(),
-                query.language(), topK, minSimilarity));
+                query.language(), topK, minSimilarity, space));
         return candidates.stream().map(this::map).filter(result -> result.similarity() >= minSimilarity)
                 .filter(result -> space == null || result.space() == null || result.space().matches(space))
                 .sorted(Comparator.comparingDouble(RetrievedChunk::similarity).reversed()).limit(topK).toList();

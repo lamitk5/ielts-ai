@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 import com.ieltsaitutor.rag.domain.ExtractionStatus;
 import com.ieltsaitutor.rag.domain.IndexStatus;
 import com.ieltsaitutor.rag.domain.RagDocumentVersion;
+import com.ieltsaitutor.rag.embedding.EmbeddingSpace;
 
 @Repository
 public class RagDocumentVersionJdbcRepository implements RagDocumentVersionRepository {
@@ -29,9 +30,11 @@ public class RagDocumentVersionJdbcRepository implements RagDocumentVersionRepos
         jdbc.update("""
                 INSERT INTO rag_document_versions
                 (id, document_id, version, original_filename, mime_type, file_size_bytes, checksum, storage_path,
-                 extraction_status, index_status, approved_at, indexed_at, created_at)
+                 extraction_status, index_status, approved_at, indexed_at, created_at,
+                 embedding_provider, embedding_model, embedding_dimension, embedding_version)
                 VALUES (:id, :documentId, :version, :originalFilename, :mimeType, :fileSizeBytes, :checksum,
-                        :storagePath, :extractionStatus, :indexStatus, :approvedAt, :indexedAt, :createdAt)
+                        :storagePath, :extractionStatus, :indexStatus, :approvedAt, :indexedAt, :createdAt,
+                        :embeddingProvider, :embeddingModel, :embeddingDimension, :embeddingVersion)
                 """, params(version));
     }
 
@@ -82,6 +85,16 @@ public class RagDocumentVersionJdbcRepository implements RagDocumentVersionRepos
                         Types.TIMESTAMP_WITH_TIMEZONE));
     }
 
+    @Override
+    public void setEmbeddingSpace(UUID id, EmbeddingSpace space) {
+        jdbc.update("""
+                UPDATE rag_document_versions SET embedding_provider = :provider, embedding_model = :model,
+                       embedding_dimension = :dimension, embedding_version = :version WHERE id = :id
+                """, new MapSqlParameterSource().addValue("id", id).addValue("provider", space.provider().name())
+                .addValue("model", space.model()).addValue("dimension", space.dimension())
+                .addValue("version", space.version()));
+    }
+
     private MapSqlParameterSource params(RagDocumentVersion version) {
         return new MapSqlParameterSource()
                 .addValue("id", version.id()).addValue("documentId", version.documentId())
@@ -92,6 +105,10 @@ public class RagDocumentVersionJdbcRepository implements RagDocumentVersionRepos
                 .addValue("indexStatus", version.indexStatus().name())
                 .addValue("approvedAt", version.approvedAt() == null ? null : version.approvedAt().atOffset(ZoneOffset.UTC), Types.TIMESTAMP_WITH_TIMEZONE)
                 .addValue("indexedAt", version.indexedAt() == null ? null : version.indexedAt().atOffset(ZoneOffset.UTC), Types.TIMESTAMP_WITH_TIMEZONE)
-                .addValue("createdAt", version.createdAt().atOffset(ZoneOffset.UTC), Types.TIMESTAMP_WITH_TIMEZONE);
+                .addValue("createdAt", version.createdAt().atOffset(ZoneOffset.UTC), Types.TIMESTAMP_WITH_TIMEZONE)
+                .addValue("embeddingProvider", version.embeddingSpace() == null ? null : version.embeddingSpace().provider().name())
+                .addValue("embeddingModel", version.embeddingSpace() == null ? null : version.embeddingSpace().model())
+                .addValue("embeddingDimension", version.embeddingSpace() == null ? null : version.embeddingSpace().dimension())
+                .addValue("embeddingVersion", version.embeddingSpace() == null ? null : version.embeddingSpace().version());
     }
 }

@@ -9,6 +9,7 @@ public class RagProperties {
     private String storageRoot = "backend/data/rag/uploads";
     private long maxUploadBytes = 10 * 1024 * 1024L;
     private int embeddingDimension = 768;
+    private String embeddingVersion = "v1";
     private int topK = 5;
     private double minSimilarity = 0.72d;
     private int embeddingBatchSize = 32;
@@ -23,6 +24,8 @@ public class RagProperties {
     public void setMaxUploadBytes(long maxUploadBytes) { this.maxUploadBytes = maxUploadBytes; }
     public int embeddingDimension() { return embeddingDimension; }
     public void setEmbeddingDimension(int embeddingDimension) { this.embeddingDimension = embeddingDimension; }
+    public String embeddingVersion() { return embeddingVersion; }
+    public void setEmbeddingVersion(String embeddingVersion) { this.embeddingVersion = embeddingVersion == null ? "" : embeddingVersion.trim(); }
     public int topK() { return topK; }
     public void setTopK(int topK) { this.topK = topK; }
     public double minSimilarity() { return minSimilarity; }

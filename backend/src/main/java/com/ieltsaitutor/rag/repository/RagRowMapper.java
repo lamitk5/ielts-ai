@@ -17,6 +17,8 @@ import com.ieltsaitutor.rag.domain.RagDocumentVersion;
 import com.ieltsaitutor.rag.domain.RagIngestionJob;
 import com.ieltsaitutor.rag.domain.RightsStatus;
 import com.ieltsaitutor.rag.domain.Skill;
+import com.ieltsaitutor.ai.provider.ProviderId;
+import com.ieltsaitutor.rag.embedding.EmbeddingSpace;
 
 public final class RagRowMapper {
     private RagRowMapper() {}
@@ -36,7 +38,7 @@ public final class RagRowMapper {
             IndexStatus.valueOf(rs.getString("index_status")),
             rs.getTimestamp("approved_at") == null ? null : rs.getTimestamp("approved_at").toInstant(),
             rs.getTimestamp("indexed_at") == null ? null : rs.getTimestamp("indexed_at").toInstant(),
-            rs.getTimestamp("created_at").toInstant());
+            rs.getTimestamp("created_at").toInstant(), embeddingSpace(rs));
 
     public static final RowMapper<RagChunk> CHUNK = (rs, rowNum) -> {
         Map<String, Object> metadata = new java.util.LinkedHashMap<>();
@@ -45,6 +47,10 @@ public final class RagRowMapper {
         try { metadata.put("version", rs.getString("document_version")); } catch (SQLException ignored) {}
         try { metadata.put("sourceId", rs.getString("source_id")); } catch (SQLException ignored) {}
         try { metadata.put("similarity", rs.getDouble("similarity")); } catch (SQLException ignored) {}
+        try {
+            EmbeddingSpace space = embeddingSpace(rs);
+            if (space != null) metadata.put("embeddingSpace", space);
+        } catch (SQLException ignored) {}
         return new RagChunk(rs.getObject("id", UUID.class), rs.getObject("document_version_id", UUID.class),
                 rs.getInt("chunk_index"), rs.getString("content"), (Integer) rs.getObject("page_number"),
                 rs.getString("section_title"), rs.getInt("token_count"), List.of(), metadata,
@@ -61,5 +67,15 @@ public final class RagRowMapper {
 
     public static String nullableText(ResultSet rs, String column) throws SQLException {
         return rs.getString(column);
+    }
+
+    private static EmbeddingSpace embeddingSpace(ResultSet rs) throws SQLException {
+        String provider = rs.getString("embedding_provider");
+        String model = rs.getString("embedding_model");
+        int dimension = rs.getInt("embedding_dimension");
+        boolean dimensionNull = rs.wasNull();
+        String version = rs.getString("embedding_version");
+        if (dimensionNull || provider == null || model == null || version == null || dimension != 768) return null;
+        return new EmbeddingSpace(ProviderId.valueOf(provider), model, dimension, version);
     }
 }

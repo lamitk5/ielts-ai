@@ -22,6 +22,7 @@ import com.ieltsaitutor.rag.embedding.EmbeddingProvider;
 import com.ieltsaitutor.rag.embedding.EmbeddingRequest;
 import com.ieltsaitutor.rag.embedding.EmbeddingResult;
 import com.ieltsaitutor.rag.embedding.EmbeddingTask;
+import com.ieltsaitutor.rag.embedding.EmbeddingSpace;
 import com.ieltsaitutor.rag.repository.RagChunkRepository;
 import com.ieltsaitutor.rag.repository.RagDocumentRepository;
 import com.ieltsaitutor.rag.repository.RagDocumentVersionRepository;
@@ -135,6 +136,8 @@ public class DefaultDocumentIngestionService implements DocumentIngestionService
             if (vectors.size() != documentChunks.size()) {
                 throw invalid("RAG_EMBEDDING_COUNT_MISMATCH", "Số vector không khớp số chunk.");
             }
+            EmbeddingSpace space = validateEmbeddingSpace(vectors);
+            if (space != null) versions.setEmbeddingSpace(versionId, space);
             List<RagChunk> persisted = toChunks(documentChunks, vectors, versionId);
             chunks.insertBatch(persisted);
             versions.updateIndexStatus(versionId, IndexStatus.INDEXED);
@@ -160,8 +163,18 @@ public class DefaultDocumentIngestionService implements DocumentIngestionService
             DocumentChunk chunk = chunks.get(index);
             EmbeddingResult vector = vectors.get(index);
             return new RagChunk(UUID.randomUUID(), versionId, chunk.chunkIndex(), chunk.content(), chunk.pageNumber(),
-                    chunk.sectionTitle(), chunk.tokenCount(), vector.values(), chunk.metadata(), now);
+                    chunk.sectionTitle(), chunk.tokenCount(), vector.values(), chunk.metadata(), now, vector.space());
         }).toList();
+    }
+
+    private EmbeddingSpace validateEmbeddingSpace(List<EmbeddingResult> vectors) {
+        if (properties.embeddingDimension() != 768) return null;
+        EmbeddingSpace space = vectors.get(0).space();
+        if (space == null || space.dimension() != 768 || vectors.stream().anyMatch(vector ->
+                vector.space() == null || !space.matches(vector.space()))) {
+            throw invalid("RAG_EMBEDDING_SPACE_REQUIRED", "Indexing cần một embedding space đầy đủ và duy nhất.");
+        }
+        return space;
     }
 
     private RagDocumentVersion requireVersion(UUID documentId, UUID versionId) {

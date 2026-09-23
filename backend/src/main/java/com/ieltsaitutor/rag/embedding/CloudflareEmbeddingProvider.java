@@ -43,7 +43,7 @@ public class CloudflareEmbeddingProvider implements EmbeddingProvider {
     @Override
     public EmbeddingSpace embeddingSpace() {
         return new EmbeddingSpace(providerId(), properties.getEmbeddingModel(), ragProperties.embeddingDimension(),
-                "v1");
+                ragProperties.embeddingVersion());
     }
 
     @Override
