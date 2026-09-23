@@ -13,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -24,30 +23,48 @@ import java.util.stream.Collectors;
 public class AiProviderRouter implements AiProvider {
     private final Map<ProviderId, AiProviderAdapter> adapters;
     private final List<ProviderId> configuredOrder;
+    private final ProviderRoutingPolicy policy;
+    private final ProviderHealthRegistry health;
 
     public AiProviderRouter(List<AiProviderAdapter> adapters) {
-        this(adapters, null);
+        this(adapters, null, new ProviderHealthRegistry(new AiProviderProperties.Health(), java.time.Clock.systemUTC()));
     }
 
     @Autowired
-    public AiProviderRouter(List<AiProviderAdapter> adapters, AiProviderProperties properties) {
+    public AiProviderRouter(List<AiProviderAdapter> adapters, AiProviderProperties properties,
+            ProviderHealthRegistry health) {
         this.adapters = adapters.stream().collect(Collectors.toUnmodifiableMap(AiProviderAdapter::id, Function.identity()));
         this.configuredOrder = properties == null
                 ? adapters.stream().map(AiProviderAdapter::id).toList()
                 : orderedProviders(properties);
+        this.policy = new ProviderRoutingPolicy();
+        this.health = health;
     }
 
     @Override
     public AiChatResult chat(AiChatCommand command) {
+        AiProviderException lastTransient = null;
         for (ProviderId providerId : configuredOrder) {
             AiProviderAdapter adapter = adapters.get(providerId);
             if (adapter == null || !adapter.enabled() || !adapter.capabilities().contains(ProviderCapability.CHAT)) {
                 continue;
             }
-            return adapter.chat(command);
+            if (!health.tryAcquire(providerId)) continue;
+            try {
+                AiChatResult result = adapter.chat(command);
+                health.recordSuccess(providerId);
+                return result;
+            } catch (AiProviderException exception) {
+                ProviderFailure failure = policy.classify(providerId, exception);
+                if (!policy.shouldAdvance(failure)) throw exception;
+                if (failure.category() == ProviderFailureCategory.TRANSIENT) {
+                    health.recordFailure(providerId);
+                }
+                lastTransient = exception;
+            }
         }
         throw new AiProviderException("AI_TEMPORARILY_UNAVAILABLE", HttpStatus.SERVICE_UNAVAILABLE,
-                "Trợ giảng AI tạm thời chưa sẵn sàng.");
+                "Trợ giảng AI tạm thời chưa sẵn sàng.", lastTransient);
     }
 
     private List<ProviderId> orderedProviders(AiProviderProperties properties) {

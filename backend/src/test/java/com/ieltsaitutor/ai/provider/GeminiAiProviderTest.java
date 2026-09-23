@@ -109,8 +109,8 @@ class GeminiAiProviderTest {
 
         assertThatThrownBy(() -> provider.chat(command()))
                 .isInstanceOfSatisfying(AiProviderException.class, exception -> {
-                    assertThat(exception.code()).isEqualTo("AI_PROVIDER_ERROR");
-                    assertThat(exception.status().value()).isEqualTo(502);
+                    assertThat(exception.code()).isEqualTo("AI_INVALID_REQUEST");
+                    assertThat(exception.status().value()).isEqualTo(400);
                     assertThat(exception.getMessage()).isEqualTo("AI provider rejected the request.");
                 });
     }
@@ -123,7 +123,7 @@ class GeminiAiProviderTest {
 
         assertThatThrownBy(() -> provider.chat(command()))
                 .isInstanceOfSatisfying(AiProviderException.class, exception -> {
-                    assertThat(exception.code()).isEqualTo("AI_PROVIDER_ERROR");
+                    assertThat(exception.code()).isEqualTo("AI_PROVIDER_AUTHENTICATION");
                     assertThat(exception.status().value()).isEqualTo(502);
                     assertThat(exception.getMessage()).isEqualTo(
                             "AI provider authentication is not configured correctly.");
@@ -174,7 +174,7 @@ class GeminiAiProviderTest {
 
         assertThatThrownBy(() -> provider.chat(command()))
                 .isInstanceOfSatisfying(AiProviderException.class, exception -> {
-                    assertThat(exception.code()).isEqualTo("AI_PROVIDER_ERROR");
+                    assertThat(exception.code()).isEqualTo("AI_PROVIDER_MALFORMED_RESPONSE");
                     assertThat(exception.status().value()).isEqualTo(502);
                 });
     }

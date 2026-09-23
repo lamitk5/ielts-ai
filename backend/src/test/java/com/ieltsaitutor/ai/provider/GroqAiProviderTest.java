@@ -76,7 +76,7 @@ class GroqAiProviderTest {
 
         assertThatThrownBy(() -> provider.chat(command()))
                 .isInstanceOfSatisfying(AiProviderException.class, exception -> {
-                    assertThat(exception.code()).isEqualTo("AI_PROVIDER_ERROR");
+                    assertThat(exception.code()).isEqualTo("AI_PROVIDER_MALFORMED_RESPONSE");
                     assertThat(exception.status().value()).isEqualTo(502);
                 });
     }

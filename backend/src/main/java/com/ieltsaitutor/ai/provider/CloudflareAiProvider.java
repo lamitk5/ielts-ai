@@ -64,7 +64,7 @@ public class CloudflareAiProvider implements AiProviderAdapter {
         } catch (CloudflareHttpException exception) {
             throw map(exception.statusCode);
         } catch (JacksonException | IllegalArgumentException exception) {
-            throw new AiProviderException("AI_PROVIDER_ERROR", HttpStatus.BAD_GATEWAY,
+            throw new AiProviderException("AI_PROVIDER_MALFORMED_RESPONSE", HttpStatus.BAD_GATEWAY,
                     "AI provider returned an invalid response.", exception);
         } catch (WebClientRequestException exception) {
             throw new AiProviderException("AI_TEMPORARILY_UNAVAILABLE", HttpStatus.SERVICE_UNAVAILABLE,
@@ -102,9 +102,9 @@ public class CloudflareAiProvider implements AiProviderAdapter {
     }
 
     private AiProviderException map(int status) {
-        if (status == 400) return new AiProviderException("AI_PROVIDER_ERROR", HttpStatus.BAD_GATEWAY,
+        if (status == 400) return new AiProviderException("AI_INVALID_REQUEST", HttpStatus.BAD_REQUEST,
                 "AI provider rejected the request.");
-        if (status == 401 || status == 403) return new AiProviderException("AI_PROVIDER_ERROR", HttpStatus.BAD_GATEWAY,
+        if (status == 401 || status == 403) return new AiProviderException("AI_PROVIDER_AUTHENTICATION", HttpStatus.BAD_GATEWAY,
                 "AI provider authentication is not configured correctly.");
         if (status == 429) return new AiProviderException("AI_RATE_LIMITED", HttpStatus.TOO_MANY_REQUESTS,
                 "Trợ giảng AI đang nhận quá nhiều yêu cầu. Vui lòng thử lại sau.");

@@ -75,7 +75,7 @@ public class GeminiAiProvider implements AiProvider, AiProviderAdapter {
                 throw mapHttpException(exception);
             } catch (JacksonException | IllegalArgumentException exception) {
                 throw new AiProviderException(
-                        "AI_PROVIDER_ERROR", HttpStatus.BAD_GATEWAY,
+                        "AI_PROVIDER_MALFORMED_RESPONSE", HttpStatus.BAD_GATEWAY,
                         "AI provider returned an invalid response.", exception);
             } catch (WebClientRequestException exception) {
                 log.warn("Gemini network failure requestId={} model={} endpoint={} type={}",
@@ -209,11 +209,11 @@ public class GeminiAiProvider implements AiProvider, AiProviderAdapter {
 
     private AiProviderException mapHttpException(GeminiHttpException exception) {
         if (exception.statusCode() == 400) {
-            return new AiProviderException("AI_PROVIDER_ERROR", HttpStatus.BAD_GATEWAY,
+            return new AiProviderException("AI_INVALID_REQUEST", HttpStatus.BAD_REQUEST,
                     "AI provider rejected the request.");
         }
         if (exception.statusCode() == 401 || exception.statusCode() == 403) {
-            return new AiProviderException("AI_PROVIDER_ERROR", HttpStatus.BAD_GATEWAY,
+            return new AiProviderException("AI_PROVIDER_AUTHENTICATION", HttpStatus.BAD_GATEWAY,
                     "AI provider authentication is not configured correctly.");
         }
         if (exception.statusCode() == 429) {
@@ -224,7 +224,7 @@ public class GeminiAiProvider implements AiProvider, AiProviderAdapter {
             return new AiProviderException("AI_TEMPORARILY_UNAVAILABLE", HttpStatus.SERVICE_UNAVAILABLE,
                     "Trợ giảng AI tạm thời chưa sẵn sàng.");
         }
-        return new AiProviderException("AI_PROVIDER_ERROR", HttpStatus.BAD_GATEWAY,
+        return new AiProviderException("AI_PROVIDER_MALFORMED_RESPONSE", HttpStatus.BAD_GATEWAY,
                 "Trợ giảng AI chưa thể trả lời lúc này.");
     }
 

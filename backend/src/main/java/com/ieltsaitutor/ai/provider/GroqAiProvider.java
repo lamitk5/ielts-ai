@@ -64,7 +64,7 @@ public class GroqAiProvider implements AiProviderAdapter {
         } catch (GroqHttpException exception) {
             throw map(exception);
         } catch (JacksonException | IllegalArgumentException exception) {
-            throw new AiProviderException("AI_PROVIDER_ERROR", HttpStatus.BAD_GATEWAY,
+            throw new AiProviderException("AI_PROVIDER_MALFORMED_RESPONSE", HttpStatus.BAD_GATEWAY,
                     "AI provider returned an invalid response.", exception);
         } catch (WebClientRequestException exception) {
             throw new AiProviderException("AI_TEMPORARILY_UNAVAILABLE", HttpStatus.SERVICE_UNAVAILABLE,
@@ -100,9 +100,9 @@ public class GroqAiProvider implements AiProviderAdapter {
     private String endpoint() { return properties.getBaseUrl().replaceAll("/$", "") + "/chat/completions"; }
 
     private AiProviderException map(GroqHttpException exception) {
-        if (exception.statusCode == 400) return new AiProviderException("AI_PROVIDER_ERROR", HttpStatus.BAD_GATEWAY,
+        if (exception.statusCode == 400) return new AiProviderException("AI_INVALID_REQUEST", HttpStatus.BAD_REQUEST,
                 "AI provider rejected the request.");
-        if (exception.statusCode == 401 || exception.statusCode == 403) return new AiProviderException("AI_PROVIDER_ERROR",
+        if (exception.statusCode == 401 || exception.statusCode == 403) return new AiProviderException("AI_PROVIDER_AUTHENTICATION",
                 HttpStatus.BAD_GATEWAY, "AI provider authentication is not configured correctly.");
         if (exception.statusCode == 429) return new AiProviderException("AI_RATE_LIMITED", HttpStatus.TOO_MANY_REQUESTS,
                 "Trợ giảng AI đang nhận quá nhiều yêu cầu. Vui lòng thử lại sau.");
