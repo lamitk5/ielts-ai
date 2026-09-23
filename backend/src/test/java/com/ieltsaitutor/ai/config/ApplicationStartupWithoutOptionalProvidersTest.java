@@ -85,14 +85,39 @@ class ApplicationStartupWithoutOptionalProvidersTest {
                 "CLOUDFLARE_ACCOUNT_ID=",
                 "CLOUDFLARE_API_TOKEN=",
                 "CLOUDFLARE_CHAT_MODEL=",
-                "CLOUDFLARE_EMBEDDING_MODEL="
+                "CLOUDFLARE_EMBEDDING_MODEL=",
+                "google.gemini.api-key=",
+                "google.gemini.embedding-model=",
+                "ai.groq.api-key=",
+                "ai.groq.chat-model=",
+                "ai.cloudflare.account-id=",
+                "ai.cloudflare.api-token=",
+                "ai.cloudflare.chat-model=",
+                "ai.cloudflare.embedding-model="
         };
         String[] combined = java.util.stream.Stream.concat(java.util.Arrays.stream(defaults), java.util.Arrays.stream(properties))
                 .toArray(String[]::new);
-        return new SpringApplicationBuilder(IeltsAiTutorApplication.class, TestInfrastructureConfiguration.class)
-                .web(WebApplicationType.NONE)
-                .properties(combined)
-                .run();
+        java.util.Map<String, String> previous = new java.util.HashMap<>();
+        for (String property : combined) {
+            int separator = property.indexOf('=');
+            if (separator <= 0) continue;
+            String key = property.substring(0, separator);
+            if (!key.endsWith("_API_KEY") && !key.startsWith("CLOUDFLARE_")
+                    && !key.startsWith("GROQ_") && !key.startsWith("GEMINI_")) continue;
+            previous.put(key, System.getProperty(key));
+            System.setProperty(key, property.substring(separator + 1));
+        }
+        try {
+            return new SpringApplicationBuilder(IeltsAiTutorApplication.class, TestInfrastructureConfiguration.class)
+                    .web(WebApplicationType.NONE)
+                    .properties(combined)
+                    .run();
+        } finally {
+            previous.forEach((key, value) -> {
+                if (value == null) System.clearProperty(key);
+                else System.setProperty(key, value);
+            });
+        }
     }
 
     @Configuration(proxyBeanMethods = false)
