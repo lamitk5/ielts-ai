@@ -24,13 +24,13 @@ npm install
 npm run dev
 ```
 
-Flyway applies migrations V1 through V5 on backend startup. Do not edit or squash an already-applied migration.
+Flyway applies migrations V1 through V6 on backend startup. V6 is additive: it records the exact embedding provider/model/dimension/version and marks legacy indexed content as `REINDEX_REQUIRED` until it is safely reindexed. Do not edit or squash an already-applied migration.
 
 ## Configuration
 
 Copy the placeholders from `backend/.env.example` into the local environment. Keep `GEMINI_API_KEY` server-side only. `GEMINI_MODEL`, `GEMINI_EMBEDDING_MODEL`, and `RAG_EMBEDDING_DIMENSION` are configurable; the current vector schema is `vector(768)`.
 
-Gemini quota errors are returned as a controlled temporary-unavailable response. Automated tests use deterministic providers and do not require a live Gemini quota.
+The default chat order is Groq → Cloudflare → Gemini when each provider is configured; missing credentials disable only that provider. Gemini quota errors are returned as a controlled temporary-unavailable response. Automated tests use deterministic providers and do not require a live provider quota. Phase AI-1 has no persistent conversation memory, audio STT, or real IELTS exam modules.
 
 ## Product routes
 

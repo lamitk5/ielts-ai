@@ -2,8 +2,10 @@ package com.ieltsaitutor.tutor.tool;
 
 import com.ieltsaitutor.tutor.context.TutorLearningContext;
 import com.ieltsaitutor.tutor.intent.TutorIntent;
+import org.springframework.stereotype.Service;
 
 /** Deterministic application-data answers. This class has no AI/provider dependency by design. */
+@Service
 public class DeterministicTutorTools {
     public TutorToolResult execute(TutorIntent intent, TutorLearningContext context) {
         if (intent == null || context == null) return TutorToolResult.missing();

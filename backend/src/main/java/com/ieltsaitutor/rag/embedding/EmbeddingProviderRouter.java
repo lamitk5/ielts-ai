@@ -2,6 +2,7 @@ package com.ieltsaitutor.rag.embedding;
 
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
@@ -12,6 +13,7 @@ public class EmbeddingProviderRouter implements EmbeddingProvider {
     private final List<EmbeddingProvider> providers;
     private final EmbeddingSpaceSelector selector;
 
+    @Autowired
     public EmbeddingProviderRouter(CloudflareEmbeddingProvider cloudflare, GeminiEmbeddingProvider gemini) {
         this(List.of(cloudflare, gemini), new EmbeddingSpaceSelector(List.of(cloudflare, gemini)));
     }
