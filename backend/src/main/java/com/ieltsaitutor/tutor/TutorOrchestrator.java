@@ -6,6 +6,7 @@ import com.ieltsaitutor.ai.dto.AiSource;
 import com.ieltsaitutor.ai.model.AiChatCommand;
 import com.ieltsaitutor.ai.model.AiChatResult;
 import com.ieltsaitutor.ai.provider.AiProvider;
+import com.ieltsaitutor.ai.exception.AiProviderException;
 import com.ieltsaitutor.auth.AuthPrincipal;
 import com.ieltsaitutor.rag.chat.RagChatResult;
 import com.ieltsaitutor.rag.chat.RagChatService;
@@ -17,6 +18,9 @@ import com.ieltsaitutor.tutor.intent.TutorIntentRoute;
 import com.ieltsaitutor.tutor.intent.TutorIntentRouter;
 import com.ieltsaitutor.tutor.tool.DeterministicTutorTools;
 import com.ieltsaitutor.tutor.tool.TutorToolResult;
+import com.ieltsaitutor.tutor.security.TutorRateLimiter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -31,14 +35,22 @@ public class TutorOrchestrator {
     private final TutorContextService contexts;
     private final TutorIntentRouter intents;
     private final DeterministicTutorTools tools;
+    private final TutorRateLimiter rateLimiter;
 
+    @Autowired
     public TutorOrchestrator(AiProvider provider, RagChatService rag, TutorContextService contexts,
-            TutorIntentRouter intents, DeterministicTutorTools tools) {
+            TutorIntentRouter intents, DeterministicTutorTools tools, TutorRateLimiter rateLimiter) {
         this.provider = provider;
         this.rag = rag;
         this.contexts = contexts;
         this.intents = intents;
         this.tools = tools;
+        this.rateLimiter = rateLimiter;
+    }
+
+    public TutorOrchestrator(AiProvider provider, RagChatService rag, TutorContextService contexts,
+            TutorIntentRouter intents, DeterministicTutorTools tools) {
+        this(provider, rag, contexts, intents, tools, new TutorRateLimiter(10, 30, java.time.Duration.ofMinutes(1)));
     }
 
     public AiChatResponse handle(AuthPrincipal principal, com.ieltsaitutor.ai.dto.AiChatRequest request) {
@@ -52,6 +64,10 @@ public class TutorOrchestrator {
         if (!route.externalAiAllowed()) {
             return response("INSUFFICIENT_CONTEXT", INSUFFICIENT, List.of(),
                     new AiGrounding("INSUFFICIENT_CONTEXT", false), requestId);
+        }
+        if (!rateLimiter.allow(principal).allowed()) {
+            throw new AiProviderException("AI_RATE_LIMITED", HttpStatus.TOO_MANY_REQUESTS,
+                    "Trợ giảng AI đang nhận nhiều yêu cầu. Hãy thử lại sau một chút.");
         }
         AiChatCommand command = new AiChatCommand(request.message().trim(), request.context(), boundedHistory(request),
                 requestId, compactContext(context));
