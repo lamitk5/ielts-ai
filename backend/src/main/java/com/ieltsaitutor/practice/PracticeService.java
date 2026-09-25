@@ -30,7 +30,8 @@ public class PracticeService {
             if (correct) score++;
             review.add(new PracticeReview(question.id(), selected, question.answerKey(), correct, question.explanation()));
         }
-        attempts.save(userId, set.skill().toLowerCase(), set.id(), score, set.questions().size(), answers);
-        return new PracticeAttemptResult(score, set.questions().size(), answers, review);
+        UUID attemptId = attempts.saveAndReturn(userId, set.skill().toLowerCase(), set.id(), score,
+                set.questions().size(), answers);
+        return new PracticeAttemptResult(attemptId, score, set.questions().size(), answers, review);
     }
 }

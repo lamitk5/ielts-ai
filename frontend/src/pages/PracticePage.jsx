@@ -14,6 +14,7 @@ function PracticePage() {
   const { isAuthenticated } = useAuth()
   const [practiceSet, setPracticeSet] = useState(fixture)
   const [answers, setAnswers] = useState({})
+  const [currentQuestionId, setCurrentQuestionId] = useState(fixture?.questions?.[0]?.id ?? null)
   const [result, setResult] = useState(null)
   const [error, setError] = useState('')
 
@@ -68,7 +69,10 @@ function PracticePage() {
                 const value = String.fromCharCode(65 + optionIndex)
                 return (
                   <label key={option} className="practice-option">
-                    <input type="radio" name={question.id} value={value} checked={answers[question.id] === value} onChange={() => setAnswers((current) => ({ ...current, [question.id]: value }))} />
+                    <input type="radio" name={question.id} value={value} checked={answers[question.id] === value} onChange={() => {
+                      setCurrentQuestionId(question.id)
+                      setAnswers((current) => ({ ...current, [question.id]: value }))
+                    }} />
                     <span>{value}. {option}</span>
                   </label>
                 )
@@ -83,7 +87,13 @@ function PracticePage() {
           <Link className="button button-secondary button-lg" to="/">Về trang chủ</Link>
         </div>
       </form>
-      <FloatingTutor context={{ skill: skill.toUpperCase(), lessonId: practiceSet.setId ?? practiceSet.id }} />
+      <FloatingTutor context={{
+        skill: skill.toUpperCase(),
+        lessonId: practiceSet.setId ?? practiceSet.id,
+        exerciseId: practiceSet.setId ?? practiceSet.id,
+        questionId: currentQuestionId,
+        ...(result?.attemptId ? { attemptId: result.attemptId } : {}),
+      }} />
     </section>
   )
 }

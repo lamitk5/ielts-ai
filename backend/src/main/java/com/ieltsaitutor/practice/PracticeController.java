@@ -34,13 +34,15 @@ public class PracticeController {
     public PracticeSetView set(@PathVariable String skill, @PathVariable String id) { return PracticeSetView.from(service.set(skill, id)); }
 
     @PostMapping("/{skill}/attempts")
-    public PracticeAttemptResult submit(@PathVariable String skill, @RequestBody AttemptRequest request, HttpServletRequest httpRequest) {
+    public AttemptResponse submit(@PathVariable String skill, @RequestBody AttemptRequest request, HttpServletRequest httpRequest) {
         Object principal = httpRequest.getAttribute(AuthInterceptor.PRINCIPAL_ATTRIBUTE);
         if (!(principal instanceof AuthPrincipal authenticated)) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Đăng nhập để tiếp tục.");
-        return service.submit(skill, request.setId(), request.answers(), authenticated.userId());
+        PracticeAttemptResult result = service.submit(skill, request.setId(), request.answers(), authenticated.userId());
+        return new AttemptResponse(result.attemptId(), result.score(), result.total());
     }
 
     public record AttemptRequest(String setId, Map<String, String> answers) {}
+    public record AttemptResponse(UUID attemptId, int score, int total) {}
 
     public record PracticeSetView(String id, String skill, String title, String description, List<QuestionView> questions) {
         static PracticeSetView from(PracticeSet set) { return new PracticeSetView(set.id(), set.skill(), set.title(), set.description(),

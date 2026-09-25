@@ -22,6 +22,11 @@ public class JdbcPracticeAttemptStore implements PracticeAttemptStore {
 
     @Override
     public void save(UUID userId, String skill, String setId, int score, int total, Map<String, String> answers) {
+        saveAndReturn(userId, skill, setId, score, total, answers);
+    }
+
+    @Override
+    public UUID saveAndReturn(UUID userId, String skill, String setId, int score, int total, Map<String, String> answers) {
         UUID id = UUID.randomUUID();
         Instant now = Instant.now();
         String payload = answers.entrySet().stream().map(entry -> "\"" + escape(entry.getKey()) + "\":\"" + escape(entry.getValue()) + "\"")
@@ -39,6 +44,7 @@ public class JdbcPracticeAttemptStore implements PracticeAttemptStore {
                 """, new MapSqlParameterSource().addValue("id", UUID.randomUUID()).addValue("userId", userId)
                 .addValue("skill", skill.toUpperCase()).addValue("referenceId", setId).addValue("score", score * 9d / total)
                 .addValue("createdAt", now.atOffset(ZoneOffset.UTC), Types.TIMESTAMP_WITH_TIMEZONE));
+        return id;
     }
 
     @Override

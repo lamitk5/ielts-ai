@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, test, vi } from 'vitest'
 import App from '../App'
@@ -58,5 +59,46 @@ describe('deterministic practice routes', () => {
     )
 
     expect(screen.getByRole('heading', { name: /Practice area unavailable/ })).toBeInTheDocument()
+  })
+
+  test('Tutor receives stable practice references without the answer key', async () => {
+    const user = userEvent.setup()
+    const originalFetch = global.fetch
+    global.fetch = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => [] })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          status: 'ANSWERED',
+          answer: 'Hãy kiểm tra từ khóa trong câu hỏi.',
+          sources: [],
+          grounding: { status: 'NOT_ENABLED', ragEnabled: false },
+        }),
+      })
+    window.localStorage.setItem('ielts-ai-tutor.session', JSON.stringify({ token: 'test-token', user: { id: 'user-1' } }))
+
+    render(
+      <MemoryRouter initialEntries={['/practice/reading']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    await user.click(screen.getByLabelText('B. To improve recall'))
+    await user.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
+    await user.type(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' }), 'Vì sao đáp án này đúng?')
+    await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }))
+
+    const tutorCall = global.fetch.mock.calls.find(([url]) => url === '/api/ai/chat')
+    expect(tutorCall).toBeDefined()
+    const payload = JSON.parse(tutorCall[1].body)
+    expect(payload.context).toMatchObject({
+      skill: 'READING',
+      lessonId: 'reading-foundation-01',
+      exerciseId: 'reading-foundation-01',
+      questionId: 'reading-q1',
+    })
+    expect(payload.context).not.toHaveProperty('answerKey')
+    global.fetch = originalFetch
   })
 })
