@@ -35,10 +35,12 @@ public class WritingAssessmentService {
     }
 
     public WritingAssessment assess(UUID userId, String taskId, String responseText) {
+        String taskType = taskType(taskId);
+        if (taskType == null) return persistUnavailable(userId, taskId);
         try {
             AiChatResult result = provider.chat(new AiChatCommand(
                     "Assess this IELTS writing response. Return JSON only with overallBandEstimate, criteria, strengths, issues, suggestions.",
-                    new AiChatContext("WRITING", null, taskId, null, taskId.startsWith("task-1") ? "TASK_1" : "TASK_2", null, responseText),
+                    new AiChatContext("WRITING", null, taskId, null, taskType, null, responseText, null, taskId),
                     List.of()));
             if (!"ANSWERED".equals(result.status())) return persistUnavailable(userId, taskId);
             WritingAssessment assessment = parse(userId, taskId, responseText, result.answer());
@@ -47,6 +49,12 @@ public class WritingAssessmentService {
         } catch (RuntimeException exception) {
             return persistUnavailable(userId, taskId);
         }
+    }
+
+    private String taskType(String taskId) {
+        if (taskId != null && taskId.startsWith("task-1")) return "TASK_1";
+        if (taskId != null && taskId.startsWith("task-2")) return "TASK_2";
+        return null;
     }
 
     private WritingAssessment parse(UUID userId, String taskId, String responseText, String raw) {

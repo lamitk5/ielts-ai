@@ -85,8 +85,10 @@ public class DefaultTutorContextService implements TutorContextService {
 
     private TutorLearningContext speaking(AuthPrincipal principal, TutorContextRequest request) {
         if (principal == null) return TutorLearningContext.absent(request.skill());
-        SpeakingAttempt item = speaking.findByUser(principal.userId()).stream()
-                .filter(candidate -> Objects.equals(candidate.promptId(), request.promptId())).findFirst().orElse(null);
+        SpeakingAttempt item = request.attemptId() != null
+                ? speaking.findByUserAndId(principal.userId(), request.attemptId()).orElse(null)
+                : speaking.findByUser(principal.userId()).stream()
+                        .filter(candidate -> Objects.equals(candidate.promptId(), request.promptId())).findFirst().orElse(null);
         if (item == null) return TutorLearningContext.absent(request.skill());
         return new TutorLearningContext(true, "speaking", "Speaking prompt " + item.promptId(), null, null, null, null,
                 null, null, null, null, null, item.promptId(), item.transcript(), List.of(), null);

@@ -15,6 +15,7 @@ function SpeakingPage() {
   const { isAuthenticated } = useAuth()
   const [promptId, setPromptId] = useState(prompts[0].id)
   const [transcript, setTranscript] = useState('')
+  const [attemptId, setAttemptId] = useState(null)
   const [status, setStatus] = useState('')
   const [error, setError] = useState('')
   const [history, setHistory] = useState({ status: 'idle', items: [] })
@@ -43,6 +44,7 @@ function SpeakingPage() {
     try {
       const result = await saveSpeakingAttempt(promptId, transcript)
       setStatus(result.status)
+      setAttemptId(result.attemptId ?? null)
     } catch (submissionError) {
       setError(submissionError.message)
     }
@@ -97,7 +99,12 @@ function SpeakingPage() {
           ) : null}
         </GlassCard>
       ) : null}
-      <FloatingTutor context={{ skill: 'SPEAKING', exerciseId: promptId }} />
+      <FloatingTutor context={{
+        skill: 'SPEAKING',
+        exerciseId: promptId,
+        promptId,
+        ...(attemptId ? { attemptId } : {}),
+      }} />
     </section>
   )
 }

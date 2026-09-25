@@ -29,8 +29,19 @@ public class JdbcSpeakingRepository implements SpeakingRepository {
     public List<SpeakingAttempt> findByUser(UUID userId) {
         return jdbc.query("SELECT * FROM speaking_attempts WHERE user_id=:userId ORDER BY created_at DESC",
                 new MapSqlParameterSource("userId", userId), (rs, row) -> new SpeakingAttempt(
-                        rs.getObject("id", UUID.class), rs.getObject("user_id", UUID.class), rs.getString("prompt_id"),
+                rs.getObject("id", UUID.class), rs.getObject("user_id", UUID.class), rs.getString("prompt_id"),
                         rs.getString("transcript"), rs.getString("audio_filename"), rs.getString("attempt_status"),
                         (Double) rs.getObject("overall_band_estimate"), rs.getTimestamp("created_at").toInstant()));
+    }
+
+    @Override
+    public java.util.Optional<SpeakingAttempt> findByUserAndId(UUID userId, UUID attemptId) {
+        return jdbc.query("""
+                SELECT * FROM speaking_attempts WHERE user_id=:userId AND id=:attemptId
+                """, new MapSqlParameterSource().addValue("userId", userId).addValue("attemptId", attemptId),
+                (rs, row) -> new SpeakingAttempt(rs.getObject("id", UUID.class), rs.getObject("user_id", UUID.class),
+                        rs.getString("prompt_id"), rs.getString("transcript"), rs.getString("audio_filename"),
+                        rs.getString("attempt_status"), (Double) rs.getObject("overall_band_estimate"),
+                        rs.getTimestamp("created_at").toInstant())).stream().findFirst();
     }
 }
