@@ -181,6 +181,40 @@ describe('floating AI tutor', () => {
     expect(screen.queryByText('Rubric Writing Task 2')).not.toBeInTheDocument()
   })
 
+  test('renders deterministic application data without treating it as a provider error', async () => {
+    const user = userEvent.setup()
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({ ...answeredResponse('Bạn đang làm câu Reading 1.'), status: 'APP_DATA' }),
+    })
+    render(<FloatingTutor context={{ skill: 'READING', questionId: 'reading-q1' }} />)
+
+    await user.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
+    await user.type(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' }), 'Tôi đang làm câu nào?')
+    await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }))
+
+    await waitFor(() => expect(screen.getByText('Bạn đang làm câu Reading 1.')).toBeInTheDocument())
+    expect(screen.queryByText(/chưa thể trả lời/i)).not.toBeInTheDocument()
+  })
+
+  test('offers a provider-neutral retry after a failed request', async () => {
+    const user = userEvent.setup()
+    global.fetch
+      .mockRejectedValueOnce(new TypeError('network failure'))
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => answeredResponse('Retry answer') })
+    render(<FloatingTutor />)
+
+    await user.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
+    await user.type(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' }), 'Thử lại câu hỏi này')
+    await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Thử lại' })).toBeInTheDocument())
+
+    await user.click(screen.getByRole('button', { name: 'Thử lại' }))
+    await waitFor(() => expect(screen.getByText('Retry answer')).toBeInTheDocument())
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  })
+
   test('shows a friendly rate-limit error and blocks duplicate submits while loading', async () => {
     const user = userEvent.setup()
     let resolveRequest

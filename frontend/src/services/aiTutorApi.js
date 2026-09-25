@@ -43,7 +43,8 @@ export async function sendTutorMessage({ message, context = { skill: 'GENERAL' }
       throw new AiTutorApiError(code, ERROR_MESSAGES[code] ?? ERROR_MESSAGES.AI_PROVIDER_ERROR, response.status)
     }
 
-    if (!payload || typeof payload.answer !== 'string' || !['ANSWERED', 'INSUFFICIENT_CONTEXT'].includes(payload.status)) {
+    if (!payload || typeof payload.answer !== 'string'
+      || !['ANSWERED', 'APP_DATA', 'INSUFFICIENT_CONTEXT', 'FALLBACK'].includes(payload.status)) {
       throw new AiTutorApiError('AI_PROVIDER_ERROR', ERROR_MESSAGES.AI_PROVIDER_ERROR, response.status)
     }
 

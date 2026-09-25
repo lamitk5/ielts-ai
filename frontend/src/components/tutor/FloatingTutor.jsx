@@ -81,7 +81,13 @@ function FloatingTutor({ context = { skill: 'GENERAL' } }) {
       if (!mountedRef.current) return
       setMessages((current) => [
         ...current,
-        { id: `assistant-error-${Date.now()}`, role: 'assistant', isError: true, content: error.message },
+        {
+          id: `assistant-error-${Date.now()}`,
+          role: 'assistant',
+          isError: true,
+          content: error.message,
+          onRetry: () => sendMessage(content),
+        },
       ])
     } finally {
       if (mountedRef.current) setLoading(false)

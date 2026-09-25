@@ -29,6 +29,7 @@ function TutorPanel({ messages, loading, onClose, onSend, inputRef }) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="tutor-dialog-title"
+      aria-busy={loading}
     >
       <header className="tutor-panel-header">
         <div>

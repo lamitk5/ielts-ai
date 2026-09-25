@@ -28,6 +28,9 @@ function TutorMessage({ message }) {
           ) : null}
         </div>
       ) : null}
+      {message.isError && message.onRetry ? (
+        <button type="button" className="tutor-retry-button" onClick={message.onRetry}>Thử lại</button>
+      ) : null}
     </li>
   )
 }
