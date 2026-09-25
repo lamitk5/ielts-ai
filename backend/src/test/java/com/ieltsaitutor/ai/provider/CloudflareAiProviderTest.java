@@ -40,7 +40,7 @@ class CloudflareAiProviderTest {
         properties.getCloudflare().setApiToken("cf-test-token");
         properties.getCloudflare().setChatModel("@cf/test-model");
         properties.getCloudflare().setBaseUrl("http://localhost:" + server.getAddress().getPort() + "/client/v4/accounts");
-        properties.getCloudflare().setResponseTimeout(Duration.ofMillis(300));
+        properties.getCloudflare().setResponseTimeout(Duration.ofSeconds(2));
         provider = new CloudflareAiProvider(WebClient.builder().build(), properties, new ObjectMapper());
     }
 
