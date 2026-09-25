@@ -9,6 +9,8 @@ import com.ieltsaitutor.ai.model.AiChatResult;
 import com.ieltsaitutor.ai.provider.AiProvider;
 import com.ieltsaitutor.rag.chat.RagChatResult;
 import com.ieltsaitutor.rag.chat.RagChatService;
+import com.ieltsaitutor.auth.AuthPrincipal;
+import com.ieltsaitutor.tutor.TutorOrchestrator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,16 +30,33 @@ public class AiChatService {
 
     private final AiProvider provider;
     private final RagChatService ragChatService;
+    private final TutorOrchestrator orchestrator;
 
-    public AiChatService(AiProvider provider) { this(provider, null); }
+    public AiChatService(AiProvider provider) { this(provider, null, null); }
 
-    @Autowired
     public AiChatService(AiProvider provider, RagChatService ragChatService) {
+        this(provider, ragChatService, null);
+    }
+
+    private AiChatService(AiProvider provider, RagChatService ragChatService, TutorOrchestrator orchestrator) {
         this.provider = provider;
         this.ragChatService = ragChatService;
+        this.orchestrator = orchestrator;
+    }
+
+    @Autowired
+    public AiChatService(TutorOrchestrator orchestrator) {
+        this.provider = null;
+        this.ragChatService = null;
+        this.orchestrator = orchestrator;
     }
 
     public AiChatResponse chat(AiChatRequest request) {
+        return chat(null, request);
+    }
+
+    public AiChatResponse chat(AuthPrincipal principal, AiChatRequest request) {
+        if (orchestrator != null) return orchestrator.handle(principal, request);
         String requestId = UUID.randomUUID().toString();
         String message = request.message().trim();
         AiChatContext context = request.context() == null

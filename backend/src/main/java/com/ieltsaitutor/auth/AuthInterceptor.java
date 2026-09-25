@@ -10,7 +10,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 @Component
 public class AuthInterceptor implements HandlerInterceptor {
-    public static final String PRINCIPAL_ATTRIBUTE = AuthInterceptor.class.getName() + ".principal";
+    public static final String PRINCIPAL_ATTRIBUTE = "com.ieltsaitutor.auth.AuthInterceptor.principal";
     private final AuthService service;
 
     public AuthInterceptor(AuthService service) { this.service = service; }
