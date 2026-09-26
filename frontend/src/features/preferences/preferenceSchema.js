@@ -1,19 +1,23 @@
 import { DEFAULT_PREFERENCES } from './preferenceDefaults'
 
+export const WORKSPACE_RATIO_PRESETS = Object.freeze([40, 50, 60])
+
 const allowed = {
   themeMode: ['system', 'light', 'dark'],
   accentPreset: ['gold', 'sapphire', 'emerald', 'burgundy', 'violet', 'slate'],
   fontScale: ['small', 'default', 'large'],
   density: ['spacious', 'default', 'compact'],
   reduceMotion: ['system', 'reduce', 'allow'],
-  readingSplitRatio: [40, 50, 60],
-  writingSplitRatio: [40, 50, 60],
+  readingSplitRatio: WORKSPACE_RATIO_PRESETS,
+  writingSplitRatio: WORKSPACE_RATIO_PRESETS,
 }
+
+const booleanPreferences = ['proactiveAiEnabled', 'crossHighlightEnabled', 'timerDefaultEnabled']
 
 export function isCompletePreferences(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false
   return Object.entries(allowed).every(([key, choices]) => choices.includes(value[key])) &&
-    ['proactiveAiEnabled', 'crossHighlightEnabled', 'timerDefaultEnabled'].every((key) => typeof value[key] === 'boolean')
+    booleanPreferences.every((key) => typeof value[key] === 'boolean')
 }
 
 export function isValidPreferenceRecord(record) {
@@ -22,7 +26,7 @@ export function isValidPreferenceRecord(record) {
   }
   for (const [key, val] of Object.entries(record.preferences)) {
     if (allowed[key] && !allowed[key].includes(val)) return false
-    if (['proactiveAiEnabled', 'crossHighlightEnabled', 'timerDefaultEnabled'].includes(key) && typeof val !== 'boolean') {
+    if (booleanPreferences.includes(key) && typeof val !== 'boolean') {
       return false
     }
   }
