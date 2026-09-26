@@ -2584,3 +2584,142 @@ input:focus-visible {
   justify-content: center;
   min-height: 16rem;
 }
+
+/* TutorShell & Viewport Safety */
+.tutor-shell {
+  display: flex;
+  flex-direction: column;
+  max-height: min(42rem, calc(100dvh - 1.5rem));
+  transition: width 0.2s ease, max-height 0.2s ease;
+}
+
+.tutor-shell-compact {
+  max-height: 5rem;
+  overflow: hidden;
+}
+
+.tutor-shell-expanded {
+  width: min(52rem, calc(100vw - 2rem));
+}
+
+.tutor-shell-fullscreen {
+  width: 100vw;
+  height: 100dvh;
+  max-height: 100dvh;
+  border-radius: 0;
+}
+
+.tutor-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.tutor-control-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.tutor-control-button:hover,
+.tutor-control-button:focus-visible {
+  color: var(--text);
+  border-color: var(--focus);
+}
+
+.tutor-context-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4rem 0.85rem;
+  margin: 0 1.25rem 0.5rem;
+  background: rgba(212, 175, 55, 0.08);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.tutor-context-info {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-secondary);
+}
+
+.tutor-context-icon {
+  color: var(--gold-light, #d4af37);
+}
+
+.tutor-context-skill {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.tutor-context-stale {
+  border-color: rgba(220, 120, 120, 0.4);
+  background: rgba(220, 120, 120, 0.06);
+}
+
+.tutor-context-stale-tag {
+  color: #e06c75;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.tutor-context-clear-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+
+.tutor-context-clear-btn:hover {
+  color: var(--text);
+}
+
+.tutor-timeout-retry {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid rgba(220, 120, 120, 0.4);
+  border-radius: 0.5rem;
+  background: rgba(220, 120, 120, 0.08);
+}
+
+.tutor-timeout-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tutor-timeout-icon {
+  color: #e06c75;
+}
+
+.tutor-timeout-message {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.tutor-timeout-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tutor-cancel-action-button {
+  margin-right: 0.25rem;
+}
