@@ -5,6 +5,8 @@ import SkeletonBlock from '../common/SkeletonBlock'
 import BandRadarChart from '../charts/BandRadarChart'
 import CommonMistakesWidget from './CommonMistakesWidget'
 import ExamCountdownCard from './ExamCountdownCard'
+import TodaysFocusCard from '../learning/TodaysFocusCard'
+import RoadmapWidget from '../learning/RoadmapWidget'
 import { Link } from 'react-router-dom'
 
 function ProgressOverviewSection({ isAuthenticated, state, loading = false }) {
@@ -34,28 +36,32 @@ function ProgressOverviewSection({ isAuthenticated, state, loading = false }) {
             <SkeletonBlock label="Đang tải tiến độ luyện tập" />
           </GlassCard>
         ) : showMemberProgress ? (
-          <div className="progress-layout">
-            <GlassCard className="progress-radar-card">
-              <div className="progress-card-heading">
-                <div>
-                  <p className="progress-card-kicker">TỔNG QUAN 4 KỸ NĂNG</p>
-                  <h3 className="font-display">Band theo từng kỹ năng</h3>
+          <div className="progress-member-layout">
+            <TodaysFocusCard roadmap={state.roadmap} />
+            <div className="progress-layout">
+              <GlassCard className="progress-radar-card">
+                <div className="progress-card-heading">
+                  <div>
+                    <p className="progress-card-kicker">TỔNG QUAN 4 KỸ NĂNG</p>
+                    <h3 className="font-display">Band theo từng kỹ năng</h3>
+                  </div>
+                  <span className="progress-estimate">Band ước lượng</span>
                 </div>
-                <span className="progress-estimate">Band ước lượng</span>
+                <BandRadarChart data={state.progress} />
+                <ul className="progress-band-list">
+                  {state.progress.map(({ skill, band }) => (
+                    <li key={skill}>
+                      <span>{skill}</span>
+                      <strong>{Number.isFinite(band) ? band : 'Chưa có dữ liệu'}</strong>
+                    </li>
+                  ))}
+                </ul>
+              </GlassCard>
+              <div className="progress-side-column">
+                <RoadmapWidget roadmap={state.roadmap} />
+                <ExamCountdownCard examDate={state.user?.examDate} />
+                <CommonMistakesWidget mistakes={state.mistakes} />
               </div>
-              <BandRadarChart data={state.progress} />
-              <ul className="progress-band-list">
-                {state.progress.map(({ skill, band }) => (
-                  <li key={skill}>
-                    <span>{skill}</span>
-                    <strong>{Number.isFinite(band) ? band : 'Chưa có dữ liệu'}</strong>
-                  </li>
-                ))}
-              </ul>
-            </GlassCard>
-            <div className="progress-side-column">
-              <ExamCountdownCard examDate={state.user?.examDate} />
-              <CommonMistakesWidget mistakes={state.mistakes} />
             </div>
           </div>
         ) : (
