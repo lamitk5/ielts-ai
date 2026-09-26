@@ -34,6 +34,7 @@ public class AuthInterceptor implements HandlerInterceptor {
     private boolean requiresAuthentication(HttpServletRequest request) {
         String path = request.getRequestURI();
         return path.equals("/api/auth/me") || path.startsWith("/api/me/")
+                || path.equals("/api/user/preferences")
                 || path.matches("/api/practice/[^/]+/attempts") || path.startsWith("/api/practice/writing/submissions")
                 || path.startsWith("/api/practice/speaking/attempts");
     }
