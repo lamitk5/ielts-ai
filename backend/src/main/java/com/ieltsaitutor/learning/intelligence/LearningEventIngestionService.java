@@ -8,12 +8,21 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+@Service
 public class LearningEventIngestionService {
     private static final Set<String> FORBIDDEN = Set.of("correctanswer", "answerkey", "band", "apikey",
             "token", "secret", "essay", "audio", "providerpayload", "reasoning");
     private final LearningEventRepository repository;
     private final Clock clock;
     private final Duration allowedSkew;
+
+    @Autowired
+    public LearningEventIngestionService(LearningEventRepository repository) {
+        this(repository, Clock.systemUTC(), Duration.ofHours(24));
+    }
 
     public LearningEventIngestionService(LearningEventRepository repository, Clock clock, Duration allowedSkew) {
         this.repository = repository;
