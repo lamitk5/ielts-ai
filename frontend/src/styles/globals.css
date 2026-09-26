@@ -1020,7 +1020,7 @@ input:focus-visible {
 .skills-section {
   position: relative;
   scroll-margin-top: 5.5rem;
-  padding: clamp(3rem, 5vw, 4.5rem) 0;
+  padding: clamp(2.5rem, 4vw, 3.75rem) 0;
 }
 
 .skills-inner {
@@ -1031,19 +1031,23 @@ input:focus-visible {
 .skills-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1.25rem;
-  margin-top: 3rem;
+  gap: 1rem;
+  margin-top: 2.25rem;
 }
+
+.skills-grid-equal { align-items: stretch; }
 
 .skill-card {
   position: relative;
   display: flex;
-  min-height: 16.25rem;
+  min-height: 14.75rem;
   flex-direction: column;
   overflow: hidden;
-  padding: 1.5rem;
-  background: var(--surface);
+  padding: 1.25rem;
+  background: var(--surface-1);
 }
+
+.skill-card-editorial { height: 100%; }
 
 .skill-card.glass-card-interactive:hover {
   transform: translateY(-6px) scale(1.01);
@@ -1079,7 +1083,7 @@ input:focus-visible {
 .skill-card h3 {
   position: relative;
   z-index: 1;
-  margin: 1.5rem 0 0;
+  margin: 1.1rem 0 0;
   color: var(--text);
   font-size: clamp(1.7rem, 3vw, 2.2rem);
   line-height: 1;
@@ -1089,7 +1093,7 @@ input:focus-visible {
   position: relative;
   z-index: 1;
   max-width: 30rem;
-  margin: 0.85rem 0 0;
+  margin: 0.65rem 0 0;
   color: var(--text-secondary);
   line-height: 1.65;
 }
@@ -1099,7 +1103,7 @@ input:focus-visible {
   align-items: flex-end;
   gap: 1rem;
   margin-top: auto;
-  padding-top: 1.5rem;
+  padding-top: 1.1rem;
 }
 
 .skill-card-metric {
@@ -1352,6 +1356,8 @@ input:focus-visible {
   padding: 0.9rem;
   background: rgba(6, 11, 22, 0.28);
 }
+
+.progress-guest-preview-editorial { box-shadow: var(--shadow-sm); }
 
 .progress-guest-preview-heading {
   display: flex;
@@ -1962,7 +1968,7 @@ input:focus-visible {
   }
 
   .skill-card {
-    min-height: 16rem;
+    min-height: 14rem;
   }
 
   .progress-guest-card,

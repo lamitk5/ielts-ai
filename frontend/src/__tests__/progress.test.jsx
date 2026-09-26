@@ -29,6 +29,7 @@ describe('progress overview', () => {
     expect(
       within(progress).getByRole('img', { name: 'Xem trước tiến độ theo 4 kỹ năng' }),
     ).toBeInTheDocument()
+    expect(within(progress).getByRole('img', { name: 'Xem trước tiến độ theo 4 kỹ năng' }).closest('.progress-guest-preview')).toHaveClass('progress-guest-preview-editorial')
     for (const skill of ['Reading', 'Listening', 'Writing', 'Speaking']) {
       expect(within(progress).getByText(skill)).toBeInTheDocument()
     }

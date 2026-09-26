@@ -15,7 +15,7 @@ function SkillsSection({ skills }) {
           title="Luyện tập theo 4 kỹ năng"
           description="Một lộ trình thống nhất cho Reading, Listening, Writing và Speaking — luyện tập, nhận phản hồi và theo dõi tiến bộ trên cùng một nền tảng."
         />
-        <div className="skills-grid">
+        <div className="skills-grid skills-grid-equal">
           {skills.map((skill, index) => (
             <SkillCard key={skill.id} skill={skill} index={index} />
           ))}

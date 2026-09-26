@@ -15,7 +15,7 @@ function SkillCard({ skill, index }) {
 
   return (
     <GlassCard
-      className="skill-card"
+      className="skill-card skill-card-editorial"
       interactive
       role="article"
       aria-labelledby={headingId}

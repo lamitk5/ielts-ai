@@ -85,7 +85,7 @@ function ProgressOverviewSection({ isAuthenticated, state, loading = false }) {
             <Link className="button btn-liquid button-primary button-md" to="/assessment">
               <span className="button-label">Bắt đầu đánh giá</span>
             </Link>
-            <div className="progress-guest-preview">
+            <div className="progress-guest-preview progress-guest-preview-editorial">
               <div className="progress-guest-preview-heading">
                 <p className="progress-card-kicker">XEM TRƯỚC LỘ TRÌNH</p>
                 <span>4 kỹ năng</span>
