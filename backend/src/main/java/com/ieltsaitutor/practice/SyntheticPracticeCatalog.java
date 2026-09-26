@@ -1,22 +1,57 @@
 package com.ieltsaitutor.practice;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import com.ieltsaitutor.practice.repository.DatabasePracticeCatalogStore;
 
 @Component
 public class SyntheticPracticeCatalog {
-    private final List<PracticeSet> sets;
+    private final List<PracticeSet> defaultSets;
+    private final DatabasePracticeCatalogStore dbStore;
 
-    public SyntheticPracticeCatalog() { this.sets = defaultSets(); }
-    SyntheticPracticeCatalog(List<PracticeSet> sets) { this.sets = sets; }
+    public SyntheticPracticeCatalog() {
+        this(defaultSets(), null);
+    }
 
-    public static SyntheticPracticeCatalog inMemory() { return new SyntheticPracticeCatalog(defaultSets()); }
+    @Autowired
+    public SyntheticPracticeCatalog(DatabasePracticeCatalogStore dbStore) {
+        this(defaultSets(), dbStore);
+    }
+
+    SyntheticPracticeCatalog(List<PracticeSet> defaultSets, DatabasePracticeCatalogStore dbStore) {
+        this.defaultSets = defaultSets != null ? defaultSets : List.of();
+        this.dbStore = dbStore;
+    }
+
+    public static SyntheticPracticeCatalog inMemory() {
+        return new SyntheticPracticeCatalog(defaultSets(), null);
+    }
+
+    public static SyntheticPracticeCatalog withStore(DatabasePracticeCatalogStore dbStore) {
+        return new SyntheticPracticeCatalog(defaultSets(), dbStore);
+    }
 
     public List<PracticeSet> sets(String skill) {
         String normalized = normalize(skill);
-        if (!normalized.equals("reading") && !normalized.equals("listening")) throw new IllegalArgumentException("Skill is not available");
-        return sets.stream().filter(set -> set.skill().equalsIgnoreCase(normalized)).toList();
+        if (!normalized.equals("reading") && !normalized.equals("listening")) {
+            throw new IllegalArgumentException("Skill is not available");
+        }
+        List<PracticeSet> combined = new ArrayList<>();
+        // 1. Default static sets
+        defaultSets.stream()
+                .filter(set -> set.skill().equalsIgnoreCase(normalized))
+                .forEach(combined::add);
+
+        // 2. Approved database sets
+        if (dbStore != null) {
+            dbStore.findBySkill(normalized).forEach(combined::add);
+        }
+
+        return combined;
     }
 
     public PracticeSet find(String skill, String id) {
