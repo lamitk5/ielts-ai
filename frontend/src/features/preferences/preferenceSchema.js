@@ -10,6 +10,12 @@ const allowed = {
   writingSplitRatio: [40, 50, 60],
 }
 
+export function isCompletePreferences(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  return Object.entries(allowed).every(([key, choices]) => choices.includes(value[key])) &&
+    ['proactiveAiEnabled', 'crossHighlightEnabled', 'timerDefaultEnabled'].every((key) => typeof value[key] === 'boolean')
+}
+
 export function normalizePreferences(value) {
   const input = value && typeof value === 'object' && !Array.isArray(value) ? value : {}
   const result = { ...DEFAULT_PREFERENCES }

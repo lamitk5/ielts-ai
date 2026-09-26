@@ -75,35 +75,55 @@ export function PreferenceProvider({ children }) {
   const savingEpochRef = useRef(null)
   const epochRef = useRef(0)
   const editRef = useRef(0)
+  const dirtyRef = useRef(false)
+  const identityRef = useRef(userId)
+  const mountedRef = useRef(false)
+  identityRef.current = userId
   const [systemDark, setSystemDark] = useState(() => window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false)
   const [systemReduced, setSystemReduced] = useState(() => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false)
 
   useEffect(() => {
+    mountedRef.current = true
     const epoch = ++epochRef.current
     savingEpochRef.current = null
     clearTimeout(timerRef.current)
     editRef.current = 0
+    dirtyRef.current = false
     const cached = userId ? readAccountPreferenceCache(userId)?.preferences ?? DEFAULT_PREFERENCES : readGuestPreferences()
     preferencesRef.current = cached
     setPreferences(cached)
     confirmedRef.current = null
     setConfirmedPreferences(null)
     setStatus(userId ? 'loading' : 'idle')
-    if (userId) {
-      getPreferences().then((record) => {
-        if (epochRef.current !== epoch) return
+    const current = () => mountedRef.current && epochRef.current === epoch && identityRef.current === userId
+    const hydrate = async (editAtRequest) => {
+      try {
+        const record = await getPreferences()
+        if (!current()) return
         const normalized = normalizePreferences(record)
         confirmedRef.current = record
         setConfirmedPreferences(normalized)
-        preferencesRef.current = normalized
-        setPreferences(normalized)
         writeAccountPreferenceCache(userId, normalized, record.version)
-        setStatus('synced')
-      }).catch(() => {
-        if (epochRef.current === epoch) setStatus('unsynced')
-      })
+        if (!dirtyRef.current && editRef.current === editAtRequest) {
+          preferencesRef.current = normalized
+          setPreferences(normalized)
+          setStatus('synced')
+        } else {
+          setStatus('saving')
+          clearTimeout(timerRef.current)
+          timerRef.current = setTimeout(() => persist(preferencesRef.current, editRef.current, epoch), 300)
+        }
+      } catch {
+        if (!current()) return
+        setStatus('unsynced')
+        if (dirtyRef.current || editRef.current !== editAtRequest) {
+          clearTimeout(timerRef.current)
+          timerRef.current = setTimeout(() => hydrate(editRef.current), 300)
+        }
+      }
     }
-    return () => { ++epochRef.current; clearTimeout(timerRef.current) }
+    if (userId) void hydrate(editRef.current)
+    return () => { mountedRef.current = false; ++epochRef.current; clearTimeout(timerRef.current) }
   }, [userId])
 
   useLayoutEffect(() => {
@@ -125,17 +145,18 @@ export function PreferenceProvider({ children }) {
 
   const persist = async (snapshot, edit, epoch) => {
     const confirmed = confirmedRef.current
-    if (!confirmed || epochRef.current !== epoch || savingEpochRef.current === epoch) return
+    if (!confirmed || epochRef.current !== epoch || identityRef.current !== userId || !mountedRef.current || savingEpochRef.current === epoch) return
     savingEpochRef.current = epoch
     setStatus('saving')
     try {
       const record = await savePreferences(snapshot, confirmed.version)
-      if (epochRef.current !== epoch) return
+      if (epochRef.current !== epoch || identityRef.current !== userId || !mountedRef.current) return
       confirmedRef.current = record
       const normalized = normalizePreferences(record)
       setConfirmedPreferences(normalized)
       writeAccountPreferenceCache(userId, normalized, record.version)
       if (editRef.current === edit) {
+        dirtyRef.current = false
         preferencesRef.current = normalized
         setPreferences(normalized)
         setStatus('synced')
@@ -147,12 +168,13 @@ export function PreferenceProvider({ children }) {
       if (error.code === 'CONFLICT') {
         try {
           const record = await getPreferences()
-          if (epochRef.current !== epoch) return
+          if (epochRef.current !== epoch || identityRef.current !== userId || !mountedRef.current) return
           const normalized = normalizePreferences(record)
           confirmedRef.current = record
           setConfirmedPreferences(normalized)
           preferencesRef.current = normalized
           setPreferences(normalized)
+          dirtyRef.current = false
           writeAccountPreferenceCache(userId, normalized, record.version)
           setStatus('conflict')
         } catch {
@@ -161,12 +183,17 @@ export function PreferenceProvider({ children }) {
       } else setStatus('unsynced')
     } finally {
       if (savingEpochRef.current === epoch) savingEpochRef.current = null
+      if (epochRef.current === epoch && identityRef.current === userId && mountedRef.current && editRef.current !== edit) {
+        clearTimeout(timerRef.current)
+        timerRef.current = setTimeout(() => persist(preferencesRef.current, editRef.current, epoch), 300)
+      }
     }
   }
 
   const updatePreference = (key, value) => {
     const next = normalizePreferences({ ...preferencesRef.current, [key]: value })
     preferencesRef.current = next
+    if (userId) dirtyRef.current = true
     setPreferences(next)
     if (!userId) {
       setStatus(writeGuestPreferences(next) ? 'synced' : 'unsynced')
@@ -182,16 +209,26 @@ export function PreferenceProvider({ children }) {
     if (!userId) { setStatus(writeGuestPreferences(preferencesRef.current) ? 'synced' : 'unsynced'); return }
     if (confirmedRef.current) persist(preferencesRef.current, ++editRef.current, epochRef.current)
     else {
+      const initiatingUserId = userId
+      const epoch = epochRef.current
+      const editAtRequest = editRef.current
+      const isCurrent = () => mountedRef.current && identityRef.current === initiatingUserId && epochRef.current === epoch
       setStatus('loading')
       getPreferences().then((record) => {
+        if (!isCurrent()) return
         const normalized = normalizePreferences(record)
         confirmedRef.current = record
         setConfirmedPreferences(normalized)
-        preferencesRef.current = normalized
-        setPreferences(normalized)
         writeAccountPreferenceCache(userId, normalized, record.version)
-        setStatus('synced')
-      }).catch(() => setStatus('unsynced'))
+        if (!dirtyRef.current && editRef.current === editAtRequest) {
+          preferencesRef.current = normalized
+          setPreferences(normalized)
+          dirtyRef.current = false
+          setStatus('synced')
+        } else {
+          timerRef.current = setTimeout(() => persist(preferencesRef.current, editRef.current, epoch), 300)
+        }
+      }).catch(() => { if (isCurrent()) setStatus('unsynced') })
     }
   }
 

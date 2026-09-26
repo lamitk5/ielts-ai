@@ -1,6 +1,6 @@
 export const PREFERENCE_STORAGE_KEY = 'ielts-ai-tutor.preferences.v1'
 import { DEFAULT_PREFERENCES } from './preferenceDefaults'
-import { normalizePreferences } from './preferenceSchema'
+import { isCompletePreferences, normalizePreferences } from './preferenceSchema'
 
 const recordVersion = 1
 const accountKey = (userId) => `ielts-ai-tutor.preferences.account.${encodeURIComponent(userId)}.v1`
@@ -10,7 +10,7 @@ function read(key) {
     const raw = localStorage.getItem(key)
     if (!raw) return null
     const record = JSON.parse(raw)
-    if (record?.version !== recordVersion || !record.preferences || typeof record.preferences !== 'object' || Array.isArray(record.preferences)) throw new Error('Invalid preferences')
+    if (record?.version !== recordVersion || !isCompletePreferences(record.preferences)) throw new Error('Invalid preferences')
     return { preferences: normalizePreferences(record.preferences), serverVersion: record.serverVersion }
   } catch {
     try { localStorage.removeItem(key) } catch { /* storage is unavailable */ }
