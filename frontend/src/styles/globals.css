@@ -11,21 +11,25 @@
   --gold-light: #e5c982;
   --text: #f5f7fa;
   --text-secondary: #b7c0cf;
-  --muted: #697386;
+  --muted: #929cad;
   --border: rgba(229, 201, 130, 0.16);
-  --border-strong: rgba(229, 201, 130, 0.3);
+  --border-strong: #e5c982;
   --focus: #e5c982;
   --accent: #cfae67;
   --accent-strong: #e5c982;
   --accent-soft: rgba(207, 174, 103, 0.16);
   --link: #e5c982;
-  --selected: rgba(207, 174, 103, 0.16);
-  --primary-action: #cfae67;
-  --chart-accent: #cfae67;
-  --success: #398f76;
-  --warning: #cfae67;
-  --danger: #a45169;
-  --info: #5088c6;
+  --selected: #e5c982;
+  --selected-soft: rgba(207, 174, 103, 0.16);
+  --selected-border: #e5c982;
+  --selected-text: #071426;
+  --primary-action: #e5c982;
+  --primary-action-text: #071426;
+  --chart-accent: #e5c982;
+  --success: #8ed9bc;
+  --warning: #e5c982;
+  --danger: #e6a3b4;
+  --info: #9cc4ee;
   --shadow: 0 16px 40px rgba(0, 0, 0, 0.24);
   --radius: 1rem;
   --space: 1;
@@ -2026,6 +2030,31 @@ a:focus-visible {
   .parallax-layer {
     will-change: auto;
   }
+}
+
+:root[data-reduced-motion='true'] {
+  scroll-behavior: auto;
+}
+
+:root[data-reduced-motion='true'] *,
+:root[data-reduced-motion='true'] *::before,
+:root[data-reduced-motion='true'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+:root[data-reduced-motion='true'] .btn-liquid::before {
+  display: none;
+}
+
+:root[data-reduced-motion='true'] .skeleton {
+  animation: none;
+  background: rgba(183, 192, 207, 0.055);
+}
+
+:root[data-reduced-motion='true'] .parallax-layer {
+  will-change: auto;
 }
 
 .practice-page {
