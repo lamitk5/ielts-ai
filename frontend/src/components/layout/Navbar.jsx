@@ -1,7 +1,11 @@
 import { Menu, X } from 'lucide-react'
-import { useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { useRef, useState } from 'react'
+import { NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from '../../features/auth/AuthProvider'
+import { PreferenceProvider, applyPreferenceTokens } from '../../features/preferences/PreferenceProvider'
+import { DEFAULT_PREFERENCES } from '../../features/preferences/preferenceDefaults'
+import SettingsButton from '../settings/SettingsButton'
+import SettingsDrawer from '../settings/SettingsDrawer'
 
 const links = [
   { label: 'Trang chủ', to: '/' },
@@ -12,13 +16,17 @@ const links = [
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [settingsRoute, setSettingsRoute] = useState(null)
+  const settingsOpenerRef = useRef(null)
   const { isAuthenticated, logout } = useAuth()
+  const location = useLocation()
+  const isSettingsOpen = settingsRoute === location.key
 
   const closeMenu = () => setIsMenuOpen(false)
 
   const handleLogout = async () => {
     closeMenu()
-    await logout()
+    try { await logout() } finally { applyPreferenceTokens(DEFAULT_PREFERENCES) }
   }
 
   return (
@@ -38,6 +46,10 @@ function Navbar() {
         >
           {isMenuOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
         </button>
+
+        <div className="nav-settings">
+          <SettingsButton openerRef={settingsOpenerRef} expanded={isSettingsOpen} onClick={() => { setIsMenuOpen(false); setSettingsRoute(location.key) }} />
+        </div>
 
         <div
           id="primary-navigation"
@@ -68,6 +80,11 @@ function Navbar() {
           )}
         </div>
       </nav>
+      {(isAuthenticated || isSettingsOpen) && (
+        <PreferenceProvider>
+          <SettingsDrawer open={isSettingsOpen} onClose={() => setSettingsRoute(null)} openerRef={settingsOpenerRef} />
+        </PreferenceProvider>
+      )}
     </header>
   )
 }

@@ -1,0 +1,75 @@
+import { useEffectEvent, useLayoutEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { X } from 'lucide-react'
+import Button from '../common/Button'
+import { usePreferences } from '../../features/preferences/PreferenceProvider'
+import { DEFAULT_PREFERENCES } from '../../features/preferences/preferenceDefaults'
+import PreferenceControlGroup from './PreferenceControlGroup'
+
+const focusable = 'button:not([disabled]), input:not([disabled]), select:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+const statusText = { idle: 'Chưa thay đổi', loading: 'Đang tải', saving: 'Đang lưu', synced: 'Đã đồng bộ', unsynced: 'Chưa đồng bộ', conflict: 'Đã cập nhật từ tài khoản' }
+
+export default function SettingsDrawer({ open, onClose, openerRef }) {
+  const dialogRef = useRef(null)
+  const closeRef = useRef(null)
+  const [confirmReset, setConfirmReset] = useState(false)
+  const { preferences, updatePreference, status, retry } = usePreferences()
+  const closeFromKeyboard = useEffectEvent(() => { setConfirmReset(false); onClose() })
+
+  useLayoutEffect(() => {
+    if (!open) return undefined
+    const previousOverflow = document.body.style.overflow
+    const opener = openerRef?.current
+    document.body.style.overflow = 'hidden'
+    closeRef.current?.focus()
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') { event.preventDefault(); closeFromKeyboard(); return }
+      if (event.key !== 'Tab') return
+      const elements = Array.from(dialogRef.current?.querySelectorAll(focusable) ?? [])
+      if (!elements.length) { event.preventDefault(); dialogRef.current?.focus(); return }
+      const first = elements[0]
+      const last = elements[elements.length - 1]
+      if (event.shiftKey && (document.activeElement === first || !dialogRef.current?.contains(document.activeElement))) { event.preventDefault(); last.focus() }
+      else if (!event.shiftKey && (document.activeElement === last || !dialogRef.current?.contains(document.activeElement))) { event.preventDefault(); first.focus() }
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      document.body.style.overflow = previousOverflow
+      opener?.focus()
+    }
+  }, [open, openerRef])
+
+  if (!open) return null
+  const close = () => { setConfirmReset(false); onClose() }
+  const reset = () => {
+    for (const [key, value] of Object.entries(DEFAULT_PREFERENCES)) updatePreference(key, value)
+    setConfirmReset(false)
+  }
+  return createPortal(
+    <div className="settings-overlay">
+      <button type="button" className="settings-backdrop" aria-label="Đóng cài đặt bằng nền" tabIndex={-1} data-testid="settings-backdrop" onClick={close} />
+      <section ref={dialogRef} className="settings-drawer" role="dialog" aria-modal="true" aria-labelledby="settings-title" tabIndex={-1}>
+        <div className="settings-heading">
+          <h2 id="settings-title" className="font-display">Cài đặt</h2>
+          <button ref={closeRef} type="button" className="settings-close" aria-label="Đóng cài đặt" onClick={close}><X aria-hidden="true" /></button>
+        </div>
+        <div className="settings-scroll">
+          <p className="settings-intro">Tùy chỉnh trải nghiệm học của bạn.</p>
+          <p className="settings-status" role="status">{statusText[status] ?? statusText.idle}</p>
+          {status === 'unsynced' && <Button variant="ghost" size="sm" onClick={retry}>Thử lại</Button>}
+          <PreferenceControlGroup preferences={preferences} updatePreference={updatePreference} />
+          {confirmReset ? (
+            <div className="settings-confirm" role="group" aria-label="Xác nhận khôi phục">
+              <p>Vui lòng xác nhận khôi phục tất cả thiết lập mặc định.</p>
+              <div className="settings-confirm-actions">
+                <Button variant="secondary" size="sm" onClick={() => setConfirmReset(false)}>Hủy</Button>
+                <Button variant="primary" size="sm" onClick={reset}>Xác nhận khôi phục</Button>
+              </div>
+            </div>
+          ) : <Button variant="ghost" size="sm" onClick={() => setConfirmReset(true)}>Khôi phục mặc định</Button>}
+        </div>
+      </section>
+    </div>, document.body,
+  )
+}
