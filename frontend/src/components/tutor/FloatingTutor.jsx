@@ -32,12 +32,20 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
   const [sessionExpired, setSessionExpired] = useState(false)
   const [activeContext, setActiveContext] = useState(context)
   const [attachment, setAttachment] = useState(null)
+  const [conversationId, setConversationId] = useState(null)
   const buttonRef = useRef(null)
   const inputRef = useRef(null)
   const openedRef = useRef(false)
   const mountedRef = useRef(true)
   const abortControllerRef = useRef(null)
   const initialPathRef = useRef(location?.pathname ?? '/')
+  const accountKey = auth?.isAuthenticated ? auth.session?.user?.id ?? 'member' : 'guest'
+
+  useEffect(() => {
+    setMessages([welcomeMessage])
+    setConversationId(null)
+    setSessionExpired(false)
+  }, [accountKey])
 
   const isGuest = Boolean(auth && !auth.isAuthenticated) || sessionExpired
 
@@ -191,6 +199,7 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
           message: content,
           context: activeContext,
           history,
+          conversationId,
           attachmentId: options?.attachmentId,
         },
         { signal: controller.signal },
@@ -202,6 +211,7 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
         setAttachment(null)
       }
       if (!mountedRef.current) return
+      if (response.conversationId) setConversationId(response.conversationId)
       setMessages((current) => [
         ...current,
         {
