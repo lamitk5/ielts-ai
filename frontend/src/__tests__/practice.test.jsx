@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, test, vi } from 'vitest'
@@ -100,5 +100,28 @@ describe('deterministic practice routes', () => {
     })
     expect(payload.context).not.toHaveProperty('answerKey')
     global.fetch = originalFetch
+  })
+
+  test('submits only selected Reading choices through the existing attempt API', async () => {
+    const user = userEvent.setup()
+    window.localStorage.setItem('ielts-ai-tutor.session', JSON.stringify({ token: 'test-token', user: { id: 'user-1' } }))
+    vi.stubGlobal('fetch', vi.fn(async (url) => {
+      if (url === '/api/practice/reading/attempts') return { ok: true, json: async () => ({ attemptId: 'attempt-1', score: 1, total: 2 }) }
+      if (url === '/api/practice/reading/sets') return { ok: true, json: async () => [] }
+      return { ok: false, json: async () => null }
+    }))
+    render(<MemoryRouter initialEntries={['/practice/reading']}><App /></MemoryRouter>)
+
+    await user.click(screen.getByLabelText('B. To improve recall'))
+    await user.click(screen.getByRole('button', { name: /câu 2.*chưa trả lời/i }))
+    await user.click(screen.getByLabelText('A. More accurate summaries'))
+    await user.click(screen.getByRole('button', { name: 'Nộp bài' }))
+
+    await waitFor(() => expect(global.fetch.mock.calls.some(([url]) => url === '/api/practice/reading/attempts')).toBe(true))
+    const [, request] = global.fetch.mock.calls.find(([url]) => url === '/api/practice/reading/attempts')
+    expect(JSON.parse(request.body)).toEqual({ setId: 'reading-foundation-01', answers: { 'reading-q1': 'B', 'reading-q2': 'A' } })
+    expect(await screen.findByText('1/2')).toBeInTheDocument()
+    vi.unstubAllGlobals()
+    window.localStorage.clear()
   })
 })

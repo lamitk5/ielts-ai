@@ -7,6 +7,9 @@ import { useAuth } from '../features/auth/AuthProvider'
 import { practiceFixtures } from '../features/reading/practiceFixtures'
 import { fetchPracticeSet, submitPracticeAttempt } from '../features/reading/practiceApi'
 import FloatingTutor from '../components/tutor/FloatingTutor'
+import { SplitLearningWorkspace } from '../components/workspace/SplitLearningWorkspace'
+import { ReadingPassagePane } from '../components/workspace/ReadingPassagePane'
+import { ReadingQuestionPane } from '../components/workspace/ReadingQuestionPane'
 
 function PracticePage() {
   const { skill } = useParams()
@@ -17,6 +20,8 @@ function PracticePage() {
   const [currentQuestionId, setCurrentQuestionId] = useState(fixture?.questions?.[0]?.id ?? null)
   const [result, setResult] = useState(null)
   const [error, setError] = useState('')
+  const [flaggedIds, setFlaggedIds] = useState(() => new Set())
+  const [reviewedIds, setReviewedIds] = useState(() => new Set())
 
   useEffect(() => {
     if (!fixture) return undefined
@@ -30,6 +35,15 @@ function PracticePage() {
   if (!fixture) {
     return <PlaceholderPage title="Practice area unavailable." description={`The practice skill “${skill}” is not available.`} />
   }
+
+  const questions = practiceSet.questions ?? []
+  const activeQuestionId = questions.some((question) => question.id === currentQuestionId) ? currentQuestionId : questions[0]?.id ?? null
+  const toggleId = (setter, id) => setter((current) => {
+    const next = new Set(current)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    return next
+  })
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -47,7 +61,7 @@ function PracticePage() {
   }
 
   return (
-    <section className="practice-page" aria-labelledby="practice-title">
+    <section className={`practice-page${skill === 'reading' ? ' practice-page-reading' : ''}`} aria-labelledby="practice-title">
       <div className="practice-page-header">
         <p className="eyebrow">LUYỆN TẬP {practiceSet.name.toUpperCase()}</p>
         <h1 id="practice-title" className="font-display">{practiceSet.name} practice</h1>
@@ -60,7 +74,34 @@ function PracticePage() {
             <span>Bộ đề synthetic hiện dùng nội dung văn bản để kiểm tra luồng trả lời và chấm điểm deterministic.</span>
           </GlassCard>
         ) : null}
-        {practiceSet.questions.map((question, index) => (
+        {skill === 'reading' ? (
+          <SplitLearningWorkspace
+            workspace="reading"
+            leftLabel="Nội dung"
+            rightLabel="Câu hỏi"
+            left={<ReadingPassagePane practiceSet={practiceSet} />}
+            right={<ReadingQuestionPane
+              questions={questions}
+              currentQuestionId={activeQuestionId}
+              answers={answers}
+              flaggedIds={flaggedIds}
+              reviewedIds={reviewedIds}
+              onSelect={setCurrentQuestionId}
+              onAnswer={(id, value) => {
+                setCurrentQuestionId(id)
+                setAnswers((current) => ({ ...current, [id]: value }))
+                setReviewedIds((current) => {
+                  const next = new Set(current)
+                  next.delete(id)
+                  return next
+                })
+                setResult(null)
+              }}
+              onToggleFlag={(id) => toggleId(setFlaggedIds, id)}
+              onToggleReviewed={(id) => toggleId(setReviewedIds, id)}
+            />}
+          />
+        ) : questions.map((question, index) => (
           <GlassCard className="practice-question" key={question.id}>
             <p className="practice-question-number">CÂU {index + 1}</p>
             <h2>{question.prompt}</h2>
@@ -91,7 +132,7 @@ function PracticePage() {
         skill: skill.toUpperCase(),
         lessonId: practiceSet.setId ?? practiceSet.id,
         exerciseId: practiceSet.setId ?? practiceSet.id,
-        questionId: currentQuestionId,
+        questionId: activeQuestionId,
         ...(result?.attemptId ? { attemptId: result.attemptId } : {}),
       }} />
     </section>
