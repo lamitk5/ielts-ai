@@ -15,6 +15,10 @@ public class DefaultTutorIntentRouter implements TutorIntentRouter {
         String skill = request == null || request.context() == null ? "general"
                 : request.context().normalizedSkill().toLowerCase(Locale.ROOT);
 
+        if (isOutOfScope(message) && !isExplicitEnglishPractice(message)) {
+            return new TutorIntentRoute(TutorIntent.OUT_OF_SCOPE, false, false, "unrelated assistant request");
+        }
+
         if (matches(message, "đang làm câu nào", "what question am i", "đáp án tôi vừa chọn", "what answer did i choose",
                 "tôi được bao nhiêu điểm", "what was my score", "đúng bao nhiêu câu", "how many correct")) {
             return new TutorIntentRoute(TutorIntent.APP_DATA, false, false, "trusted application data");
@@ -37,6 +41,16 @@ public class DefaultTutorIntentRouter implements TutorIntentRouter {
             return new TutorIntentRoute(TutorIntent.RAG_EXPLANATION, true, true, "governed source request");
         }
         return new TutorIntentRoute(TutorIntent.GENERIC_CHAT, true, false, "normal Tutor chat");
+    }
+
+    private boolean isOutOfScope(String message) {
+        return matches(message, "javascript", "python code", "java code", "programming", "stock market",
+                "cryptocurrency", "bitcoin", "investment advice", "mortgage", "solve this equation",
+                "calculus", "tax return");
+    }
+
+    private boolean isExplicitEnglishPractice(String message) {
+        return matches(message, "in english", "bằng tiếng anh", "for english practice", "luyện tiếng anh");
     }
 
     private boolean matches(String message, String... terms) {

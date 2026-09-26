@@ -11,6 +11,15 @@ const ERROR_MESSAGES = {
   AUTH_REQUIRED: 'Vui lòng đăng nhập để sử dụng Trợ giảng AI.',
 }
 
+function getAuthHeaders() {
+  try {
+    const session = JSON.parse(localStorage.getItem('ielts-ai-tutor.session') ?? 'null')
+    return session?.token ? { Authorization: `Bearer ${session.token}` } : {}
+  } catch {
+    return {}
+  }
+}
+
 export class AiTutorApiError extends Error {
   constructor(code, message, status) {
     super(message)
@@ -20,7 +29,7 @@ export class AiTutorApiError extends Error {
   }
 }
 
-export async function sendTutorMessage({ message, context = { skill: 'GENERAL' }, history = [] }, options = {}) {
+export async function sendTutorMessage({ message, context = { skill: 'GENERAL' }, history = [], conversationId = null }, options = {}) {
   const controller = new AbortController()
   const timeout = options.timeoutMs ?? 20000
   const timeoutId = window.setTimeout(() => controller.abort(), timeout)
@@ -35,8 +44,13 @@ export async function sendTutorMessage({ message, context = { skill: 'GENERAL' }
   try {
     const response = await fetch('/api/ai/chat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message, context, history: history.slice(-MAX_HISTORY_MESSAGES) }),
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+      body: JSON.stringify({
+        message,
+        context,
+        history: history.slice(-MAX_HISTORY_MESSAGES),
+        ...(conversationId ? { conversationId } : {}),
+      }),
       signal: controller.signal,
     })
     const payload = await response.json().catch(() => null)
@@ -50,7 +64,7 @@ export async function sendTutorMessage({ message, context = { skill: 'GENERAL' }
     }
 
     if (!payload || typeof payload.answer !== 'string'
-      || !['ANSWERED', 'APP_DATA', 'INSUFFICIENT_CONTEXT', 'FALLBACK'].includes(payload.status)) {
+      || !['ANSWERED', 'APP_DATA', 'INSUFFICIENT_CONTEXT', 'INSUFFICIENT_EVIDENCE', 'FALLBACK', 'OUT_OF_SCOPE', 'INVALID_CONVERSATION'].includes(payload.status)) {
       throw new AiTutorApiError('AI_PROVIDER_ERROR', ERROR_MESSAGES.AI_PROVIDER_ERROR, response.status)
     }
 
@@ -60,6 +74,7 @@ export async function sendTutorMessage({ message, context = { skill: 'GENERAL' }
       sources: normalizeSources(payload.sources),
       grounding: normalizeGrounding(payload.grounding),
       references: normalizeTutorReferences(payload.references),
+      conversationId: typeof payload.meta?.conversationId === 'string' ? payload.meta.conversationId : null,
       meta: payload.meta,
       timestamp: payload.timestamp,
     }

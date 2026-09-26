@@ -15,6 +15,7 @@ import com.ieltsaitutor.ai.dto.AiChatContext;
 import com.ieltsaitutor.ai.model.AiChatCommand;
 import com.ieltsaitutor.ai.model.AiChatResult;
 import com.ieltsaitutor.ai.provider.AiProvider;
+import com.ieltsaitutor.learning.intelligence.LearningEvidencePipeline;
 
 @Service
 public class WritingAssessmentService {
@@ -22,16 +23,24 @@ public class WritingAssessmentService {
     private final AiProvider provider;
     private final WritingRepository repository;
     private final ObjectMapper objectMapper;
+    private final LearningEvidencePipeline evidence;
 
-    @Autowired
     public WritingAssessmentService(AiProvider provider, WritingRepository repository) {
-        this(provider, repository, new ObjectMapper());
+        this(provider, repository, new ObjectMapper(), null);
     }
 
     public WritingAssessmentService(AiProvider provider, WritingRepository repository, ObjectMapper objectMapper) {
-        this.provider = provider;
-        this.repository = repository;
-        this.objectMapper = objectMapper;
+        this(provider, repository, objectMapper, null);
+    }
+
+    @Autowired
+    public WritingAssessmentService(AiProvider provider, WritingRepository repository, LearningEvidencePipeline evidence) {
+        this(provider, repository, new ObjectMapper(), evidence);
+    }
+
+    public WritingAssessmentService(AiProvider provider, WritingRepository repository, ObjectMapper objectMapper,
+            LearningEvidencePipeline evidence) {
+        this.provider = provider; this.repository = repository; this.objectMapper = objectMapper; this.evidence = evidence;
     }
 
     public WritingAssessment assess(UUID userId, String taskId, String responseText) {
@@ -45,6 +54,7 @@ public class WritingAssessmentService {
             if (!"ANSWERED".equals(result.status())) return persistUnavailable(userId, taskId);
             WritingAssessment assessment = parse(userId, taskId, responseText, result.answer());
             repository.save(assessment);
+            emit(userId, taskId, assessment.wordCount());
             return assessment;
         } catch (RuntimeException exception) {
             return persistUnavailable(userId, taskId);
@@ -83,7 +93,14 @@ public class WritingAssessmentService {
     private WritingAssessment persistUnavailable(UUID userId, String taskId) {
         WritingAssessment assessment = unavailable(userId, taskId);
         repository.save(assessment);
+        emit(userId, taskId, assessment.wordCount());
         return assessment;
+    }
+
+    private void emit(UUID userId, String taskId, int wordCount) {
+        if (evidence == null) return;
+        try { evidence.writingSubmitted(userId, taskId, wordCount, java.time.Instant.now()); }
+        catch (RuntimeException ignored) { /* adaptive refresh must not break assessment persistence */ }
     }
 
     private WritingAssessment unavailable(UUID userId, String taskId) {
