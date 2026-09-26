@@ -2723,3 +2723,167 @@ input:focus-visible {
 .tutor-cancel-action-button {
   margin-right: 0.25rem;
 }
+
+/* Tutor Attachment Styles */
+.tutor-composer-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tutor-attachment-composer {
+  display: inline-flex;
+  align-items: center;
+}
+
+.tutor-attachment-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.375rem;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.tutor-attachment-trigger-btn:hover:not(:disabled) {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.tutor-attachment-trigger-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.tutor-attachment-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(16, 27, 48, 0.8);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.tutor-attachment-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tutor-attachment-icon {
+  color: var(--gold, #d4af37);
+  flex-shrink: 0;
+}
+
+.tutor-attachment-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.tutor-attachment-filename {
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tutor-attachment-size {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.tutor-attachment-status-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.15rem 0.45rem;
+  border-radius: 0.25rem;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.tutor-attachment-status-badge.status-ready {
+  background: rgba(46, 160, 67, 0.15);
+  color: #3fb950;
+}
+
+.tutor-attachment-status-badge.status-uploading,
+.tutor-attachment-status-badge.status-processing {
+  background: rgba(212, 175, 55, 0.15);
+  color: var(--gold-light, #d4af37);
+}
+
+.tutor-attachment-status-badge.status-failed {
+  background: rgba(220, 120, 120, 0.15);
+  color: #e06c75;
+}
+
+.tutor-attachment-remove-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: 0.25rem;
+}
+
+.tutor-attachment-remove-btn:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.tutor-attachment-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #e06c75;
+  font-size: 0.75rem;
+}
+
+.tutor-attachment-error p {
+  margin: 0;
+  flex: 1;
+}
+
+.tutor-attachment-retry-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border: 1px solid rgba(220, 120, 120, 0.4);
+  background: transparent;
+  color: #e06c75;
+  border-radius: 0.25rem;
+  padding: 0.15rem 0.4rem;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+.tutor-attachment-progress {
+  width: 100%;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.tutor-attachment-progress-bar {
+  width: 60%;
+  height: 100%;
+  background: var(--gold, #d4af37);
+}
