@@ -4,6 +4,7 @@ import HomePage from './pages/HomePage'
 import PlaceholderPage from './pages/PlaceholderPage'
 import AdminRagPage from './pages/AdminRagPage'
 import AdminPracticeGeneratorPage from './pages/AdminPracticeGeneratorPage'
+import AdminPracticeReviewPage from './pages/AdminPracticeReviewPage'
 import LoginPage from './pages/LoginPage'
 import { AuthProvider } from './features/auth/AuthProvider'
 import { PreferenceProvider } from './features/preferences/PreferenceProvider'
@@ -23,6 +24,7 @@ function App() {
           <Route index element={<HomePage />} />
           <Route path="admin/rag" element={<AdminRagPage />} />
           <Route path="admin/practice-generator" element={<AdminPracticeGeneratorPage />} />
+          <Route path="admin/practice-generator/sets/:setId" element={<AdminPracticeReviewPage />} />
           <Route path="assessment" element={<AssessmentPage />} />
           <Route path="practice/search" element={<SearchPage />} />
           <Route path="practice/writing" element={<WritingPage />} />
