@@ -28,6 +28,12 @@ public class AuthInterceptor implements HandlerInterceptor {
         } else if (requiresAuthentication(request)) {
             return reject(response);
         }
+        if (requiresAdmin(request)) {
+            Object principal = request.getAttribute(PRINCIPAL_ATTRIBUTE);
+            if (!(principal instanceof AuthPrincipal authenticated && authenticated.role() == UserRole.ADMIN)) {
+                return rejectForbidden(response);
+            }
+        }
         return true;
     }
 
@@ -38,13 +44,26 @@ public class AuthInterceptor implements HandlerInterceptor {
                 || path.startsWith("/api/ai/attachments")
                 || path.startsWith("/api/learning/drafts")
                 || path.matches("/api/practice/[^/]+/attempts") || path.startsWith("/api/practice/writing/submissions")
-                || path.startsWith("/api/practice/speaking/attempts");
+                || path.startsWith("/api/practice/speaking/attempts")
+                || path.startsWith("/api/admin/practice-generator");
+    }
+
+    private boolean requiresAdmin(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        return path.startsWith("/api/admin/practice-generator");
     }
 
     private boolean reject(HttpServletResponse response) throws IOException {
         response.setStatus(401);
         response.setContentType("application/json");
         response.getWriter().write("{\"error\":{\"code\":\"AUTH_UNAUTHORIZED\",\"message\":\"Đăng nhập để tiếp tục.\"}}");
+        return false;
+    }
+
+    private boolean rejectForbidden(HttpServletResponse response) throws IOException {
+        response.setStatus(403);
+        response.setContentType("application/json");
+        response.getWriter().write("{\"error\":{\"code\":\"AUTH_FORBIDDEN\",\"message\":\"Quyền quản trị viên là bắt buộc.\"}}");
         return false;
     }
 }
