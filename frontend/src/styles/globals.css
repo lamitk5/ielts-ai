@@ -3300,4 +3300,68 @@ input:focus-visible {
   outline-offset: 2px;
 }
 
+.speaking-local-controls {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.local-visualizer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem;
+  border-radius: var(--radius);
+  background: rgba(12, 20, 36, 0.5);
+  border: 1px solid var(--border);
+  margin-top: 0.75rem;
+  width: 100%;
+}
+
+.visualizer-bars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 6px;
+  height: 48px;
+  width: 100%;
+}
+
+.visualizer-bar {
+  width: 8px;
+  border-radius: 4px;
+  background: var(--gold, #cfb070);
+  transition: height 0.08s ease-out, opacity 0.15s ease;
+}
+
+.local-visualizer.reduced-motion .visualizer-bar {
+  transition: none;
+}
+
+.visualizer-note {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin: 0;
+  text-align: center;
+}
+
+.speaking-mic-state-card {
+  padding: 0.85rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.speaking-mic-state-text {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.speaking-mic-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+}
+
 

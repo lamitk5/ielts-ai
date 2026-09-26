@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 
 export function useSpeakingTimer({
   initialDuration = 60,
-  mode = 'PREPARATION',
+  mode: _mode = 'PREPARATION',
   onComplete,
 }) {
   const [secondsLeft, setSecondsLeft] = useState(Math.max(0, initialDuration))
@@ -10,7 +10,9 @@ export function useSpeakingTimer({
   const timerRef = useRef(null)
   const onCompleteRef = useRef(onComplete)
 
-  onCompleteRef.current = onComplete
+  useEffect(() => {
+    onCompleteRef.current = onComplete
+  }, [onComplete])
 
   const clearTimer = useCallback(() => {
     if (timerRef.current) {

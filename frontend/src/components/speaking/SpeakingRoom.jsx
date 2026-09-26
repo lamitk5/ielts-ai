@@ -4,20 +4,15 @@ import GlassCard from '../common/GlassCard'
 import SpeakingOrb from './SpeakingOrb'
 import SpeakingPromptCard from './SpeakingPromptCard'
 import SpeakingTimer from './SpeakingTimer'
+import MicrophonePermissionState from './MicrophonePermissionState'
+import LocalAudioVisualizer from './LocalAudioVisualizer'
 import { useSpeakingTimer } from '../../features/speaking/useSpeakingTimer'
+import { useLocalAudioAmplitude } from '../../features/speaking/useLocalAudioAmplitude'
 import {
   SPEAKING_ROOM_STATES,
   speakingRoomReducer,
 } from '../../features/speaking/speakingRoomState'
 import { useEffectiveReducedMotion } from '../../features/preferences/PreferenceProvider'
-
-function useSafeReducedMotion() {
-  try {
-    return useEffectiveReducedMotion()
-  } catch {
-    return false
-  }
-}
 
 export function SpeakingRoom({
   prompts = [],
@@ -31,7 +26,24 @@ export function SpeakingRoom({
 }) {
   const [state, dispatch] = useReducer(speakingRoomReducer, { status: initialState, error: null })
   const [transcript, setTranscript] = useState('')
-  const reducedMotion = useSafeReducedMotion()
+  const reducedMotion = useEffectiveReducedMotion()
+
+  const isRecording = state.status === SPEAKING_ROOM_STATES.RECORDING_LOCAL
+
+  const {
+    permissionState,
+    amplitude,
+    requestPermission,
+  } = useLocalAudioAmplitude({
+    isRecording,
+    onPermissionChange: (perm) => {
+      if (perm === 'denied') {
+        dispatch({ type: 'MIC_DENIED' })
+      } else if (perm === 'unavailable') {
+        dispatch({ type: 'MIC_UNAVAILABLE' })
+      }
+    },
+  })
 
   const currentPrompt = prompts.find((p) => p.id === selectedPromptId) ?? prompts[0]
   const isPart2 = currentPrompt?.part?.includes('PART 2') || currentPrompt?.part?.includes('Part 2')
@@ -68,10 +80,25 @@ export function SpeakingRoom({
     }
   }, [initialState, state.status])
 
+  const handleStartRecording = async () => {
+    const granted = await requestPermission()
+    if (granted) {
+      dispatch({ type: 'START_RECORDING_LOCAL' })
+      startTimer()
+    }
+  }
+
   const handleSubmit = (event) => {
     event?.preventDefault?.()
     onSaveTranscript?.(selectedPromptId, transcript)
   }
+
+  const effectivePermissionState =
+    state.status === SPEAKING_ROOM_STATES.MIC_PERMISSION_DENIED
+      ? 'denied'
+      : state.status === SPEAKING_ROOM_STATES.MIC_UNAVAILABLE
+        ? 'unavailable'
+        : permissionState
 
   return (
     <div className="speaking-room">
@@ -96,27 +123,44 @@ export function SpeakingRoom({
             onPause={pauseTimer}
             onReset={() => resetTimer(isPart2 ? 60 : 120)}
           />
+
+          <div className="speaking-local-controls">
+            {!isRecording && state.status !== SPEAKING_ROOM_STATES.MIC_PERMISSION_DENIED && state.status !== SPEAKING_ROOM_STATES.MIC_UNAVAILABLE ? (
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={handleStartRecording}
+              >
+                Bật microphone cục bộ
+              </Button>
+            ) : null}
+
+            {isRecording ? (
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => dispatch({ type: 'SWITCH_TO_TEXT' })}
+              >
+                Dừng thu âm cục bộ
+              </Button>
+            ) : null}
+          </div>
+
+          <LocalAudioVisualizer
+            amplitude={amplitude}
+            isRecording={isRecording}
+            reducedMotion={reducedMotion}
+          />
         </div>
       </div>
 
-      {state.status === SPEAKING_ROOM_STATES.MIC_PERMISSION_DENIED ||
-      state.status === SPEAKING_ROOM_STATES.MIC_UNAVAILABLE ? (
-        <GlassCard className="speaking-mic-fallback-card" role="alert">
-          <p className="speaking-mic-error-text">
-            {state.status === SPEAKING_ROOM_STATES.MIC_PERMISSION_DENIED
-              ? 'Quyền truy cập microphone bị từ chối. Bạn vẫn có thể tiếp tục luyện tập bằng cách ghi lại câu trả lời văn bản.'
-              : 'Không tìm thấy thiết bị microphone hợp lệ. Hãy sử dụng chế độ nhập văn bản bên dưới.'}
-          </p>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={() => dispatch({ type: 'SWITCH_TO_TEXT' })}
-          >
-            Chuyển sang trả lời bằng văn bản
-          </Button>
-        </GlassCard>
-      ) : null}
+      <MicrophonePermissionState
+        permissionState={effectivePermissionState}
+        onSwitchToText={() => dispatch({ type: 'SWITCH_TO_TEXT' })}
+        onRequestPermission={requestPermission}
+      />
 
       <form className="speaking-response-form" onSubmit={handleSubmit}>
         <div className="speaking-textarea-group">
