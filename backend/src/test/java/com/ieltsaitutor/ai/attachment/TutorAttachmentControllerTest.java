@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -125,6 +126,54 @@ class TutorAttachmentControllerTest {
         assertThatThrownBy(() -> realService.upload(UUID.randomUUID(),
                 new MockMultipartFile("file", "empty.png", "image/png", new byte[0]), "request-empty"))
                 .extracting("code").isEqualTo("ATTACHMENT_EMPTY");
+    }
+
+    @Test
+    void authenticatedImageUploadReturnsNoVisionCapabilityAndForwardsRequestId() throws Exception {
+        UUID userId = UUID.randomUUID();
+        authenticate(userId);
+        UUID attachmentId = UUID.randomUUID();
+        TutorAttachment image = new TutorAttachment(
+                attachmentId,
+                userId,
+                "diagram.png",
+                "image/png",
+                128L,
+                AttachmentStatus.IMAGE_READY,
+                null,
+                Instant.parse("2026-09-26T10:00:00Z"),
+                Instant.parse("2026-09-26T10:00:00Z"),
+                "request-image",
+                TutorAttachmentContract.VISION_NOT_ENABLED
+        );
+        when(service.upload(eq(userId), any(), eq("request-image"))).thenReturn(image);
+
+        mvc.perform(multipart(BASE_PATH)
+                        .file(new MockMultipartFile("file", "diagram.png", "image/png", new byte[] { 1 }))
+                        .param("requestId", "request-image")
+                        .header("Authorization", "Bearer valid"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status").value("IMAGE_READY"))
+                .andExpect(jsonPath("$.capability").value(TutorAttachmentContract.VISION_NOT_ENABLED))
+                .andExpect(jsonPath("$.requestId").value("request-image"));
+
+        verify(service).upload(eq(userId), any(), eq("request-image"));
+    }
+
+    @Test
+    void activeAttachmentScopePreservesRequestIsolationAndOwnership() {
+        TutorAttachmentService realService = new TutorAttachmentService();
+        UUID ownerId = UUID.randomUUID();
+        UUID foreignUserId = UUID.randomUUID();
+        MockMultipartFile image = new MockMultipartFile("file", "diagram.png", "image/png", new byte[] { 1 });
+
+        TutorAttachment first = realService.upload(ownerId, image, "request-a");
+
+        assertThatThrownBy(() -> realService.upload(ownerId, image, "request-a"))
+                .extracting("code").isEqualTo("ATTACHMENT_LIMIT_EXCEEDED");
+        assertThat(realService.upload(ownerId, image, "request-b").requestId()).isEqualTo("request-b");
+        assertThatThrownBy(() -> realService.get(foreignUserId, first.id()))
+                .extracting("code").isEqualTo("ATTACHMENT_NOT_FOUND");
     }
 
     @Test
