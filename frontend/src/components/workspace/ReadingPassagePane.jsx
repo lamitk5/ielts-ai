@@ -42,7 +42,7 @@ export function ReadingPassagePane({ practiceSet, registry }) {
   return (
     <article
       ref={containerRef}
-      className="reading-passage"
+      className="reading-passage reading-passage-editorial"
       data-reading-target-id={practiceSet.setId ?? practiceSet.id}
       tabIndex={-1}
     >

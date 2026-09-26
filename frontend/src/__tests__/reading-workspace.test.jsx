@@ -17,6 +17,10 @@ describe('Reading learning workspace', () => {
 
     const passage = screen.getByRole('region', { name: 'Nội dung' })
     const questions = screen.getByRole('region', { name: 'Câu hỏi' })
+    expect(screen.getByRole('region', { name: 'Nội dung' }).closest('.split-learning-workspace')).toHaveClass('reading-workspace-editorial')
+    expect(within(passage).getByRole('article')).toHaveClass('reading-passage-editorial')
+    expect(within(questions).getByRole('article')).toHaveClass('reading-current-question-editorial')
+    expect(within(questions).getByRole('navigation', { name: 'Điều hướng câu hỏi' })).toHaveAttribute('data-state-legend', 'unanswered-answered-reviewed')
     expect(passage.compareDocumentPosition(questions) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expect(within(passage).getByRole('heading', { name: 'Learning Through Spaced Practice' })).toBeInTheDocument()
     expect(passage.querySelector('[data-reading-target-id="reading-foundation-01-p1"]')).toHaveTextContent('improve recall')

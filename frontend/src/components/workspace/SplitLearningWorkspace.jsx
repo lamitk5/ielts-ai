@@ -15,7 +15,7 @@ export function SplitLearningWorkspace({ left, right, leftLabel, rightLabel, rat
 
   return (
     <div
-      className={`split-learning-workspace${mobileMode ? ' split-learning-workspace-mobile' : ''}`}
+      className={`split-learning-workspace${workspace === 'reading' ? ' reading-workspace-editorial' : ''}${mobileMode ? ' split-learning-workspace-mobile' : ''}`}
       style={{ '--workspace-left-ratio': `${currentRatio}fr`, '--workspace-right-ratio': `${100 - currentRatio}fr` }}
     >
       <div className="workspace-desktop-controls">

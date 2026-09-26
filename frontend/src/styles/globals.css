@@ -2327,6 +2327,13 @@ input:focus-visible {
 .practice-page-reading { width: min(100% - 2rem, 1260px); }
 .reading-passage,
 .reading-questions { min-width: 0; }
+.reading-passage-editorial { color: var(--text-primary, var(--text)); }
+.reading-passage-editorial .reading-pane-kicker { color: var(--accent); }
+.reading-passage-editorial .reading-paragraph { border-color: var(--border-subtle, var(--border)); }
+.reading-current-question-editorial { border-color: var(--border-subtle, var(--border)); }
+.reading-current-question-editorial .reading-question-tools,
+.reading-current-question-editorial .reading-question-navigation { gap: .5rem; }
+.reading-question-rail[data-state-legend='unanswered-answered-reviewed'] .reading-question-progress { color: var(--text-secondary); }
 .reading-pane-kicker { margin: 0 0 .5rem; color: var(--accent); font-size: .72rem; font-weight: 700; letter-spacing: .12em; }
 .reading-passage h2 { margin: 0 0 1.5rem; color: var(--text); font-size: clamp(1.5rem, 3vw, 2rem); }
 .reading-passage-body { display: grid; gap: 1.25rem; }

@@ -8,7 +8,11 @@ export function QuestionStateRail({ questions, answers, flaggedIds, reviewedIds,
   const answeredCount = questions.filter((question) => Boolean(answers[question.id])).length
 
   return (
-    <nav className="reading-question-rail" aria-label="Điều hướng câu hỏi">
+    <nav
+      className="reading-question-rail"
+      aria-label="Điều hướng câu hỏi"
+      data-state-legend="unanswered-answered-reviewed"
+    >
       <p className="reading-question-progress">Đã trả lời {answeredCount}/{questions.length} câu</p>
       <ol className="reading-question-list">
         {questions.map((question, index) => {

@@ -54,7 +54,7 @@ export function ReadingQuestionPane({
       />
       <article
         ref={questionArticleRef}
-        className="reading-current-question"
+        className="reading-current-question reading-current-question-editorial"
         data-reading-target-id={question.id}
       >
         <div className="reading-question-heading">

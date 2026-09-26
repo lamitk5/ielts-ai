@@ -4,6 +4,20 @@
   min-width: 0;
 }
 
+.reading-workspace-editorial .workspace-panes {
+  border-color: var(--border-subtle, var(--border));
+  background: var(--surface-1, var(--surface));
+  box-shadow: var(--shadow-sm, 0 12px 30px rgba(6, 11, 22, 0.12));
+}
+
+.reading-workspace-editorial .workspace-pane {
+  background: var(--surface-1, var(--surface));
+}
+
+.reading-workspace-editorial .workspace-divider > span {
+  background: var(--surface-interactive, var(--surface-alt));
+}
+
 .workspace-desktop-controls {
   display: flex;
   justify-content: flex-end;
