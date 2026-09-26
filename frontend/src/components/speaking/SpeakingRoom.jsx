@@ -3,10 +3,21 @@ import Button from '../common/Button'
 import GlassCard from '../common/GlassCard'
 import SpeakingOrb from './SpeakingOrb'
 import SpeakingPromptCard from './SpeakingPromptCard'
+import SpeakingTimer from './SpeakingTimer'
+import { useSpeakingTimer } from '../../features/speaking/useSpeakingTimer'
 import {
   SPEAKING_ROOM_STATES,
   speakingRoomReducer,
 } from '../../features/speaking/speakingRoomState'
+import { useEffectiveReducedMotion } from '../../features/preferences/PreferenceProvider'
+
+function useSafeReducedMotion() {
+  try {
+    return useEffectiveReducedMotion()
+  } catch {
+    return false
+  }
+}
 
 export function SpeakingRoom({
   prompts = [],
@@ -20,6 +31,30 @@ export function SpeakingRoom({
 }) {
   const [state, dispatch] = useReducer(speakingRoomReducer, { status: initialState, error: null })
   const [transcript, setTranscript] = useState('')
+  const reducedMotion = useSafeReducedMotion()
+
+  const currentPrompt = prompts.find((p) => p.id === selectedPromptId) ?? prompts[0]
+  const isPart2 = currentPrompt?.part?.includes('PART 2') || currentPrompt?.part?.includes('Part 2')
+
+  const {
+    secondsLeft,
+    isRunning,
+    start: startTimer,
+    pause: pauseTimer,
+    reset: resetTimer,
+  } = useSpeakingTimer({
+    initialDuration: isPart2 ? 60 : 120,
+    mode: isPart2 ? 'PREPARATION' : 'PRACTICE',
+    onComplete: () => {
+      if (isPart2) {
+        dispatch({ type: 'START_RECORDING_LOCAL' })
+      }
+    },
+  })
+
+  useEffect(() => {
+    resetTimer(isPart2 ? 60 : 120)
+  }, [selectedPromptId, isPart2, resetTimer])
 
   useEffect(() => {
     if (initialState && initialState !== state.status) {
@@ -31,7 +66,7 @@ export function SpeakingRoom({
         dispatch({ type: 'SWITCH_TO_TEXT' })
       }
     }
-  }, [initialState])
+  }, [initialState, state.status])
 
   const handleSubmit = (event) => {
     event?.preventDefault?.()
@@ -41,16 +76,27 @@ export function SpeakingRoom({
   return (
     <div className="speaking-room">
       <div className="speaking-room-stage">
-        <SpeakingOrb state={state.status} />
+        <SpeakingOrb state={state.status} reducedMotion={reducedMotion} />
 
-        <SpeakingPromptCard
-          prompts={prompts}
-          selectedPromptId={selectedPromptId}
-          onSelectPrompt={(id) => {
-            onSelectPrompt?.(id)
-            dispatch({ type: 'START_PROMPT' })
-          }}
-        />
+        <div className="speaking-stage-details">
+          <SpeakingPromptCard
+            prompts={prompts}
+            selectedPromptId={selectedPromptId}
+            onSelectPrompt={(id) => {
+              onSelectPrompt?.(id)
+              dispatch({ type: 'START_PROMPT' })
+            }}
+          />
+
+          <SpeakingTimer
+            secondsLeft={secondsLeft}
+            mode={isPart2 ? 'PREPARATION' : 'PRACTICE'}
+            isRunning={isRunning}
+            onStart={startTimer}
+            onPause={pauseTimer}
+            onReset={() => resetTimer(isPart2 ? 60 : 120)}
+          />
+        </div>
       </div>
 
       {state.status === SPEAKING_ROOM_STATES.MIC_PERMISSION_DENIED ||

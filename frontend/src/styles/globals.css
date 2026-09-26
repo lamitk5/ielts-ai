@@ -3014,3 +3014,290 @@ input:focus-visible {
   border-color: var(--accent);
 }
 
+/* ==========================================================================
+   Speaking Room & Examiner Orb
+   ========================================================================== */
+
+.speaking-room {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 52rem;
+  margin: 0 auto;
+}
+
+.speaking-room-stage {
+  display: grid;
+  grid-template-columns: minmax(140px, 180px) 1fr;
+  align-items: center;
+  gap: 2rem;
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  background: linear-gradient(145deg, rgba(16, 39, 70, 0.4), rgba(7, 20, 38, 0.6));
+  border: 1px solid var(--border);
+}
+
+@media (max-width: 768px) {
+  .speaking-room-stage {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+    gap: 1.25rem;
+  }
+}
+
+.speaking-stage-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+  width: 100%;
+}
+
+.speaking-orb-wrapper {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 9rem;
+  height: 9rem;
+  margin: 0 auto;
+}
+
+.speaking-orb-core {
+  position: relative;
+  width: 7rem;
+  height: 7rem;
+  display: grid;
+  place-items: center;
+}
+
+.speaking-orb-glow {
+  position: absolute;
+  inset: -1rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(207, 174, 103, 0.25) 0%, transparent 70%);
+  filter: blur(12px);
+  transition: all 0.4s ease;
+}
+
+.speaking-orb-inner {
+  position: relative;
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: 50%;
+  border: 1px solid var(--gold-light, #e5c982);
+  background: radial-gradient(circle at 35% 30%, var(--gold-light, #e5c982), var(--gold, #cfae67) 40%, var(--navy, #0c1424) 80%);
+  box-shadow: 0 0 24px rgba(207, 174, 103, 0.3), inset 0 0 16px rgba(245, 247, 250, 0.2);
+  display: grid;
+  place-items: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: orb-breathe 4s ease-in-out infinite;
+}
+
+@keyframes orb-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+.speaking-orb-dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 10px #ffffff;
+}
+
+/* State-specific orb lighting */
+.speaking-orb-prompt .speaking-orb-inner {
+  border-color: var(--accent, #e5c982);
+  box-shadow: 0 0 32px rgba(229, 201, 130, 0.45);
+}
+
+.speaking-orb-preparation .speaking-orb-inner {
+  border-color: var(--info, #9cc4ee);
+  background: radial-gradient(circle at 35% 30%, #b8d8f8, #6fa4de 40%, var(--navy, #0c1424) 80%);
+  box-shadow: 0 0 32px rgba(156, 196, 238, 0.45);
+}
+
+.speaking-orb-recording_local .speaking-orb-inner {
+  border-color: #8ed9bc;
+  background: radial-gradient(circle at 35% 30%, #b5eed8, #59be98 40%, var(--navy, #0c1424) 80%);
+  box-shadow: 0 0 36px rgba(142, 217, 188, 0.5);
+  animation: orb-pulse-recording 1.8s ease-in-out infinite;
+}
+
+@keyframes orb-pulse-recording {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+.speaking-orb-mic_permission_denied .speaking-orb-inner,
+.speaking-orb-mic_unavailable .speaking-orb-inner {
+  border-color: var(--danger, #e6a3b4);
+  background: radial-gradient(circle at 35% 30%, #f7c5d0, #d96f86 40%, var(--navy, #0c1424) 80%);
+  box-shadow: 0 0 24px rgba(230, 163, 180, 0.35);
+  animation: none;
+}
+
+.speaking-orb-wrapper.reduced-motion .speaking-orb-inner {
+  animation: none !important;
+  transform: none !important;
+}
+
+/* ==========================================================================
+   Speaking Timer Widget
+   ========================================================================== */
+
+.speaking-timer-widget {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.65rem;
+  background: rgba(12, 20, 36, 0.7);
+  border: 1px solid var(--border);
+}
+
+.speaking-timer-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.speaking-timer-kicker {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+}
+
+.speaking-timer-digits {
+  font-size: 1.5rem;
+  color: var(--gold-light, #e5c982);
+  line-height: 1.1;
+}
+
+.speaking-timer-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.speaking-prompt-card {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.speaking-prompt-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.speaking-part-select-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.speaking-part-select {
+  padding: 0.4rem 0.65rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background: var(--surface-alt);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.speaking-part-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+
+.speaking-prompt-text {
+  font-size: 1.2rem;
+  color: var(--text);
+  margin: 0.35rem 0 0;
+  line-height: 1.4;
+}
+
+.speaking-prompt-points {
+  border-top: 1px solid var(--border);
+  padding-top: 0.65rem;
+  margin-top: 0.4rem;
+}
+
+.speaking-points-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.35rem;
+}
+
+.speaking-points-list {
+  padding-left: 1.25rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.speaking-mic-fallback-card {
+  padding: 1rem;
+  border-color: var(--warning, #e5c982);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.speaking-mic-error-text {
+  font-size: 0.85rem;
+  color: var(--warning, #e5c982);
+  margin: 0;
+}
+
+.speaking-response-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.speaking-textarea-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.speaking-response-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.speaking-response-textarea {
+  width: 100%;
+  padding: 0.85rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface-alt);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.speaking-response-textarea:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+
