@@ -53,6 +53,7 @@ This phase does not implement or design a commitment to:
 - A 3D engine, game world, social feed, leaderboard, or reward economy.
 - Persistent AI conversation memory or autonomous learning decisions.
 - Automatic public content generation, publication, or admin approval workflows.
+- Persistent audio upload/storage, transcription, STT, pronunciation scoring, fluency scoring from audio, or audio-derived band estimates.
 - A replacement for the AI Phase 2 adaptive learning model.
 
 ## 5. Design Principles
@@ -88,7 +89,7 @@ The main navigation remains intentionally small:
 | Search | Find a relevant practice item | Open result |
 | Tutor | Ask about the current trusted context | Send question |
 | Assessment | Establish a starting point | Start assessment |
-| Settings | Control presentation and learning preferences | Save preference |
+| Settings | Control presentation and learning preferences | Adjust preference |
 
 The authenticated home hierarchy is:
 
@@ -111,8 +112,10 @@ Settings opens from a clearly labeled button in the navigation shell. On desktop
 - use \`role="dialog"\`, an accessible name, focus containment, Escape close, backdrop close where safe, and focus return to the opener;
 - keep the primary content visible behind a dimmed scrim rather than navigating away;
 - show a compact preview of selected theme, accent, typography, density, and motion choices;
-- save changes intentionally with an explicit “Lưu thay đổi” action or clearly documented immediate-save behavior;
+- apply visual changes immediately and autosave them; no separate Save button is required for ordinary preference changes;
 - expose “Khôi phục mặc định” with a confirmation step because it affects multiple preferences.
+
+Preference changes should feel reversible rather than transactional: the preview updates immediately, the guest record is persisted immediately, and the authenticated record is saved asynchronously to the authoritative server. Rapid presentation changes may be debounced to avoid a burst of requests, but the learner must see the current preview before persistence completes.
 
 ### 7.2 Appearance
 
@@ -169,7 +172,7 @@ Malformed records are discarded and replaced with defaults. Reads and writes are
 
 ### 8.2 Authenticated persistence
 
-Authenticated preferences are server-owned through a versioned \`GET/PUT /api/user/preferences\` contract, with a local cache namespaced by stable account identity. The server response is authoritative after login and after every successful save. The local cache is an optimistic rendering aid, never the source of truth for authorization.
+Authenticated preferences are server-owned through a versioned \`GET/PUT /api/user/preferences\` contract, with a local cache namespaced by stable account identity. The server response is authoritative after login and after every successful autosave. The local cache is an optimistic rendering aid, never the source of truth for authorization.
 
 On login:
 
@@ -184,7 +187,7 @@ On logout, account-scoped preference cache, Tutor messages, uploads, drafts, and
 
 ### 8.3 Conflict and failure behavior
 
-Preferences use a monotonically increasing \`version\` or \`updatedAt\` value. A stale update returns a conflict that the UI resolves by refetching server state and showing a small, non-blocking notice. If saving fails, retain the last saved value and explain that the current change was not persisted; do not claim success.
+Preferences use a monotonically increasing \`version\` or \`updatedAt\` value. A stale update returns a conflict that the UI resolves by refetching server state and showing a small, non-blocking notice. If authenticated autosave fails, retain the preview locally, mark the change “Chưa đồng bộ”, retain the last confirmed server value for reconciliation, and offer retry. Do not claim that the preference was persisted. Guest preferences have no network failure path, but storage failure must leave the preview usable and show a recoverable notice.
 
 ## 9. Authentication and AI Access
 
@@ -229,7 +232,7 @@ The Tutor panel uses \`max-height: min(42rem, calc(100dvh - 1.5rem))\`-style con
 
 Attachments are a staged shell for authenticated Tutor use. They are not a shortcut for arbitrary model context.
 
-Supported initial types are an explicit allowlist such as PDF, DOCX, and TXT. The maximum size is configurable and shown before selection. The UI validates extension and MIME, displays filename/size/type, and lets the learner remove a file before send. It does not inspect or render untrusted HTML in the Tutor panel.
+UI/UX-1 product defaults are an explicit allowlist of PDF, DOCX, and TXT, a maximum of 10 MiB per file, and at most one active attachment per Tutor request. These limits remain configurable in the backend implementation, but the initial UI must communicate these defaults. The frontend validates extension, declared MIME, size, and the one-file limit as a UX aid; the backend remains authoritative for MIME/content validation. The UI displays filename/size/type and lets the learner remove a file before send. It does not accept HTML, executable content, or render untrusted HTML in the Tutor panel.
 
 The lifecycle is:
 
@@ -239,7 +242,7 @@ with terminal states \`FAILED\`, \`REMOVED\`, and \`EXPIRED\`.
 
 The composer shows progress, cancellation where supported, retry for a failed upload, and a readable error. Sending a question while an attachment is processing is either disabled with an explanation or explicitly sends without that attachment; it must never imply that an unready file was used.
 
-The proposed authenticated contract is \`POST /api/ai/attachments\` with multipart upload and a normalized attachment result. Ownership is tied to the authenticated user. The server—not the browser—enforces size, MIME, malware/content checks when available, retention, and authorization. Provider API keys never reach the client. Phase 1 designs the interaction boundary; it does not implement extraction, indexing, or generation.
+The proposed authenticated contract is \`POST /api/ai/attachments\` with multipart upload and a normalized attachment result. The request accepts no more than one active file in UI/UX-1 and the server enforces the 10 MiB default, allowlisted types, MIME/content checks, malware checks when available, retention, and authorization. Ownership is tied to the authenticated user. Provider API keys never reach the client. Phase 1 designs the interaction boundary; it does not implement automatic RAG, indexing, extraction, or generation. Phase AI-3 may extend this boundary only through another approved design.
 
 ## 12. Reusable Split Learning Workspace
 
@@ -292,7 +295,7 @@ Autosave, if implemented, saves a bounded draft owned by the user. It shows \`Đ
 
 Timers are opt-in or clearly configurable. A timer is a study aid, not an official exam timer unless the product later implements and labels that mode. Pausing, expiration, or hiding the timer must not delete a draft.
 
-Tutor actions may reference task type, prompt ID, and the learner's current draft only through a trusted server contract. The Tutor must not receive an arbitrary client-created score or band.
+Tutor actions may reference task type, prompt ID, and the learner's current draft only through a trusted server contract. The Tutor must not receive an arbitrary client-created score or band. Any Writing reference that includes offsets is bound to the exact trusted draft version used for analysis; editing the draft makes that reference stale rather than approximately relocatable.
 
 ## 15. Structured Tutor References
 
@@ -310,6 +313,8 @@ references: [
     sentenceId: optional stable sentence identifier,
     startOffset: optional bounded text offset,
     endOffset: optional bounded text offset,
+    contentVersion: required for mutable Writing content, optional for immutable content,
+    draftVersion: equivalent explicit name when the target is a Writing draft,
     evidenceId: optional server-issued evidence identifier,
     severity: optional "INFO" | "TIP" | "WARNING",
     label: short trusted display label
@@ -317,11 +322,15 @@ references: [
 ]
 \`\`\`
 
-The actual API may omit fields that are not relevant. The important rules are:
+The actual API may omit fields that are not relevant. For immutable Reading passages and questions, stable app IDs are sufficient when the referenced content cannot change during the session. For mutable Writing content, \`contentVersion\` or \`draftVersion\` is required whenever an offset, sentence, or draft target depends on a specific document snapshot. The version is a trusted server/draft version, not a client timestamp.
+
+The important rules are:
 
 - references are validated against the current trusted workspace model;
 - the client never receives CSS selectors, XPath, arbitrary HTML, executable code, or provider-native function payloads;
 - \`targetId\` is a stable app identifier, not a generated DOM node ID;
+- a Writing reference resolves only when the current draft version exactly matches the reference version;
+- if the learner edits the draft after analysis, the old reference becomes stale, the message remains readable, and the UI may offer a new analysis; it never approximates an old offset onto changed text;
 - unknown or stale references are ignored safely and surfaced as a non-blocking status when useful;
 - labels are sanitized text and do not become markup;
 - a reference cannot cross user ownership boundaries.
@@ -340,7 +349,7 @@ Interaction model:
 4. Escape clears the persistent highlight.
 5. Navigating to a different exercise clears references that no longer resolve.
 
-The target registry is supplied by the workspace, not discovered by querying arbitrary DOM. A \`TutorReferenceResolver\` returns either a known target or a safe “reference unavailable” result. Stale references must never throw, steal focus, or reveal hidden exercise data.
+The target registry is supplied by the workspace, not discovered by querying arbitrary DOM. A \`TutorReferenceResolver\` returns either a known target, a version-matched target, or a safe “reference unavailable” result. Stale references must never throw, steal focus, reveal hidden exercise data, or highlight a different sentence by coincidence. A stale Writing reference keeps the Tutor message readable and can expose a “Phân tích lại bản nháp” action owned by the application.
 
 ## 17. Dynamic AI Working States
 
@@ -358,7 +367,7 @@ The interface distinguishes known request state from inferred progress:
 - \`CANCELLED\`
 - \`ERROR\`
 
-\`PREPARING\`, \`PROCESSING\`, and \`FINALIZING\` are displayed as named stages only when the normalized backend contract supplies a truthful working state. If the backend only reports that a request is in progress, show one honest message such as “Đang chuẩn bị phản hồi…” with a skeleton and elapsed-time-aware hint. Never show a fake sequence of completed stages.
+For the current canonical request/response transport (\`POST /api/ai/chat\`), a pending HTTP request has no live backend stage events. UI/UX-1 therefore shows one honest generic state such as “Đang chuẩn bị phản hồi…” with a skeleton. Elapsed-time copy may change to explain that the request is taking longer, but it must not claim a backend stage or fabricate a progress sequence. \`PREPARING\`, \`PROCESSING\`, and \`FINALIZING\` are displayable as named stages only if a future backend transport explicitly emits those events.
 
 Every non-terminal state has a settlement path:
 
@@ -369,28 +378,28 @@ Every non-terminal state has a settlement path:
 - network failure preserves the draft and the user message for deliberate retry;
 - loading always ends in a bounded timeout or response state.
 
-SkeletonBlock remains the loading primitive. Live-region announcements are short and deduplicated.
+SkeletonBlock remains the loading primitive. Live-region announcements are short and deduplicated. If live stages are later required, SSE is the preferred one-way extension for this use case, subject to a separate approved transport design; another event mechanism requires equivalent justification. SSE is not part of UI/UX-1.
 
 ## 18. Immersive Speaking Experience
 
-Speaking receives an immersive but honest room, using the same Academic Luxury tokens:
+Speaking receives an immersive but honest room, using the same Academic Luxury tokens. UI/UX-1 remains text-first and does not introduce an audio backend:
 
 - a central Tutor/speaking orb with a calm state label;
 - Part 1, Part 2, and Part 3 navigation;
 - prompt and preparation timer where configured;
 - microphone control with permission state;
-- recording, paused, processing, saved, and feedback-ready states;
+- local recording state only when technically needed for the local visualizer, with a clear local-only label;
 - a local amplitude visualizer while the microphone is active;
 - a clear text-only fallback when microphone/STT is unavailable;
-- a feedback panel that labels any estimate and identifies what evidence was actually used.
+- a feedback panel only for text-backed or otherwise explicitly supported evidence, with any estimate labeled and its evidence identified.
 
-The state machine is:
+The allowed local interaction state machine is:
 
-\`READY → PROMPT → PREPARATION → RECORDING → PROCESSING → FEEDBACK_READY\`
+\`READY → PROMPT → PREPARATION → RECORDING → LOCAL_CAPTURE_COMPLETE\`
 
-with exits for \`PERMISSION_DENIED\`, \`UNAVAILABLE\`, \`CANCELLED\`, and \`ERROR\`.
+with exits for \`PERMISSION_DENIED\`, \`UNAVAILABLE\`, \`CANCELLED\`, and \`ERROR\`. \`LOCAL_CAPTURE_COMPLETE\` means only that local capture ended; it does not mean audio was uploaded, stored, transcribed, scored, or heard by AI.
 
-The visualizer may render local amplitude or energy only. It must not claim pronunciation quality, transcript accuracy, fluency, or a band from amplitude. No fake transcript, fake pronunciation markers, or fake speech analysis is permitted. STT and pronunciation engines remain explicit future integration points.
+The visualizer may render local amplitude or energy only. UI/UX-1 does not include persistent audio upload, server audio storage, transcription, STT, pronunciation scoring, fluency scoring from audio, AI feedback claiming it heard a recording, or an audio-derived estimated band. The existing text-only answer path remains available. Microphone permission denial/unavailability returns to that path. A future audio/STT subsystem requires its own approved design and plan.
 
 ## 19. Gamification
 
@@ -597,7 +606,7 @@ retryable
 errorCode
 \`\`\`
 
-\`workingState\` is optional and must describe real backend state. \`references[]\` uses the structured contract in section 15. Provider-native fields are not exposed.
+\`workingState\` is optional and must describe real backend state. In the current request/response contract it is not a live progress channel: while the request is pending, the client shows one generic loading state. Named stages are reserved for a future transport that emits them explicitly. If that future requirement is approved, SSE is the preferred one-way extension; SSE is not implemented in UI/UX-1. \`references[]\` uses the structured contract in section 15. Provider-native fields are not exposed.
 
 ### Attachments
 
@@ -607,7 +616,7 @@ GET    /api/ai/attachments/{id}
 DELETE /api/ai/attachments/{id}
 \`\`\`
 
-All endpoints require authentication and ownership validation. The response contains status, safe metadata, and user-facing normalized errors.
+All endpoints require authentication and ownership validation. UI/UX-1 sends at most one active attachment per Tutor request and communicates PDF, DOCX, TXT, and 10 MiB per-file defaults. The backend remains authoritative and may configure those limits. The response contains status, safe metadata, and user-facing normalized errors.
 
 ### Drafts, if shipped
 
@@ -622,6 +631,10 @@ The server enforces ownership, bounded content, version checks, expiry, and safe
 ### Phase 2 learning data
 
 The dashboard consumes the Phase 2 profile, issue, roadmap, and event contracts. Exact paths should follow the approved AI Phase 2 spec; the UI must not create parallel endpoints for the same concepts.
+
+### Speaking boundary
+
+UI/UX-1 does not add a speaking-audio upload, audio-storage, transcription, STT, pronunciation, or audio-assessment endpoint. The existing text submission boundary remains the only feedback path in this phase. A future audio subsystem requires a separate approved design and plan.
 
 ## 27. Security and Ownership
 
@@ -666,12 +679,12 @@ Every new surface needs an intentional state:
 
 | Surface | Empty state | Failure state | Recovery |
 | --- | --- | --- | --- |
-| Settings | Defaults shown | Save failed | Retry, keep last saved value |
+| Settings | Defaults shown | Autosave failed or storage unavailable | Keep immediate preview, mark “Chưa đồng bộ” when applicable, reconcile/retry |
 | Tutor | Contextual prompt suggestions | Timeout/429/unavailable | Retry, cancel, ask later |
 | Attachments | No file selected | Invalid/too large/failed | Remove, choose another, retry |
 | Reading references | No highlight | Stale reference | Explain unavailable, continue |
-| Writing draft | No draft | Save failed | Keep local text, retry save |
-| Speaking | Ready prompt | Permission/STT unavailable | Text-only input or retry permission |
+| Writing draft | No draft | Save failed or stale reference | Keep local text, retry save, offer re-analysis without relocating old offsets |
+| Speaking | Ready prompt | Permission/microphone/STT unavailable | Text-only input or retry permission; never imply audio processing |
 | Dashboard | No activity | Data unavailable | Start assessment/practice |
 | Roadmap | No roadmap yet | Loading/error | Assessment or refresh |
 | Mistakes | No reviewed patterns | Data unavailable | Complete more practice |
@@ -689,12 +702,15 @@ Empty states are invitations, not fake data. Error copy is concise, localized in
 - Tutor shell transitions across closed/compact/standard/expanded/fullscreen/mobile;
 - Tutor composer settles loading, timeout, cancel, 429, retry, and unavailable states;
 - attachment validation rejects disallowed MIME/size and displays lifecycle status;
+- attachment validation enforces the UI/UX-1 PDF/DOCX/TXT, 10 MiB, and one-active-file defaults without treating frontend validation as authorization;
 - split workspace exposes valid ARIA separator semantics and keyboard ratio changes;
 - mobile tabs preserve pane state and editor text;
 - structured references resolve valid targets and safely ignore stale or unknown IDs;
+- Writing references with offsets resolve only for an exact matching content/draft version and become readable stale states after edits;
 - cross-highlighting is not color-only and supports keyboard activation;
 - Writing autosave versions do not let stale responses overwrite newer text;
-- Speaking visualizer renders local amplitude only and does not create transcript/band claims;
+- Speaking visualizer renders local amplitude only, supports local capture state if needed, and never creates transcript, audio feedback, or band claims;
+- Tutor pending HTTP requests show one generic state; staged labels require emitted backend events and no client-side fake timer;
 - dashboard shows neutral states when Phase 2 data is absent;
 - streak calculation uses meaningful events rather than app opens.
 
@@ -772,7 +788,7 @@ Exit signal: a learner can complete a Reading or Writing session without losing 
 Scope:
 
 - speaking room/orb, Part 1/2/3, timers, mic permission, recording and local amplitude visualizer;
-- text-only/STT boundary and feedback-ready shell;
+- text-only/STT boundary and feedback shell for supported text evidence;
 - dashboard hierarchy with Today’s Focus, skill energy, streak, roadmap, and common mistakes;
 - Phase 2 data adapters and neutral empty states;
 - meaningful progress labels and no unsupported official claims.
@@ -797,13 +813,17 @@ Exit signal: the dashboard motivates a next learning action and Speaking feels i
 
 - Academic Luxury remains the default and the source of truth for visual language.
 - Accent presets are complete semantic token sets, not arbitrary colors.
+- Settings apply immediately and autosave; ordinary preference changes do not require a separate Save button, while reset requires confirmation.
 - Authenticated server preferences win over local cache; guest preferences never silently become private account data.
 - Frontend auth gates improve UX; backend auth and ownership checks remain mandatory.
 - Personalized AI is not available to guests; guest UI may show only neutral preview or auth guidance.
 - \`/api/ai/chat\` stays provider-neutral. References and working state are normalized, optional additions.
+- The current HTTP request shows one honest generic pending state; named AI stages require future emitted events, with SSE preferred if that transport is later approved.
 - AI cannot return arbitrary DOM selectors, HTML, CSS, scripts, or navigation commands.
-- No fake loading stages, fake transcript, fake pronunciation analysis, fake band, or official IELTS claim.
+- No fake loading stages, fake transcript, fake pronunciation analysis, fake band, audio-derived feedback, or official IELTS claim.
 - Local microphone visualization represents amplitude only.
+- UI/UX-1 attachments default to PDF/DOCX/TXT, 10 MiB per file, and one active file per Tutor request; the backend remains authoritative and UI/UX-1 does not auto-index or generate from uploads.
+- Writing references with mutable offsets require an exact trusted content/draft version; edits make them stale rather than approximately relocatable.
 - Reading/Writing use the shared split primitive; mobile uses tabs or stacked mode rather than compressed panes.
 - Streaks count meaningful learning actions, not logins or screen opens.
 - Roadmap, learner profile, issues, mistakes, and learning events come from AI Phase 2 rather than duplicate UI systems.
@@ -833,4 +853,3 @@ The future implementation is ready for review when:
 Implementation: **NOT STARTED**  
 Open questions: **NONE**  
 Next gate: human review of this written spec. Do not create an implementation plan until the human approves it.
-
