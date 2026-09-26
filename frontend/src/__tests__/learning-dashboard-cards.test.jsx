@@ -116,5 +116,15 @@ describe('Task 5: Learning Dashboard Cards', () => {
         screen.getByText(/Chưa ghi nhận lỗi sai cần chú ý/i)
       ).toBeInTheDocument()
     })
+
+    it('keeps speaking mistake actions inside the speaking practice workspace', () => {
+      render(
+        <MemoryRouter>
+          <CommonMistakesPanel mistakes={[{ id: 's1', skill: 'speaking', issue: 'Part 2 fluency', count: 1 }]} />
+        </MemoryRouter>
+      )
+
+      expect(screen.getByRole('link', { name: /luyện dạng bài này/i })).toHaveAttribute('href', '/practice/speaking')
+    })
   })
 })

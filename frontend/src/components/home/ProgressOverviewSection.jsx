@@ -40,7 +40,7 @@ function ProgressOverviewSection({ isAuthenticated, state, loading = false }) {
             <SkeletonBlock label="Đang tải tiến độ luyện tập" />
           </GlassCard>
         ) : showMemberProgress ? (
-          <div className="progress-member-layout">
+          <div className="progress-member-layout progress-dashboard-editorial">
             <TodaysFocusCard roadmap={state.roadmap} />
             <div className="progress-layout">
               <div className="progress-main-column">

@@ -42,6 +42,7 @@ describe('progress overview', () => {
     renderApp('/?demo=member')
 
     const progress = screen.getByRole('region', { name: 'Tiến độ luyện tập của bạn' })
+    expect(progress.querySelector('.progress-member-layout')).toHaveClass('progress-dashboard-editorial')
 
     expect(within(progress).getByText('Band ước lượng')).toBeInTheDocument()
     for (const item of memberDemo.progress) {

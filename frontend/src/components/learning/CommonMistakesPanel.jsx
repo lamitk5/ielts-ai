@@ -14,7 +14,7 @@ const SKILL_ROUTES = {
   reading: '/practice/reading',
   listening: '/practice/listening',
   writing: '/practice/writing',
-  speaking: '/speaking',
+  speaking: '/practice/speaking',
   general: '/practice/reading',
 }
 

@@ -3491,6 +3491,14 @@ input:focus-visible {
   margin-top: 2rem;
 }
 
+.progress-dashboard-editorial { gap: 1.5rem; }
+.progress-dashboard-editorial .progress-radar-card,
+.progress-dashboard-editorial .todays-focus-card,
+.progress-dashboard-editorial .roadmap-widget-card,
+.progress-dashboard-editorial .streak-card,
+.progress-dashboard-editorial .common-mistakes-card,
+.progress-dashboard-editorial .exam-countdown-card { box-shadow: var(--shadow-sm); }
+
 .todays-focus-card {
   padding: 1.5rem 2rem;
   background: var(--surface);
