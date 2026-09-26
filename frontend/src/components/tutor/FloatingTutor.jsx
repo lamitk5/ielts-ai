@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
+import { X } from 'lucide-react'
 import FloatingTutorButton from './FloatingTutorButton'
 import TutorPanel from './TutorPanel'
+import AuthGate from '../auth/AuthGate'
+import { useOptionalAuth } from '../../features/auth/AuthProvider'
 import { MAX_HISTORY_MESSAGES, sendTutorMessage } from '../../services/aiTutorApi'
 
 const welcomeMessage = {
@@ -10,13 +13,17 @@ const welcomeMessage = {
 }
 
 function FloatingTutor({ context = { skill: 'GENERAL' } }) {
+  const auth = useOptionalAuth()
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState([welcomeMessage])
   const [loading, setLoading] = useState(false)
+  const [sessionExpired, setSessionExpired] = useState(false)
   const buttonRef = useRef(null)
   const inputRef = useRef(null)
   const openedRef = useRef(false)
   const mountedRef = useRef(true)
+
+  const isGuest = Boolean(auth && !auth.isAuthenticated) || sessionExpired
 
   useEffect(() => {
     if (!open) {
@@ -79,6 +86,10 @@ function FloatingTutor({ context = { skill: 'GENERAL' } }) {
       ])
     } catch (error) {
       if (!mountedRef.current) return
+      if (error?.code === 'AUTH_REQUIRED' || error?.status === 401) {
+        setSessionExpired(true)
+        return
+      }
       setMessages((current) => [
         ...current,
         {
@@ -99,13 +110,36 @@ function FloatingTutor({ context = { skill: 'GENERAL' } }) {
       {open ? (
         <div className="tutor-panel-layer">
           <button className="tutor-backdrop" type="button" aria-label="Đóng Trợ giảng AI" onClick={() => setOpen(false)} />
-          <TutorPanel
-            messages={messages}
-            loading={loading}
-            onClose={() => setOpen(false)}
-            onSend={sendMessage}
-            inputRef={inputRef}
-          />
+          {isGuest ? (
+            <section
+              id="tutor-dialog"
+              className="tutor-panel tutor-panel-guest"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="tutor-dialog-title"
+            >
+              <header className="tutor-panel-header">
+                <div>
+                  <p className="progress-card-kicker">SẴN SÀNG HỖ TRỢ</p>
+                  <h2 id="tutor-dialog-title" className="font-display">Trợ giảng AI</h2>
+                </div>
+                <button className="tutor-close-button" type="button" aria-label="Đóng Trợ giảng AI" onClick={() => setOpen(false)}>
+                  <X aria-hidden="true" size={19} />
+                </button>
+              </header>
+              <div className="tutor-gate-body">
+                <AuthGate forceGate={sessionExpired} />
+              </div>
+            </section>
+          ) : (
+            <TutorPanel
+              messages={messages}
+              loading={loading}
+              onClose={() => setOpen(false)}
+              onSend={sendMessage}
+              inputRef={inputRef}
+            />
+          )}
         </div>
       ) : null}
       <FloatingTutorButton buttonRef={buttonRef} open={open} onClick={() => setOpen(true)} />

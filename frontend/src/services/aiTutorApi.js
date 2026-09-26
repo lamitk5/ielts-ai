@@ -6,6 +6,7 @@ const ERROR_MESSAGES = {
   AI_TIMEOUT: 'Không thể kết nối tới Trợ giảng AI. Vui lòng thử lại.',
   AI_PROVIDER_ERROR: 'Trợ giảng AI chưa thể trả lời lúc này. Vui lòng thử lại.',
   AI_INVALID_REQUEST: 'Câu hỏi chưa hợp lệ. Vui lòng thử lại với nội dung rõ hơn.',
+  AUTH_REQUIRED: 'Vui lòng đăng nhập để sử dụng Trợ giảng AI.',
 }
 
 export class AiTutorApiError extends Error {
@@ -39,8 +40,11 @@ export async function sendTutorMessage({ message, context = { skill: 'GENERAL' }
     const payload = await response.json().catch(() => null)
 
     if (!response.ok) {
-      const code = payload?.error?.code ?? fallbackCode(response.status)
-      throw new AiTutorApiError(code, ERROR_MESSAGES[code] ?? ERROR_MESSAGES.AI_PROVIDER_ERROR, response.status)
+      const code = response.status === 401 ? 'AUTH_REQUIRED' : (payload?.error?.code ?? fallbackCode(response.status))
+      const message = code === 'AUTH_REQUIRED'
+        ? ERROR_MESSAGES.AUTH_REQUIRED
+        : (ERROR_MESSAGES[code] ?? ERROR_MESSAGES.AI_PROVIDER_ERROR)
+      throw new AiTutorApiError(code, message, response.status)
     }
 
     if (!payload || typeof payload.answer !== 'string'
@@ -89,6 +93,7 @@ function normalizeGrounding(grounding) {
 }
 
 function fallbackCode(status) {
+  if (status === 401) return 'AUTH_REQUIRED'
   if (status === 400) return 'AI_INVALID_REQUEST'
   if (status === 429) return 'AI_RATE_LIMITED'
   if (status === 503) return 'AI_TEMPORARILY_UNAVAILABLE'
