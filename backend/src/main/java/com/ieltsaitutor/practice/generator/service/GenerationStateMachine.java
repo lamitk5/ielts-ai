@@ -21,6 +21,12 @@ public class GenerationStateMachine {
             GenerationState.REJECTED, Set.of()
     );
 
+    public boolean canTransition(GenerationState from, GenerationState to) {
+        if (from == null || to == null) return false;
+        if (from == to) return true;
+        return ALLOWED_TRANSITIONS.getOrDefault(from, Set.of()).contains(to);
+    }
+
     public void validateTransition(GenerationState from, GenerationState to) {
         if (from == null || to == null) {
             throw new InvalidGenerationStateException("State transition requires non-null states: from=" + from + ", to=" + to);
