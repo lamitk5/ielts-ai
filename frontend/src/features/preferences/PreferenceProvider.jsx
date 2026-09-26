@@ -1,7 +1,10 @@
-import { createContext, useContext, useLayoutEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
+import { useOptionalAuth } from '../auth/AuthProvider'
 import { DEFAULT_PREFERENCES } from './preferenceDefaults'
 import { normalizePreferences } from './preferenceSchema'
+import { readAccountPreferenceCache, readGuestPreferences, writeAccountPreferenceCache, writeGuestPreferences } from './preferenceStorage'
+import { getPreferences, savePreferences } from '../../services/preferencesApi'
 
 const PreferenceContext = createContext(null)
 
@@ -60,9 +63,48 @@ export function applyPreferenceTokens(value) {
 }
 
 export function PreferenceProvider({ children }) {
-  const [preferences, setPreferences] = useState(DEFAULT_PREFERENCES)
+  const auth = useOptionalAuth()
+  const userId = auth?.isAuthenticated ? auth.user?.id : null
+  const initial = () => userId ? (readAccountPreferenceCache(userId)?.preferences ?? DEFAULT_PREFERENCES) : readGuestPreferences()
+  const [preferences, setPreferences] = useState(initial)
+  const [confirmedPreferences, setConfirmedPreferences] = useState(null)
+  const [status, setStatus] = useState(userId ? 'loading' : 'idle')
+  const preferencesRef = useRef(preferences)
+  const confirmedRef = useRef(null)
+  const timerRef = useRef(null)
+  const savingEpochRef = useRef(null)
+  const epochRef = useRef(0)
+  const editRef = useRef(0)
   const [systemDark, setSystemDark] = useState(() => window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false)
   const [systemReduced, setSystemReduced] = useState(() => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false)
+
+  useEffect(() => {
+    const epoch = ++epochRef.current
+    savingEpochRef.current = null
+    clearTimeout(timerRef.current)
+    editRef.current = 0
+    const cached = userId ? readAccountPreferenceCache(userId)?.preferences ?? DEFAULT_PREFERENCES : readGuestPreferences()
+    preferencesRef.current = cached
+    setPreferences(cached)
+    confirmedRef.current = null
+    setConfirmedPreferences(null)
+    setStatus(userId ? 'loading' : 'idle')
+    if (userId) {
+      getPreferences().then((record) => {
+        if (epochRef.current !== epoch) return
+        const normalized = normalizePreferences(record)
+        confirmedRef.current = record
+        setConfirmedPreferences(normalized)
+        preferencesRef.current = normalized
+        setPreferences(normalized)
+        writeAccountPreferenceCache(userId, normalized, record.version)
+        setStatus('synced')
+      }).catch(() => {
+        if (epochRef.current === epoch) setStatus('unsynced')
+      })
+    }
+    return () => { ++epochRef.current; clearTimeout(timerRef.current) }
+  }, [userId])
 
   useLayoutEffect(() => {
     const colorQuery = window.matchMedia?.('(prefers-color-scheme: dark)')
@@ -81,12 +123,80 @@ export function PreferenceProvider({ children }) {
     applyPreferenceTokens(preferences)
   }, [preferences, systemDark, systemReduced])
 
+  const persist = async (snapshot, edit, epoch) => {
+    const confirmed = confirmedRef.current
+    if (!confirmed || epochRef.current !== epoch || savingEpochRef.current === epoch) return
+    savingEpochRef.current = epoch
+    setStatus('saving')
+    try {
+      const record = await savePreferences(snapshot, confirmed.version)
+      if (epochRef.current !== epoch) return
+      confirmedRef.current = record
+      const normalized = normalizePreferences(record)
+      setConfirmedPreferences(normalized)
+      writeAccountPreferenceCache(userId, normalized, record.version)
+      if (editRef.current === edit) {
+        preferencesRef.current = normalized
+        setPreferences(normalized)
+        setStatus('synced')
+      } else {
+        timerRef.current = setTimeout(() => persist(preferencesRef.current, editRef.current, epoch), 300)
+      }
+    } catch (error) {
+      if (epochRef.current !== epoch) return
+      if (error.code === 'CONFLICT') {
+        try {
+          const record = await getPreferences()
+          if (epochRef.current !== epoch) return
+          const normalized = normalizePreferences(record)
+          confirmedRef.current = record
+          setConfirmedPreferences(normalized)
+          preferencesRef.current = normalized
+          setPreferences(normalized)
+          writeAccountPreferenceCache(userId, normalized, record.version)
+          setStatus('conflict')
+        } catch {
+          if (epochRef.current === epoch) setStatus('unsynced')
+        }
+      } else setStatus('unsynced')
+    } finally {
+      if (savingEpochRef.current === epoch) savingEpochRef.current = null
+    }
+  }
+
   const updatePreference = (key, value) => {
-    setPreferences((current) => normalizePreferences({ ...current, [key]: value }))
+    const next = normalizePreferences({ ...preferencesRef.current, [key]: value })
+    preferencesRef.current = next
+    setPreferences(next)
+    if (!userId) {
+      setStatus(writeGuestPreferences(next) ? 'synced' : 'unsynced')
+    } else {
+      const edit = ++editRef.current
+      clearTimeout(timerRef.current)
+      setStatus(confirmedRef.current ? 'saving' : 'loading')
+      timerRef.current = setTimeout(() => persist(next, edit, epochRef.current), 300)
+    }
+  }
+
+  const retry = () => {
+    if (!userId) { setStatus(writeGuestPreferences(preferencesRef.current) ? 'synced' : 'unsynced'); return }
+    if (confirmedRef.current) persist(preferencesRef.current, ++editRef.current, epochRef.current)
+    else {
+      setStatus('loading')
+      getPreferences().then((record) => {
+        const normalized = normalizePreferences(record)
+        confirmedRef.current = record
+        setConfirmedPreferences(normalized)
+        preferencesRef.current = normalized
+        setPreferences(normalized)
+        writeAccountPreferenceCache(userId, normalized, record.version)
+        setStatus('synced')
+      }).catch(() => setStatus('unsynced'))
+    }
   }
 
   return (
-    <PreferenceContext.Provider value={{ preferences, updatePreference, reducedMotion: systemReduced || preferences.reduceMotion === 'reduce' }}>
+    <PreferenceContext.Provider value={{ preferences, updatePreference, status, confirmedPreferences, retry, reducedMotion: systemReduced || preferences.reduceMotion === 'reduce' }}>
       {children}
     </PreferenceContext.Provider>
   )

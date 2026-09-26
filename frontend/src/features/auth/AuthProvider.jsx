@@ -1,5 +1,6 @@
-import { createContext, useContext, useMemo, useState } from 'react'
+import { createContext, Fragment, useContext, useMemo, useState } from 'react'
 import { clearStoredSession, getStoredSession, login, logout, register } from '../../services/authApi'
+import { clearAccountPreferenceCache } from '../preferences/preferenceStorage'
 
 const AuthContext = createContext(null)
 
@@ -12,22 +13,32 @@ export function AuthProvider({ children }) {
     isAuthenticated: Boolean(session?.token && session?.user),
     login: async (credentials) => {
       const nextSession = await login(credentials)
+      if (session?.user?.id && session.user.id !== nextSession.user?.id) clearAccountPreferenceCache(session.user.id)
       setSession(nextSession)
       return nextSession
     },
     register: async (details) => {
       const nextSession = await register(details)
+      if (session?.user?.id && session.user.id !== nextSession.user?.id) clearAccountPreferenceCache(session.user.id)
       setSession(nextSession)
       return nextSession
     },
     logout: async () => {
-      await logout()
-      clearStoredSession()
-      setSession(null)
+      try {
+        await logout()
+      } finally {
+        clearAccountPreferenceCache(session?.user?.id)
+        try { clearStoredSession() } catch { /* storage may be unavailable */ }
+        setSession(null)
+      }
     },
   }), [session])
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={value}><Fragment key={session?.user?.id ?? 'guest'}>{children}</Fragment></AuthContext.Provider>
+}
+
+export function useOptionalAuth() {
+  return useContext(AuthContext)
 }
 
 export function useAuth() {

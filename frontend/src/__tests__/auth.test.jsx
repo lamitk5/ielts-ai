@@ -3,8 +3,35 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, test, vi } from 'vitest'
 import App from '../App'
+import { AuthProvider, useAuth } from '../features/auth/AuthProvider'
+
+function SwitchAccount() {
+  const auth = useAuth()
+  return <button onClick={() => auth.login({ email: 'second@example.com', password: 'password' })}>Switch account</button>
+}
 
 describe('authentication foundation', () => {
+  test('switching accounts removes the previous account preference cache', async () => {
+    localStorage.setItem('ielts-ai-tutor.session', JSON.stringify({ token: 'old', user: { id: 'user-1' } }))
+    localStorage.setItem('ielts-ai-tutor.preferences.account.user-1.v1', JSON.stringify({ version: 1, preferences: { themeMode: 'dark' } }))
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ token: 'new', user: { id: 'user-2' } }) }))
+    render(<AuthProvider><SwitchAccount /></AuthProvider>)
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Switch account' }))
+    await waitFor(() => expect(localStorage.getItem('ielts-ai-tutor.session')).toContain('user-2'))
+    expect(localStorage.getItem('ielts-ai-tutor.preferences.account.user-1.v1')).toBeNull()
+  })
+  test('logout clears account preference cache while preserving guest preferences', async () => {
+    const user = userEvent.setup()
+    localStorage.setItem('ielts-ai-tutor.session', JSON.stringify({ token: 'member-token', user: { id: 'user-1', email: 'student@example.com' } }))
+    localStorage.setItem('ielts-ai-tutor.preferences.v1', JSON.stringify({ version: 1, preferences: { themeMode: 'dark' } }))
+    localStorage.setItem('ielts-ai-tutor.preferences.account.user-1.v1', JSON.stringify({ version: 3, preferences: { themeMode: 'light' } }))
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 204, json: async () => null }))
+    render(<MemoryRouter initialEntries={['/']}><App /></MemoryRouter>)
+    await user.click(screen.getByRole('button', { name: 'Đăng xuất' }))
+    await waitFor(() => expect(localStorage.getItem('ielts-ai-tutor.session')).toBeNull())
+    expect(localStorage.getItem('ielts-ai-tutor.preferences.account.user-1.v1')).toBeNull()
+    expect(localStorage.getItem('ielts-ai-tutor.preferences.v1')).not.toBeNull()
+  })
   test('login page exposes accessible email and password fields', () => {
     render(
       <MemoryRouter initialEntries={['/login']}>
