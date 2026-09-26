@@ -12,7 +12,7 @@ export function WritingPromptPane({
 
   return (
     <article
-      className="writing-prompt-pane"
+      className="writing-prompt-pane writing-prompt-pane-editorial"
       data-writing-target-id={currentTask?.id}
       tabIndex={-1}
     >
@@ -37,7 +37,7 @@ export function WritingPromptPane({
         </div>
       </div>
 
-      <GlassCard className="writing-prompt-card" role="region" aria-label="Nội dung đề bài chi tiết">
+      <GlassCard className="writing-prompt-card writing-prompt-card-editorial" role="region" aria-label="Nội dung đề bài chi tiết">
         <h2 className="writing-prompt-title font-display">{currentTask?.prompt}</h2>
         <div className="writing-prompt-meta">
           <span className="writing-meta-pill">

@@ -21,6 +21,10 @@ describe('Writing learning workspace', () => {
 
     const promptRegion = screen.getByRole('region', { name: 'Đề bài' })
     const editorRegion = screen.getByRole('region', { name: 'Bài viết' })
+    expect(promptRegion.closest('.split-learning-workspace')).toHaveClass('writing-workspace-editorial')
+    expect(within(promptRegion).getByRole('article')).toHaveClass('writing-prompt-pane-editorial')
+    expect(within(editorRegion).getByRole('textbox', { name: 'Bài viết' }).closest('.writing-editor-pane')).toHaveClass('writing-editor-pane-editorial')
+    expect(within(editorRegion).getByText(/0.*từ/i).closest('.writing-editor-toolbar')).toHaveClass('writing-editor-action-bar')
     expect(promptRegion.compareDocumentPosition(editorRegion) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 
     expect(within(promptRegion).getByRole('combobox', { name: /chọn dạng bài/i })).toBeInTheDocument()
@@ -149,4 +153,3 @@ describe('Writing learning workspace', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(/Đăng nhập để lưu và nhận đánh giá bài viết/i)
   })
 })
-

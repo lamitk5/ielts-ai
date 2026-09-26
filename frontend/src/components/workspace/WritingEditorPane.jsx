@@ -42,11 +42,11 @@ export function WritingEditorPane({
   return (
     <div
       ref={paneRef}
-      className="writing-editor-pane"
+      className="writing-editor-pane writing-editor-pane-editorial"
       data-writing-target-id="writing-editor"
       tabIndex={-1}
     >
-      <div className="writing-editor-toolbar">
+      <div className="writing-editor-toolbar writing-editor-action-bar">
         <div className="writing-editor-stats">
           <span className={`writing-word-count-badge ${wordCount >= minWords ? 'is-sufficient' : 'is-insufficient'}`}>
             <strong className="writing-word-count-number">{wordCount} từ</strong>
@@ -84,7 +84,7 @@ export function WritingEditorPane({
         />
       </div>
 
-      <div className="writing-editor-footer">
+      <div className="writing-editor-footer writing-editor-footer-editorial">
         <p className="writing-boundary">
           Band ước lượng sẽ chỉ xuất hiện khi đánh giá AI trả về dữ liệu hợp lệ; đây không phải điểm thi chính thức.
         </p>

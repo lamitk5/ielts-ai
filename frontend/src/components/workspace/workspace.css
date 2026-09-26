@@ -18,6 +18,26 @@
   background: var(--surface-interactive, var(--surface-alt));
 }
 
+.writing-workspace-editorial .workspace-panes {
+  border-color: var(--border-subtle, var(--border));
+  background: var(--surface-1, var(--surface));
+  box-shadow: var(--shadow-sm, 0 12px 30px rgba(6, 11, 22, 0.12));
+}
+
+.writing-workspace-editorial .workspace-pane {
+  background: var(--surface-1, var(--surface));
+}
+
+.writing-prompt-pane-editorial { color: var(--text-primary, var(--text)); }
+.writing-prompt-card-editorial { border-color: var(--border-subtle, var(--border)); box-shadow: var(--shadow-sm, var(--shadow)); }
+.writing-editor-pane-editorial { color: var(--text-primary, var(--text)); }
+.writing-editor-action-bar {
+  min-height: 2.75rem;
+  padding-bottom: .2rem;
+  border-bottom: 1px solid var(--border-subtle, var(--border));
+}
+.writing-editor-footer-editorial { gap: .65rem; }
+
 .workspace-desktop-controls {
   display: flex;
   justify-content: flex-end;
