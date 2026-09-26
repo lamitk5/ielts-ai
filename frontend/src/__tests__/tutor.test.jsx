@@ -57,6 +57,29 @@ describe('floating AI tutor', () => {
     expect(trigger).toHaveFocus()
   })
 
+  test('keeps one fullscreen control and one conversation through the homepage Tutor round trip', async () => {
+    const user = userEvent.setup()
+    localStorage.setItem('ielts-ai-tutor.session', JSON.stringify({
+      token: 'member-token',
+      user: { id: 'user-1', email: 'student@example.com', firstName: 'Mai' },
+    }))
+    renderApp('/')
+
+    await user.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
+    const dialog = screen.getByRole('dialog', { name: 'Trợ giảng AI' })
+    expect(within(dialog).getAllByRole('listitem')).toHaveLength(1)
+
+    await user.click(within(dialog).getByRole('button', { name: 'Toàn màn hình' }))
+    expect(dialog).toHaveClass('tutor-shell-fullscreen')
+    expect(within(dialog).getAllByRole('button', { name: 'Thu nhỏ' })).toHaveLength(1)
+
+    await user.click(within(dialog).getByRole('button', { name: 'Thu nhỏ' }))
+    expect(dialog).not.toHaveClass('tutor-shell-fullscreen')
+    await user.click(within(dialog).getByRole('button', { name: 'Đóng Trợ giảng AI' }))
+    expect(screen.queryByRole('dialog', { name: 'Trợ giảng AI' })).not.toBeInTheDocument()
+    localStorage.removeItem('ielts-ai-tutor.session')
+  })
+
   test('sends the application contract, shows skeleton loading, and renders a real answer without fake sources', async () => {
     const user = userEvent.setup()
     let resolveRequest

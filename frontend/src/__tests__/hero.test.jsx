@@ -36,6 +36,7 @@ describe('premium hero', () => {
     )
     expect(screen.getByRole('button', { name: 'Tìm bài luyện' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Làm bài Test đánh giá năng lực' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Khám phá 4 kỹ năng' })).toHaveAttribute('href', '/#skills')
     expect(screen.getByTestId('hero-visual')).toHaveAttribute('aria-hidden', 'true')
   })
 

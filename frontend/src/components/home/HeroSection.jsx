@@ -1,5 +1,5 @@
 import { ArrowRight, BarChart3, BookOpen, Sparkles } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import AnimatedSection from '../common/AnimatedSection'
 import Button from '../common/Button'
 import HeroSearch, { HeroSuggestions } from './HeroSearch'
@@ -29,10 +29,10 @@ function HeroSection() {
             <Button size="lg" onClick={() => navigate('/assessment')}>
               Làm bài Test đánh giá năng lực
             </Button>
-            <a className="hero-secondary-action" href="#skills">
+            <Link className="hero-secondary-action" to="/#skills">
               Khám phá 4 kỹ năng
               <ArrowRight aria-hidden="true" size={16} />
-            </a>
+            </Link>
           </div>
           <HeroSuggestions />
           <div className="hero-trust-row" aria-label="Learning support indicators">
