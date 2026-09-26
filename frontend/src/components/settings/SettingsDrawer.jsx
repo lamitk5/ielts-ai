@@ -93,7 +93,12 @@ export default function SettingsDrawer({ open, onClose, openerRef }) {
                 <Button variant="primary" size="sm" onClick={reset}>Xác nhận khôi phục</Button>
               </div>
             </div>
-          ) : <Button ref={resetTriggerRef} variant="ghost" size="sm" onClick={() => setConfirmReset(true)}>Khôi phục mặc định</Button>}
+          ) : (
+            <fieldset className="settings-group settings-reset-group">
+              <legend>Đặt lại</legend>
+              <Button ref={resetTriggerRef} variant="ghost" size="sm" onClick={() => setConfirmReset(true)}>Khôi phục mặc định</Button>
+            </fieldset>
+          )}
         </div>
       </section>
     </div>, document.body,

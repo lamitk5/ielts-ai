@@ -299,6 +299,24 @@ input:focus-visible {
 .settings-preview { padding: 0.75rem; border: 1px solid var(--selected-border); border-radius: var(--radius); background: var(--selected-soft); }
 .settings-group { display: grid; gap: 0.75rem; min-width: 0; margin: 1.5rem 0; padding: 0; border: 0; }
 .settings-group legend { margin-bottom: 0.75rem; color: var(--accent); font-family: 'Playfair Display', Georgia, serif; font-size: 1.2rem; }
+.settings-group-copy { margin: 0; color: var(--text-muted); font-size: 0.875rem; line-height: 1.55; }
+.settings-theme-previews { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; }
+.settings-theme-preview { display: grid; gap: 0.4rem; border: 1px solid var(--border-subtle); border-radius: 0.75rem; padding: 0.5rem; background: var(--surface-2); color: var(--text-secondary); font: inherit; font-size: 0.75rem; text-align: left; cursor: pointer; }
+.settings-theme-preview-active { border-color: var(--accent); color: var(--text-primary); box-shadow: 0 0 0 2px var(--accent-soft); }
+.settings-theme-preview-swatch { display: block; height: 2.25rem; border-radius: 0.5rem; border: 1px solid var(--border-subtle); }
+.settings-theme-preview-system { background: linear-gradient(135deg, #f5f7fa 50%, #0c1424 50%); }
+.settings-theme-preview-light { background: #f5f7fa; }
+.settings-theme-preview-dark { background: #0c1424; }
+.settings-accent-swatches { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.settings-accent-swatch { width: 1.5rem; height: 1.5rem; border: 2px solid transparent; border-radius: 50%; cursor: pointer; }
+.settings-accent-swatch[aria-pressed='true'] { border-color: var(--text-primary); box-shadow: 0 0 0 2px var(--accent-soft); }
+.settings-accent-gold { background: #e5c982; }
+.settings-accent-sapphire { background: #9cc4ee; }
+.settings-accent-emerald { background: #8ed9bc; }
+.settings-accent-burgundy { background: #e6a3b4; }
+.settings-accent-violet { background: #c9b2ee; }
+.settings-accent-slate { background: #adc2d8; }
+.settings-reset-group { margin-top: 2rem; }
 .settings-field,
 .settings-switch { display: flex; align-items: center; justify-content: space-between; gap: 1rem; color: var(--text-secondary); }
 .settings-field select { max-width: 55%; min-height: 2.5rem; padding: 0.4rem 0.6rem; border: 1px solid var(--border-strong); border-radius: 0.5rem; background: var(--surface-alt); color: var(--text); font: inherit; }
@@ -3748,4 +3766,3 @@ input:focus-visible {
     justify-content: center;
   }
 }
-

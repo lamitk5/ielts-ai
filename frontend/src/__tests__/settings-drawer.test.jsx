@@ -118,6 +118,19 @@ describe('Settings drawer', () => {
     expect(within(dialog).getByText(/Chuyển động: Giảm chuyển động/)).toBeInTheDocument()
   })
 
+  test('presents settings as labeled premium personalization groups', async () => {
+    const user = userEvent.setup()
+    renderNavbar()
+    await user.click(screen.getByRole('button', { name: 'Cài đặt' }))
+    const dialog = screen.getByRole('dialog', { name: 'Cài đặt' })
+    for (const label of ['Giao diện', 'Ngôn ngữ', 'Phông chữ', 'Mật độ', 'Chuyển động', 'Trợ giảng AI', 'Quyền riêng tư', 'Đặt lại']) {
+      expect(within(dialog).getByText(label, { selector: 'legend, h3' })).toBeInTheDocument()
+    }
+    for (const label of ['Theo hệ thống', 'Sáng', 'Tối', 'Gold', 'Sapphire', 'Emerald', 'Burgundy', 'Violet', 'Slate']) {
+      expect(within(dialog).getAllByText(label).length).toBeGreaterThan(0)
+    }
+  })
+
   test('shows unsynced preference status and a retry action after a failed save', async () => {
     const user = userEvent.setup()
     const fetchMock = vi.fn().mockResolvedValueOnce({ ok: true, json: async () => server })
@@ -163,7 +176,8 @@ describe('Settings drawer', () => {
       : { ok: true, status: 204, json: async () => null })))
     renderNavbar()
     await waitFor(() => expect(document.documentElement.style.getPropertyValue('--accent')).toBe('#216c56'))
-    await user.click(screen.getByRole('button', { name: 'Đăng xuất' }))
+    await user.click(screen.getByRole('button', { name: 'Mở menu tài khoản' }))
+    await user.click(screen.getByRole('menuitem', { name: 'Đăng xuất' }))
     await waitFor(() => expect(screen.getByRole('link', { name: 'Đăng nhập' })).toBeInTheDocument())
     expect(document.documentElement.style.getPropertyValue('--accent')).toBe('#8a6426')
   })
