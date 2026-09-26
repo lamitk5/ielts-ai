@@ -26,4 +26,8 @@ public class ConversationService {
     public void appendMessage(UUID userId, UUID conversationId, AiMessage message) {
         if (userId != null && findOwned(userId, conversationId).isPresent()) repository.saveMessage(message);
     }
+
+    public java.util.List<AiConversation> listOwned(UUID userId) { return userId == null ? java.util.List.of() : repository.findConversations(userId); }
+    public java.util.List<AiMessage> messages(UUID userId, UUID conversationId) { return findOwned(userId, conversationId).isPresent() ? repository.findMessages(userId, conversationId) : java.util.List.of(); }
+    public boolean archive(UUID userId, UUID conversationId) { return userId != null && repository.archive(userId, conversationId); }
 }
