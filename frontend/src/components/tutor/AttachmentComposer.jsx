@@ -1,4 +1,4 @@
-import { Paperclip } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useRef } from 'react'
 import { validateAttachmentFile } from '../../services/tutorAttachmentsApi'
 
@@ -39,19 +39,19 @@ export function AttachmentComposer({
         id="tutor-attachment-file-input"
         className="sr-only"
         aria-label="Chọn tệp tải lên"
-        accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
+        accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,image/png,image/jpeg,image/webp"
         onChange={handleFileChange}
         disabled={disabled || hasActiveAttachment}
       />
       <button
         type="button"
         className="tutor-attachment-trigger-btn"
-        aria-label="Đính kèm tài liệu"
-        title="Đính kèm tài liệu (PDF, DOCX, TXT tối đa 10MB)"
+        aria-label="Thêm tệp đính kèm"
+        title="Đính kèm tài liệu hoặc hình ảnh (tối đa 10MB)"
         onClick={handleTriggerClick}
         disabled={disabled || hasActiveAttachment}
       >
-        <Paperclip size={16} aria-hidden="true" />
+        <Plus size={16} aria-hidden="true" />
       </button>
     </div>
   )

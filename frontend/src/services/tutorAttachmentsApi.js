@@ -2,11 +2,14 @@ import { getStoredSession } from './authApi'
 
 export const ATTACHMENT_LIMITS = {
   MAX_SIZE_BYTES: 10 * 1024 * 1024, // 10 MiB
-  ALLOWED_EXTENSIONS: ['.pdf', '.docx', '.txt'],
+  ALLOWED_EXTENSIONS: ['.pdf', '.docx', '.txt', '.png', '.jpg', '.jpeg', '.webp'],
   ALLOWED_MIME_TYPES: [
     'application/pdf',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'text/plain',
+    'image/png',
+    'image/jpeg',
+    'image/webp',
   ],
   DISALLOWED_EXTENSIONS: [
     '.html', '.htm', '.exe', '.sh', '.bat', '.cmd', '.js', '.mjs', '.py', '.vbs', '.php',
@@ -65,7 +68,7 @@ export function validateAttachmentFile(file) {
         valid: false,
         error: {
           code: 'ATTACHMENT_TYPE_NOT_SUPPORTED',
-          message: 'Định dạng tệp không được hỗ trợ. Chỉ chấp nhận PDF, DOCX hoặc TXT.',
+          message: 'Định dạng tệp không được hỗ trợ. Chỉ chấp nhận PDF, DOCX, TXT hoặc PNG/JPG/WEBP.',
         },
       }
     }
@@ -77,7 +80,7 @@ export function validateAttachmentFile(file) {
       valid: false,
       error: {
         code: 'ATTACHMENT_TYPE_NOT_SUPPORTED',
-        message: 'Định dạng tệp không được hỗ trợ. Chỉ chấp nhận PDF, DOCX hoặc TXT.',
+        message: 'Định dạng tệp không được hỗ trợ. Chỉ chấp nhận PDF, DOCX, TXT hoặc PNG/JPG/WEBP.',
       },
     }
   }

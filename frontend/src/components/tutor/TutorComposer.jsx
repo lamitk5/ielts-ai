@@ -46,14 +46,12 @@ export function TutorComposer({
         />
       ) : null}
       <form className="tutor-input-form" onSubmit={submitMessage}>
-        {onAttachmentSelected ? (
-          <AttachmentComposer
-            onFileSelected={onAttachmentSelected}
-            onError={onAttachmentError}
-            disabled={loading || isAttachmentInProgress}
-            hasActiveAttachment={Boolean(attachment)}
-          />
-        ) : null}
+        <AttachmentComposer
+          onFileSelected={onAttachmentSelected}
+          onError={onAttachmentError}
+          disabled={loading || isAttachmentInProgress}
+          hasActiveAttachment={Boolean(attachment)}
+        />
         <label className="sr-only" htmlFor="tutor-input">
           Tin nhắn cho Trợ giảng AI
         </label>

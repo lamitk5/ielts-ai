@@ -27,6 +27,11 @@ export function TutorShell({
   onClearContext,
   inputRef,
   suggestions,
+  attachment,
+  onAttachmentSelected,
+  onAttachmentError,
+  onRemoveAttachment,
+  onRetryAttachment,
 }) {
   useEffect(() => {
     function handleKeyDown(event) {
@@ -73,24 +78,22 @@ export function TutorShell({
         </div>
         <div className="tutor-header-actions">
           {onStateChange ? (
-            <>
-              <button
-                className="tutor-control-button"
-                type="button"
-                aria-label="Thu gọn"
-                onClick={() => onStateChange(isCompact ? SHELL_STATES.STANDARD : SHELL_STATES.COMPACT)}
-              >
+            <button
+              className="tutor-control-button"
+              type="button"
+              aria-label={isExpanded || isFullscreen ? 'Thu nhỏ' : 'Toàn màn hình'}
+              onClick={() =>
+                onStateChange(
+                  isExpanded || isFullscreen ? SHELL_STATES.STANDARD : SHELL_STATES.EXPANDED,
+                )
+              }
+            >
+              {isExpanded || isFullscreen ? (
                 <Minimize2 aria-hidden="true" size={17} />
-              </button>
-              <button
-                className="tutor-control-button"
-                type="button"
-                aria-label={isExpanded ? 'Thu hẹp' : 'Mở rộng'}
-                onClick={() => onStateChange(isExpanded ? SHELL_STATES.STANDARD : SHELL_STATES.EXPANDED)}
-              >
+              ) : (
                 <Maximize2 aria-hidden="true" size={17} />
-              </button>
-            </>
+              )}
+            </button>
           ) : null}
           <button
             className="tutor-close-button"
@@ -126,6 +129,11 @@ export function TutorShell({
             loading={loading}
             onCancel={onCancel}
             inputRef={inputRef}
+            attachment={attachment}
+            onAttachmentSelected={onAttachmentSelected}
+            onAttachmentError={onAttachmentError}
+            onRemoveAttachment={onRemoveAttachment}
+            onRetryAttachment={onRetryAttachment}
           />
         </>
       ) : null}

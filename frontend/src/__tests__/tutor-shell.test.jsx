@@ -37,7 +37,7 @@ describe('TutorShell component and sub-components', () => {
     expect(within(screen.getByRole('status')).getByText('WRITING')).toBeInTheDocument()
   })
 
-  test('toggles shell states: compact, expanded, and standard', async () => {
+  test('toggles shell states: expanded and standard with single toggle', async () => {
     const user = userEvent.setup()
     const onStateChange = vi.fn()
     const { rerender } = render(
@@ -49,7 +49,9 @@ describe('TutorShell component and sub-components', () => {
       />,
     )
 
-    const expandBtn = screen.getByRole('button', { name: /mở rộng/i })
+    const expandBtn = screen.getByRole('button', { name: /toàn màn hình/i })
+    expect(expandBtn).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /thu gọn/i })).not.toBeInTheDocument()
     await user.click(expandBtn)
     expect(onStateChange).toHaveBeenCalledWith(SHELL_STATES.EXPANDED)
 
@@ -63,9 +65,9 @@ describe('TutorShell component and sub-components', () => {
     )
     expect(screen.getByRole('dialog')).toHaveClass('tutor-shell-expanded')
 
-    const minimizeBtn = screen.getByRole('button', { name: /thu gọn/i })
+    const minimizeBtn = screen.getByRole('button', { name: /thu nhỏ/i })
     await user.click(minimizeBtn)
-    expect(onStateChange).toHaveBeenCalledWith(SHELL_STATES.COMPACT)
+    expect(onStateChange).toHaveBeenCalledWith(SHELL_STATES.STANDARD)
   })
 
   test('ContextBadge shows practice context and allows switching to general question mode', async () => {

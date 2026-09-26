@@ -19,16 +19,22 @@ describe('bounded Tutor attachments client validation & API', () => {
     vi.stubGlobal('fetch', vi.fn())
   })
 
-  test('validates and accepts PDF, DOCX, and TXT files under 10 MiB', () => {
+  test('validates and accepts PDF, DOCX, TXT, and image files under 10 MiB', () => {
     const validPdf = new File(['%PDF-1.4 dummy'], 'essay.pdf', { type: 'application/pdf' })
     const validDocx = new File(['docx content'], 'notes.docx', {
       type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     })
     const validTxt = new File(['text content'], 'outline.txt', { type: 'text/plain' })
+    const validPng = new File(['png data'], 'chart.png', { type: 'image/png' })
+    const validJpg = new File(['jpg data'], 'photo.jpg', { type: 'image/jpeg' })
+    const validWebp = new File(['webp data'], 'image.webp', { type: 'image/webp' })
 
     expect(validateAttachmentFile(validPdf)).toEqual({ valid: true, error: null })
     expect(validateAttachmentFile(validDocx)).toEqual({ valid: true, error: null })
     expect(validateAttachmentFile(validTxt)).toEqual({ valid: true, error: null })
+    expect(validateAttachmentFile(validPng)).toEqual({ valid: true, error: null })
+    expect(validateAttachmentFile(validJpg)).toEqual({ valid: true, error: null })
+    expect(validateAttachmentFile(validWebp)).toEqual({ valid: true, error: null })
   })
 
   test('rejects files larger than 10 MiB boundary', () => {
@@ -53,7 +59,7 @@ describe('bounded Tutor attachments client validation & API', () => {
       expect(result.valid).toBe(false)
       expect(result.error).toMatchObject({
         code: 'ATTACHMENT_TYPE_NOT_SUPPORTED',
-        message: expect.stringContaining('PDF, DOCX hoặc TXT'),
+        message: expect.stringContaining('PDF, DOCX, TXT hoặc PNG/JPG/WEBP'),
       })
     }
   })
@@ -168,6 +174,21 @@ describe('AttachmentStatus component', () => {
     const retryBtn = screen.getByRole('button', { name: 'Thử lại tải tệp' })
     await user.click(retryBtn)
     expect(onRetry).toHaveBeenCalledTimes(1)
+  })
+
+  test('renders image thumbnail when previewUrl is present', () => {
+    const attachment = {
+      id: 'att-img',
+      filename: 'diagram.png',
+      sizeBytes: 1024 * 50,
+      status: 'READY',
+      previewUrl: 'blob:http://localhost/image-blob',
+    }
+
+    render(<AttachmentStatus attachment={attachment} onRemove={vi.fn()} />)
+    const img = screen.getByRole('img', { name: 'diagram.png' })
+    expect(img).toBeInTheDocument()
+    expect(img).toHaveAttribute('src', 'blob:http://localhost/image-blob')
   })
 })
 

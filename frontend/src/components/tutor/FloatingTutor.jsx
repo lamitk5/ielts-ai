@@ -7,6 +7,7 @@ import { SHELL_STATES } from './TutorShell'
 import AuthGate from '../auth/AuthGate'
 import { useOptionalAuth } from '../../features/auth/AuthProvider'
 import { MAX_HISTORY_MESSAGES, sendTutorMessage } from '../../services/aiTutorApi'
+import { uploadAttachment } from '../../services/tutorAttachmentsApi'
 
 const welcomeMessage = {
   id: 'welcome',
@@ -30,6 +31,7 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
   const [loading, setLoading] = useState(false)
   const [sessionExpired, setSessionExpired] = useState(false)
   const [activeContext, setActiveContext] = useState(context)
+  const [attachment, setAttachment] = useState(null)
   const buttonRef = useRef(null)
   const inputRef = useRef(null)
   const openedRef = useRef(false)
@@ -104,7 +106,70 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
     setActiveContext({ skill: 'GENERAL' })
   }
 
-  async function sendMessage(content) {
+  async function handleAttachmentSelected(file) {
+    const previewUrl = file.type?.startsWith('image/') ? URL.createObjectURL(file) : null
+    const tempAttachment = {
+      id: `att-temp-${Date.now()}`,
+      filename: file.name,
+      sizeBytes: file.size,
+      status: 'UPLOADING',
+      file,
+      previewUrl,
+    }
+    setAttachment(tempAttachment)
+
+    try {
+      const result = await uploadAttachment(file)
+      if (!mountedRef.current) return
+      setAttachment((current) =>
+        current && current.file === file
+          ? {
+              ...current,
+              id: result.id || current.id,
+              filename: result.filename || current.filename,
+              sizeBytes: result.sizeBytes || current.sizeBytes,
+              status: 'READY',
+            }
+          : current,
+      )
+    } catch (error) {
+      if (!mountedRef.current) return
+      setAttachment((current) =>
+        current && current.file === file
+          ? {
+              ...current,
+              status: 'FAILED',
+              errorMessage: error.message || 'Tải tệp đính kèm thất bại.',
+            }
+          : current,
+      )
+    }
+  }
+
+  function handleAttachmentError(error) {
+    setAttachment({
+      id: `att-err-${Date.now()}`,
+      filename: 'Tệp không hợp lệ',
+      sizeBytes: 0,
+      status: 'FAILED',
+      errorMessage: error?.message || 'Định dạng tệp không được hỗ trợ.',
+    })
+  }
+
+  function handleRemoveAttachment() {
+    if (attachment?.previewUrl) {
+      URL.revokeObjectURL(attachment.previewUrl)
+    }
+    setAttachment(null)
+  }
+
+  function handleRetryAttachment() {
+    if (attachment?.file) {
+      handleAttachmentSelected(attachment.file)
+    }
+  }
+
+  async function sendMessage(content, options = {}) {
     if (loading) return
     const history = messages.slice(-MAX_HISTORY_MESSAGES).map((message) => ({
       role: message.role === 'user' ? 'USER' : 'ASSISTANT',
@@ -121,9 +186,20 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
 
     try {
       const response = await sendTutorMessage(
-        { message: content, context: activeContext, history },
+        {
+          message: content,
+          context: activeContext,
+          history,
+          attachmentId: options?.attachmentId,
+        },
         { signal: controller.signal },
       )
+      if (attachment) {
+        if (attachment.previewUrl) {
+          URL.revokeObjectURL(attachment.previewUrl)
+        }
+        setAttachment(null)
+      }
       if (!mountedRef.current) return
       setMessages((current) => [
         ...current,
@@ -154,7 +230,7 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
           role: 'assistant',
           isError: true,
           content: error.message,
-          onRetry: () => sendMessage(content),
+          onRetry: () => sendMessage(content, options),
         },
       ])
     } finally {
@@ -215,6 +291,11 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
               onCancel={handleCancel}
               onSend={sendMessage}
               inputRef={inputRef}
+              attachment={attachment}
+              onAttachmentSelected={handleAttachmentSelected}
+              onAttachmentError={handleAttachmentError}
+              onRemoveAttachment={handleRemoveAttachment}
+              onRetryAttachment={handleRetryAttachment}
             />
           )}
         </div>

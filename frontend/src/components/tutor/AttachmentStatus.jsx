@@ -35,7 +35,16 @@ export function AttachmentStatus({ attachment, onRemove, onRetry, className = ''
       aria-label={`Tệp đính kèm: ${attachment.filename}`}
     >
       <div className="tutor-attachment-header">
-        <FileText size={16} aria-hidden="true" className="tutor-attachment-icon" />
+        {attachment.previewUrl ? (
+          <img
+            src={attachment.previewUrl}
+            alt={attachment.filename}
+            className="tutor-attachment-thumbnail"
+            style={{ width: '2rem', height: '2rem', objectFit: 'cover', borderRadius: '0.35rem' }}
+          />
+        ) : (
+          <FileText size={16} aria-hidden="true" className="tutor-attachment-icon" />
+        )}
         <div className="tutor-attachment-meta">
           <span className="tutor-attachment-filename" title={attachment.filename}>
             {attachment.filename}

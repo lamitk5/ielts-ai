@@ -12,6 +12,11 @@ function TutorPanel({
   onRetry,
   state = SHELL_STATES.STANDARD,
   onStateChange,
+  attachment,
+  onAttachmentSelected,
+  onAttachmentError,
+  onRemoveAttachment,
+  onRetryAttachment,
 }) {
   return (
     <TutorShell
@@ -26,6 +31,11 @@ function TutorPanel({
       onStateChange={onStateChange}
       onClearContext={onClearContext}
       inputRef={inputRef}
+      attachment={attachment}
+      onAttachmentSelected={onAttachmentSelected}
+      onAttachmentError={onAttachmentError}
+      onRemoveAttachment={onRemoveAttachment}
+      onRetryAttachment={onRetryAttachment}
     />
   )
 }
