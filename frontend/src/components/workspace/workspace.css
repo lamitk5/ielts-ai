@@ -4,6 +4,13 @@
   min-width: 0;
 }
 
+.workspace-responsive-safe {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
 .reading-workspace-editorial .workspace-panes {
   border-color: var(--border-subtle, var(--border));
   background: var(--surface-1, var(--surface));

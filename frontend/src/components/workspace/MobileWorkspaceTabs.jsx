@@ -50,7 +50,7 @@ export function MobileWorkspaceTabs({ leftLabel, rightLabel, left, right, divide
   ]
 
   return (
-    <div className={`workspace-mobile${integrated ? ' workspace-integrated' : ''}${tabMode ? ' workspace-tab-mode' : ''}`}>
+    <div className={`workspace-mobile workspace-responsive-safe${integrated ? ' workspace-integrated' : ''}${tabMode ? ' workspace-tab-mode' : ''}`}>
       {tabMode && <div className="workspace-mobile-tabs" role="tablist" aria-label="Khung học tập">
         {tabs.map((tab, index) => (
           <button

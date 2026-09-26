@@ -20,6 +20,7 @@ describe('Task 8: Mobile Workspace Tabs & Scroll Preservation', () => {
     )
 
     const tabList = screen.getByRole('tablist', { name: /Khung học tập/i })
+    expect(tabList.closest('.workspace-mobile')).toHaveClass('workspace-responsive-safe')
     expect(tabList).toBeInTheDocument()
 
     const leftTab = screen.getByRole('tab', { name: /Đoạn văn/i })

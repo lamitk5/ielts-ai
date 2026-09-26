@@ -3265,6 +3265,12 @@ input:focus-visible {
   gap: 1.25rem;
 }
 
+.speaking-room-single-column-safe {
+  width: min(100%, 58rem);
+  min-width: 0;
+  overflow-x: hidden;
+}
+
 .speaking-room-stage-editorial {
   border-color: var(--border-subtle, var(--border));
   background: var(--surface-1, var(--surface));
