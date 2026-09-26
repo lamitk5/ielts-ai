@@ -26,6 +26,7 @@ function TutorMessage({ message }) {
               : { status: 'ACTIVE' }
 
             const label = ref.label || 'Xem vị trí liên quan'
+            const isActive = crossHighlight?.activeTargetId === ref.targetId
 
             if (resolution.status === 'STALE') {
               return (
@@ -36,6 +37,8 @@ function TutorMessage({ message }) {
                   <button
                     type="button"
                     className="tutor-reference-chip is-stale"
+                    data-reference-state="stale"
+                    aria-disabled="true"
                     title="Nội dung bài viết đã thay đổi sau khi phản hồi này được tạo"
                   >
                     <span className="tutor-reference-icon" aria-hidden="true">⏱</span>
@@ -58,7 +61,9 @@ function TutorMessage({ message }) {
               <button
                 key={ref.targetId || idx}
                 type="button"
-                className="tutor-reference-chip"
+                className={`tutor-reference-chip ${isActive ? 'is-active' : ''} ${resolution.status === 'UNKNOWN_TARGET' ? 'is-unavailable' : ''}`.trim()}
+                data-reference-state={resolution.status === 'UNKNOWN_TARGET' ? 'unknown' : 'active'}
+                aria-pressed={isActive}
                 onClick={() => crossHighlight?.onActivate?.(ref)}
                 onMouseEnter={() => crossHighlight?.onPreview?.(ref)}
                 onMouseLeave={() => crossHighlight?.onClearPreview?.(ref)}

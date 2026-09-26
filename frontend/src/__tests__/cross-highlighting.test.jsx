@@ -150,6 +150,8 @@ describe('Task 6: Cross-Highlighting UI & Accessibility', () => {
 
     const chip = screen.getByRole('button', { name: /Xem đoạn 1/i })
     expect(chip).toBeInTheDocument()
+    expect(chip).toHaveAttribute('data-reference-state', 'active')
+    expect(chip).toHaveAttribute('aria-pressed', 'false')
 
     // Hover triggers preview
     await user.hover(chip)
@@ -158,6 +160,8 @@ describe('Task 6: Cross-Highlighting UI & Accessibility', () => {
     // Click triggers active highlight and scroll
     await user.click(chip)
     expect(targetEl.getAttribute('data-tutor-highlight')).toBe('active')
+    expect(chip).toHaveAttribute('aria-pressed', 'true')
+    expect(chip).toHaveClass('is-active')
     expect(mockScrollIntoView).toHaveBeenCalled()
 
     // Pressing Escape clears active highlight
@@ -201,6 +205,8 @@ describe('Task 6: Cross-Highlighting UI & Accessibility', () => {
 
     // Stale chip click does not set active highlight
     const chip = screen.getByRole('button', { name: /Gợi ý từ nối/i })
+    expect(chip).toHaveAttribute('data-reference-state', 'stale')
+    expect(chip).toHaveAttribute('aria-disabled', 'true')
     await user.click(chip)
     expect(targetEl.getAttribute('data-tutor-highlight')).toBeNull()
 
