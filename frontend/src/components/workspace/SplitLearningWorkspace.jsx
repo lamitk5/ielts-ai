@@ -27,6 +27,7 @@ export function SplitLearningWorkspace({ left, right, leftLabel, rightLabel, rat
         left={left}
         right={right}
         integrated
+        forceMobile={mobileMode}
         divider={<WorkspaceDivider value={currentRatio} min={40} max={60} onChange={changeRatio} />}
       />
     </div>

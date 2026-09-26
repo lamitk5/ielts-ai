@@ -47,7 +47,7 @@
 
 .workspace-panes {
   display: grid;
-  grid-template-columns: minmax(18rem, var(--workspace-left-ratio)) .75rem minmax(18rem, var(--workspace-right-ratio));
+  grid-template-columns: minmax(18rem, var(--workspace-drag-left-ratio, var(--workspace-left-ratio))) .75rem minmax(18rem, var(--workspace-drag-right-ratio, var(--workspace-right-ratio)));
   min-width: 0;
   height: min(70vh, 48rem);
   border: 1px solid var(--border);
@@ -93,7 +93,6 @@
 .workspace-mobile { display: block; }
 .workspace-mobile-tabs { display: none; }
 .workspace-mobile-panel { display: contents; }
-.workspace-mobile-panel[hidden] { display: contents; }
 .workspace-panes > .workspace-divider { grid-column: 2; grid-row: 1; }
 .workspace-panes > .workspace-mobile-panel:first-child { grid-column: 1; grid-row: 1; }
 .workspace-panes > .workspace-mobile-panel:last-child { grid-column: 3; grid-row: 1; }
@@ -114,22 +113,35 @@
   }
   .workspace-mobile-tabs button { flex: 1; }
   .workspace-mobile-panel { display: block; grid-column: 1 / -1; grid-row: auto; }
-  .workspace-mobile-panel[hidden] { display: none; }
   .workspace-panes { display: block; height: auto; min-height: 0; border: 0; }
   .workspace-panes > .workspace-divider { display: none; }
-  .workspace-mobile .workspace-pane { min-height: 60vh; }
+  .workspace-mobile.workspace-tab-mode .workspace-mobile-panel[hidden] { display: none; }
+  .workspace-mobile.workspace-tab-mode .workspace-pane {
+    height: min(65vh, 48rem);
+    height: min(65dvh, 48rem);
+    max-height: calc(100vh - 9rem);
+    max-height: calc(100dvh - 9rem);
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
 }
 
 .split-learning-workspace-mobile .workspace-desktop-controls { display: none; }
-.split-learning-workspace-mobile .workspace-mobile-tabs { display: flex; }
-.split-learning-workspace-mobile .workspace-mobile-panel { display: block; }
-.split-learning-workspace-mobile .workspace-mobile-panel[hidden] { display: none; }
-.split-learning-workspace-mobile .workspace-panes { display: block; height: auto; min-height: 0; border: 0; }
-.split-learning-workspace-mobile .workspace-divider { display: none; }
-.workspace-mobile:not(.workspace-integrated) .workspace-mobile-tabs { display: flex; }
-.workspace-mobile:not(.workspace-integrated) .workspace-panes { display: block; height: auto; min-height: 0; border: 0; }
-.workspace-mobile:not(.workspace-integrated) .workspace-mobile-panel { display: block; }
-.workspace-mobile:not(.workspace-integrated) .workspace-mobile-panel[hidden] { display: none; }
+.workspace-mobile.workspace-tab-mode .workspace-mobile-tabs { display: flex; }
+.workspace-mobile.workspace-tab-mode .workspace-mobile-panel { display: block; }
+.workspace-mobile.workspace-tab-mode .workspace-mobile-panel[hidden] { display: none; }
+.workspace-mobile.workspace-tab-mode .workspace-panes { display: block; height: auto; min-height: 0; border: 0; }
+.workspace-mobile.workspace-tab-mode .workspace-divider { display: none; }
+.workspace-mobile.workspace-tab-mode .workspace-pane {
+  height: min(65vh, 48rem);
+  height: min(65dvh, 48rem);
+  max-height: calc(100vh - 9rem);
+  max-height: calc(100dvh - 9rem);
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .workspace-preset-controls button,
