@@ -96,6 +96,7 @@ export function PreferenceProvider({ children }) {
     setConfirmedPreferences(null)
     setStatus(userId ? 'loading' : 'idle')
     const current = () => mountedRef.current && epochRef.current === epoch && identityRef.current === userId
+    let automaticHydrationRetries = 0
     const hydrate = async (editAtRequest) => {
       try {
         const record = await getPreferences()
@@ -116,7 +117,8 @@ export function PreferenceProvider({ children }) {
       } catch {
         if (!current()) return
         setStatus('unsynced')
-        if (dirtyRef.current || editRef.current !== editAtRequest) {
+        if ((dirtyRef.current || editRef.current !== editAtRequest) && automaticHydrationRetries < 1) {
+          automaticHydrationRetries += 1
           clearTimeout(timerRef.current)
           timerRef.current = setTimeout(() => hydrate(editRef.current), 300)
         }
@@ -166,17 +168,22 @@ export function PreferenceProvider({ children }) {
     } catch (error) {
       if (epochRef.current !== epoch) return
       if (error.code === 'CONFLICT') {
+        const editAtConflictFetch = editRef.current
         try {
           const record = await getPreferences()
           if (epochRef.current !== epoch || identityRef.current !== userId || !mountedRef.current) return
           const normalized = normalizePreferences(record)
           confirmedRef.current = record
           setConfirmedPreferences(normalized)
-          preferencesRef.current = normalized
-          setPreferences(normalized)
-          dirtyRef.current = false
           writeAccountPreferenceCache(userId, normalized, record.version)
-          setStatus('conflict')
+          if (editRef.current === editAtConflictFetch) {
+            preferencesRef.current = normalized
+            setPreferences(normalized)
+            dirtyRef.current = false
+            setStatus('conflict')
+          } else {
+            setStatus('saving')
+          }
         } catch {
           if (epochRef.current === epoch) setStatus('unsynced')
         }

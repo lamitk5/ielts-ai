@@ -45,3 +45,22 @@ Addressed all findings in `task-2-review.md`, limited to Task 2 files.
 - `git diff --check` — passed.
 
 Self-review confirmed the change is confined to preference persistence, its API/schema/storage adapters, their regression tests, and this report. No later task or backend behavior was implemented.
+
+## Second fix round — 2026-09-26
+
+Addressed the two remaining P2 findings from `task-2-rereview.md`.
+
+- Conflict reconciliation records the edit generation before its GET. The fetched server record updates the confirmed base, but if the learner edited while that GET was pending, the current preview remains intact and is saved against the reconciled server version.
+- Initial hydration now makes at most one automatic retry when local edits are pending. If that retry also fails, the preview remains visible with `unsynced` status; the existing Retry action starts another hydration attempt. This avoids rapid repeated requests while retaining an explicit recovery path.
+- Added regressions for a deferred conflict GET with a second edit and for persistent hydration failure followed by successful explicit retry.
+
+### Verification
+
+- Regression RED: both new tests failed before the implementation change: conflict GET replaced the newer preview; persistent failure issued four GETs during the test interval.
+- Targeted: `npm test -- --run src/__tests__/preferences-persistence.test.jsx src/__tests__/auth.test.jsx` — 23 passed.
+- Full frontend suite: `npm test -- --run` — 115 passed across 18 files.
+- `npm run lint` — exit 0 with existing React hook/ref and Fast Refresh warnings, including warnings in `PreferenceProvider.jsx`.
+- `npm run build` — exit 0; Vite reports the existing large-chunk advisory.
+- `git diff --check` — passed.
+
+Self-review confirms this round changes only conflict/hydration handling, focused persistence regressions, and this report. It does not introduce later tasks or unrelated behavior.
