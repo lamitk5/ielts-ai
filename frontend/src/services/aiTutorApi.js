@@ -1,3 +1,5 @@
+import { normalizeTutorReferences } from '../features/tutor/tutorReferenceSchema'
+
 export const MAX_HISTORY_MESSAGES = 8
 
 const ERROR_MESSAGES = {
@@ -57,6 +59,7 @@ export async function sendTutorMessage({ message, context = { skill: 'GENERAL' }
       answer: payload.answer,
       sources: normalizeSources(payload.sources),
       grounding: normalizeGrounding(payload.grounding),
+      references: normalizeTutorReferences(payload.references),
       meta: payload.meta,
       timestamp: payload.timestamp,
     }
