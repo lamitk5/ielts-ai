@@ -135,7 +135,8 @@ public class TutorOrchestrator {
         conversations.appendMessage(principal.userId(), conversation.id(), new AiMessage(UUID.randomUUID(), conversation.id(),
                 next + 1, AiMessageRole.ASSISTANT, bounded(result.answer(), 12_000), result.status(),
                 result.grounding() == null ? null : result.grounding().status(), result.sources(), Map.of(), result.timestamp()));
-        return result;
+        return new AiChatResponse(result.status(), result.answer(), result.sources(), result.grounding(), result.references(),
+                new AiChatResponse.Meta(result.meta() == null ? null : result.meta().requestId(), conversation.id()), result.timestamp());
     }
 
     private String bounded(String value, int max) {

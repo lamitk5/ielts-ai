@@ -2,6 +2,7 @@ package com.ieltsaitutor.ai.dto;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 public record AiChatResponse(
         String status,
@@ -21,6 +22,9 @@ public record AiChatResponse(
         this(status, answer, sources, grounding, List.of(), meta, timestamp);
     }
 
-    public record Meta(String requestId) {
+    public record Meta(String requestId, UUID conversationId) {
+        public Meta(String requestId) {
+            this(requestId, null);
+        }
     }
 }
