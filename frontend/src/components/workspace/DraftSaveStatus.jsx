@@ -6,6 +6,7 @@ export function DraftSaveStatus({ status = 'idle', error = null }) {
     dirty: { label: 'Chưa lưu', tone: 'warning' },
     saving: { label: 'Đang lưu nháp…', tone: 'info' },
     saved: { label: 'Đã lưu nháp', tone: 'success' },
+    conflict: { label: 'Xung đột bản nháp', tone: 'error' },
     save_failed: { label: error ?? 'Lưu nháp thất bại', tone: 'error' },
     error: { label: error ?? 'Lưu nháp thất bại', tone: 'error' },
   }

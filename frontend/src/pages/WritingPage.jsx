@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import GlassCard from '../components/common/GlassCard'
 import { useAuth } from '../features/auth/AuthProvider'
 import { getWritingSubmissions, submitWriting } from '../features/writing/writingApi'
+import { getCurrentDraft, saveDraft, deleteDraft } from '../services/learningDraftsApi'
 import FloatingTutor from '../components/tutor/FloatingTutor'
 import { SplitLearningWorkspace } from '../components/workspace/SplitLearningWorkspace'
 import { WritingPromptPane } from '../components/workspace/WritingPromptPane'
@@ -20,6 +21,17 @@ function WritingPage() {
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [history, setHistory] = useState({ status: 'idle', items: [] })
+
+  // Draft persistence state
+  const [draftId, setDraftId] = useState(null)
+  const [draftVersion, setDraftVersion] = useState(0)
+  const [saveStatus, setSaveStatus] = useState('idle')
+  const saveTimeoutRef = useRef(null)
+  const latestTextRef = useRef(responseText)
+  const draftVersionRef = useRef(draftVersion)
+
+  latestTextRef.current = responseText
+  draftVersionRef.current = draftVersion
 
   // Practice timer state (optional learning aid)
   const [timerEnabled, setTimerEnabled] = useState(false)
@@ -42,6 +54,44 @@ function WritingPage() {
     }
   }, [timerEnabled])
 
+  // Hydrate draft on mount or taskId change
+  useEffect(() => {
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+    if (!isAuthenticated) {
+      setResponseText('')
+      setDraftId(null)
+      setDraftVersion(0)
+      setSaveStatus('idle')
+      return undefined
+    }
+
+    let active = true
+    getCurrentDraft('WRITING', taskId)
+      .then((draft) => {
+        if (!active) return
+        if (draft && draft.contentSnapshot) {
+          setResponseText(draft.contentSnapshot)
+          setDraftId(draft.id)
+          setDraftVersion(draft.version ?? 1)
+          setSaveStatus('saved')
+        } else {
+          setResponseText('')
+          setDraftId(null)
+          setDraftVersion(0)
+          setSaveStatus('idle')
+        }
+      })
+      .catch(() => {
+        if (active) setSaveStatus('idle')
+      })
+
+    return () => {
+      active = false
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+    }
+  }, [isAuthenticated, taskId])
+
+  // Fetch history for authenticated members
   useEffect(() => {
     if (!isAuthenticated) {
       setHistory({ status: 'idle', items: [] })
@@ -54,6 +104,41 @@ function WritingPage() {
       .catch(() => active && setHistory({ status: 'error', items: [] }))
     return () => { active = false }
   }, [isAuthenticated])
+
+  const handleTextChange = (nextText) => {
+    setResponseText(nextText)
+    if (!isAuthenticated) {
+      setSaveStatus('idle')
+      return
+    }
+
+    setSaveStatus('dirty')
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+
+    saveTimeoutRef.current = setTimeout(async () => {
+      const textToSave = latestTextRef.current
+      if (!textToSave.trim()) return
+
+      setSaveStatus('saving')
+      try {
+        const result = await saveDraft({
+          skill: 'WRITING',
+          referenceId: taskId,
+          contentSnapshot: textToSave,
+          expectedVersion: draftVersionRef.current > 0 ? draftVersionRef.current : undefined,
+        })
+        setDraftId(result.id)
+        setDraftVersion(result.version)
+        setSaveStatus('saved')
+      } catch (err) {
+        if (err.code === 'VERSION_CONFLICT') {
+          setSaveStatus('conflict')
+        } else {
+          setSaveStatus('save_failed')
+        }
+      }
+    }, 400)
+  }
 
   async function handleSubmit(event) {
     if (event?.preventDefault) event.preventDefault()
@@ -69,7 +154,13 @@ function WritingPage() {
     }
     setSubmitting(true)
     try {
-      setAssessment(await submitWriting(taskId, responseText))
+      const result = await submitWriting(taskId, responseText)
+      setAssessment(result)
+      if (draftId) {
+        deleteDraft(draftId).catch(() => {})
+        setDraftId(null)
+        setDraftVersion(0)
+      }
     } catch (submissionError) {
       setError(submissionError.message)
     } finally {
@@ -106,10 +197,10 @@ function WritingPage() {
           right={
             <WritingEditorPane
               value={responseText}
-              onChange={setResponseText}
+              onChange={handleTextChange}
               wordCount={wordCount}
               minWords={selectedTask.minimumWords}
-              saveStatus="idle"
+              saveStatus={saveStatus}
               timerEnabled={timerEnabled}
               timerSeconds={timerSeconds}
               onToggleTimer={() => setTimerEnabled((prev) => !prev)}
@@ -149,7 +240,7 @@ function WritingPage() {
         </GlassCard>
       ) : null}
 
-      <FloatingTutor context={{ skill: 'WRITING', exerciseId: taskId, taskType: selectedTask.label }} />
+      <FloatingTutor context={{ skill: 'WRITING', exerciseId: taskId, taskType: selectedTask.label, draftVersion }} />
     </section>
   )
 }

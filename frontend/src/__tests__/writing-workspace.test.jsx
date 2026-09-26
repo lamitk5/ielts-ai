@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, test, vi } from 'vitest'
@@ -54,8 +54,8 @@ describe('Writing learning workspace', () => {
     expect(within(editorRegion).getByText(/0.*từ/i)).toBeInTheDocument()
     expect(within(editorRegion).getByText(/Bản nháp cục bộ|Chưa lưu/i)).toBeInTheDocument()
 
-    await user.type(textarea, 'The chart illustrates the consumption of renewable energy.')
-    expect(within(editorRegion).getByText(/8.*từ/i)).toBeInTheDocument()
+    await user.type(textarea, 'The chart illustrates renewable energy.')
+    expect(within(editorRegion).getByText(/5.*từ/i)).toBeInTheDocument()
   })
 
   test('provides an optional practice timer aid without official exam timer claims', async () => {
@@ -85,7 +85,7 @@ describe('Writing learning workspace', () => {
     await user.click(editorTab)
 
     const textarea = screen.getByRole('textbox', { name: 'Bài viết' })
-    await user.type(textarea, 'Essay paragraph for IELTS Academic Task 1.')
+    fireEvent.change(textarea, { target: { value: 'Essay paragraph for IELTS Academic Task 1.' } })
 
     const promptTab = screen.getByRole('tab', { name: 'Đề bài' })
     await user.click(promptTab)
@@ -127,7 +127,7 @@ describe('Writing learning workspace', () => {
 
     const textarea = screen.getByRole('textbox', { name: 'Bài viết' })
     const essay = 'The chart illustrates the changes in renewable energy production across five European countries between 2010 and 2020. Overall, substantial growth was observed across all measured nations.'
-    await user.type(textarea, essay)
+    fireEvent.change(textarea, { target: { value: essay } })
 
     const submitBtn = screen.getByRole('button', { name: /gửi bài viết/i })
     await user.click(submitBtn)
@@ -141,7 +141,7 @@ describe('Writing learning workspace', () => {
     renderWriting()
 
     const textarea = screen.getByRole('textbox', { name: 'Bài viết' })
-    await user.type(textarea, 'Twenty words or more to bypass the minimum client validation threshold before submitting the essay.')
+    fireEvent.change(textarea, { target: { value: 'Twenty words or more to bypass the minimum client validation threshold before submitting the essay.' } })
 
     const submitBtn = screen.getByRole('button', { name: /gửi bài viết/i })
     await user.click(submitBtn)
@@ -149,3 +149,4 @@ describe('Writing learning workspace', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(/Đăng nhập để lưu và nhận đánh giá bài viết/i)
   })
 })
+
