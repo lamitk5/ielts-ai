@@ -11,30 +11,30 @@ import { SplitLearningWorkspace } from '../components/workspace/SplitLearningWor
 import { ReadingPassagePane } from '../components/workspace/ReadingPassagePane'
 import { ReadingQuestionPane } from '../components/workspace/ReadingQuestionPane'
 
-function PracticePage() {
-  const { skill } = useParams()
-  const fixture = practiceFixtures[skill]
-  const { isAuthenticated } = useAuth()
+function PracticeSkillSession({ skill, fixture }) {
   const [practiceSet, setPracticeSet] = useState(fixture)
+
+  useEffect(() => {
+    let active = true
+    fetchPracticeSet(skill)
+      .then((set) => { if (active && set) setPracticeSet(set) })
+      .catch(() => {})
+    return () => { active = false }
+  }, [skill])
+
+  const setId = practiceSet.setId ?? practiceSet.id
+  const questionIdentity = practiceSet.questions?.map(({ id, prompt, options }) => [id, prompt, options]) ?? []
+  return <PracticeSetSession key={JSON.stringify([setId, questionIdentity])} skill={skill} practiceSet={practiceSet} />
+}
+
+function PracticeSetSession({ skill, practiceSet }) {
+  const { isAuthenticated } = useAuth()
   const [answers, setAnswers] = useState({})
-  const [currentQuestionId, setCurrentQuestionId] = useState(fixture?.questions?.[0]?.id ?? null)
+  const [currentQuestionId, setCurrentQuestionId] = useState(practiceSet.questions?.[0]?.id ?? null)
   const [result, setResult] = useState(null)
   const [error, setError] = useState('')
   const [flaggedIds, setFlaggedIds] = useState(() => new Set())
   const [reviewedIds, setReviewedIds] = useState(() => new Set())
-
-  useEffect(() => {
-    if (!fixture) return undefined
-    let active = true
-    fetchPracticeSet(skill)
-      .then((set) => active && set && setPracticeSet(set))
-      .catch(() => {})
-    return () => { active = false }
-  }, [fixture, skill])
-
-  if (!fixture) {
-    return <PlaceholderPage title="Practice area unavailable." description={`The practice skill “${skill}” is not available.`} />
-  }
 
   const questions = practiceSet.questions ?? []
   const activeQuestionId = questions.some((question) => question.id === currentQuestionId) ? currentQuestionId : questions[0]?.id ?? null
@@ -137,6 +137,15 @@ function PracticePage() {
       }} />
     </section>
   )
+}
+
+function PracticePage() {
+  const { skill } = useParams()
+  const fixture = practiceFixtures[skill]
+  if (!fixture) {
+    return <PlaceholderPage title="Practice area unavailable." description={`The practice skill “${skill}” is not available.`} />
+  }
+  return <PracticeSkillSession key={skill} skill={skill} fixture={fixture} />
 }
 
 export default PracticePage

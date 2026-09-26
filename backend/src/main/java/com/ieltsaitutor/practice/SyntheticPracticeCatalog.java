@@ -35,7 +35,12 @@ public class SyntheticPracticeCatalog {
                                         "The passage focuses on improving recall."),
                                 new PracticeQuestion("reading-q2", "Which result did the researchers observe?",
                                         List.of("More accurate summaries", "Longer exams", "Fewer participants", "Higher costs"), "A",
-                                        "Participants produced more accurate summaries."))),
+                                        "Participants produced more accurate summaries.")),
+                        new PracticePassage("Learning Through Spaced Practice", List.of(
+                                new PracticeParagraph("reading-foundation-01-p1",
+                                        "Researchers tested spaced retrieval practice with students. Instead of replacing teachers or reducing reading, the method asked learners to revisit key ideas at intervals. Its main purpose was to improve recall."),
+                                new PracticeParagraph("reading-foundation-01-p2",
+                                        "After two weeks, researchers compared written summaries. Participants who used spaced retrieval produced more accurate summaries than those who reread the text only once.")))),
                 new PracticeSet("listening-foundation-01", "Listening", "Listening foundation",
                         "Luyện nghe theo ngữ cảnh với transcript thân thiện để xem lại sau khi trả lời.", List.of(
                                 new PracticeQuestion("listening-q1", "What time does the library open?",

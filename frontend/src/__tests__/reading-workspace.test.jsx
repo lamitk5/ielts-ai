@@ -12,13 +12,15 @@ afterEach(() => {
 })
 
 describe('Reading learning workspace', () => {
-  test('places the passage beside the current question and names missing source text honestly', () => {
+  test('places the supported Reading passage beside the current question', () => {
     renderReading()
 
     const passage = screen.getByRole('region', { name: 'Nội dung' })
     const questions = screen.getByRole('region', { name: 'Câu hỏi' })
     expect(passage.compareDocumentPosition(questions) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    expect(within(passage).getByText(/nội dung đoạn đọc chưa được cung cấp/i)).toBeInTheDocument()
+    expect(within(passage).getByRole('heading', { name: 'Learning Through Spaced Practice' })).toBeInTheDocument()
+    expect(passage.querySelector('[data-reading-target-id="reading-foundation-01-p1"]')).toHaveTextContent('improve recall')
+    expect(passage.querySelector('[data-reading-target-id="reading-foundation-01-p2"]')).toHaveTextContent('more accurate summaries')
     expect(within(questions).getByRole('heading', { name: /what is its main purpose/i })).toBeInTheDocument()
     expect(within(questions).queryByRole('heading', { name: /which result did the researchers observe/i })).not.toBeInTheDocument()
     expect(passage.querySelector('[data-reading-target-id="reading-foundation-01"]')).toBeInTheDocument()
@@ -33,8 +35,8 @@ describe('Reading learning workspace', () => {
     }] }))
     renderReading()
 
+    expect(await screen.findByRole('heading', { name: 'Memory and Learning' })).toBeInTheDocument()
     const passage = screen.getByRole('region', { name: 'Nội dung' })
-    expect(await within(passage).findByRole('heading', { name: 'Memory and Learning' })).toBeInTheDocument()
     expect(passage.querySelector('[data-reading-target-id="p1"]')).toHaveTextContent('Spaced practice supports recall.')
     expect(passage.querySelector('[data-reading-target-id="p2"]')).toHaveTextContent('Learners revisited material.')
   })

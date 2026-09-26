@@ -44,10 +44,14 @@ public class PracticeController {
     public record AttemptRequest(String setId, Map<String, String> answers) {}
     public record AttemptResponse(UUID attemptId, int score, int total) {}
 
-    public record PracticeSetView(String id, String skill, String title, String description, List<QuestionView> questions) {
+    public record PracticeSetView(String id, String skill, String title, String description, List<QuestionView> questions, PassageView passage) {
         static PracticeSetView from(PracticeSet set) { return new PracticeSetView(set.id(), set.skill(), set.title(), set.description(),
-                set.questions().stream().map(question -> new QuestionView(question.id(), question.prompt(), question.options())).toList()); }
+                set.questions().stream().map(question -> new QuestionView(question.id(), question.prompt(), question.options())).toList(),
+                set.passage() == null ? null : new PassageView(set.passage().title(),
+                        set.passage().paragraphs().stream().map(paragraph -> new ParagraphView(paragraph.id(), paragraph.text())).toList())); }
     }
 
     public record QuestionView(String id, String prompt, List<String> options) {}
+    public record PassageView(String title, List<ParagraphView> paragraphs) {}
+    public record ParagraphView(String id, String text) {}
 }
