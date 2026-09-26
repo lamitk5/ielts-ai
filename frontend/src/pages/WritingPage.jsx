@@ -200,7 +200,7 @@ function WritingPage() {
   }
 
   return (
-    <section className="writing-page" aria-labelledby="writing-title">
+    <section className="writing-page writing-page-editorial" aria-labelledby="writing-title">
       <div className="writing-page-header">
         <p className="eyebrow">LUYỆN TẬP WRITING</p>
         <h1 id="writing-title" className="font-display">Writing practice</h1>

@@ -37,6 +37,7 @@ describe('deterministic practice routes', () => {
     )
 
     expect(screen.getByRole('heading', { name: heading })).toBeInTheDocument()
+    if (route.includes('reading')) expect(screen.getByRole('heading', { name: heading }).closest('.practice-page')).toHaveClass('practice-page-editorial')
     expect(screen.getByText(/synthetic practice set/i)).toBeInTheDocument()
   })
 

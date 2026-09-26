@@ -12,6 +12,7 @@ describe('speaking practice boundary', () => {
     )
 
     expect(screen.getByRole('heading', { name: 'Speaking practice' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Speaking practice' }).closest('.speaking-page')).toHaveClass('speaking-page-editorial')
     expect(screen.getByRole('button', { name: 'Lưu câu trả lời' })).toBeInTheDocument()
     expect(screen.getByText(/STT chưa được cấu hình/i)).toBeInTheDocument()
   })

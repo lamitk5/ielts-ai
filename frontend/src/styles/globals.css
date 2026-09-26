@@ -2242,6 +2242,18 @@ input:focus-visible {
   padding: clamp(3rem, 7vw, 5rem) 0;
 }
 
+.practice-page-editorial,
+.writing-page-editorial,
+.speaking-page-editorial {
+  min-width: 0;
+}
+
+.practice-page-editorial .practice-page-header,
+.writing-page-editorial .writing-page-header,
+.speaking-page-editorial .speaking-page-header {
+  max-width: 52rem;
+}
+
 .practice-page-header {
   max-width: 48rem;
   margin-bottom: 2rem;

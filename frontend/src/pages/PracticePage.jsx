@@ -88,7 +88,7 @@ function PracticeSetSession({ skill, practiceSet }) {
   }
 
   return (
-    <section className={`practice-page${skill === 'reading' ? ' practice-page-reading' : ''}`} aria-labelledby="practice-title">
+    <section className={`practice-page practice-page-editorial${skill === 'reading' ? ' practice-page-reading' : ''}`} aria-labelledby="practice-title">
       <div className="practice-page-header">
         <p className="eyebrow">LUYỆN TẬP {practiceSet.name.toUpperCase()}</p>
         <h1 id="practice-title" className="font-display">{practiceSet.name} practice</h1>

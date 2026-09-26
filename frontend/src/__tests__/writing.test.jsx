@@ -12,6 +12,7 @@ describe('writing assessment route', () => {
     )
 
     expect(screen.getByRole('heading', { name: 'Writing practice' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Writing practice' }).closest('.writing-page')).toHaveClass('writing-page-editorial')
     expect(screen.getByRole('textbox', { name: 'Bài viết' })).toBeInTheDocument()
     expect(screen.getByText(/Band ước lượng/i)).toBeInTheDocument()
   })

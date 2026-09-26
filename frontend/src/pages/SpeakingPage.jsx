@@ -53,7 +53,7 @@ function SpeakingPage() {
   }
 
   return (
-    <section className="speaking-page" aria-labelledby="speaking-title">
+    <section className="speaking-page speaking-page-editorial" aria-labelledby="speaking-title">
       <div className="speaking-page-header">
         <p className="eyebrow">LUYỆN TẬP SPEAKING</p>
         <h1 id="speaking-title" className="font-display">Speaking practice</h1>
