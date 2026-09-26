@@ -3003,6 +3003,12 @@ input:focus-visible {
 
 .tutor-attachment-row { flex: 0 0 auto; }
 
+.tutor-attachment-responsive-safe {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
 .tutor-attachment-header {
   display: flex;
   align-items: center;
@@ -3129,6 +3135,15 @@ input:focus-visible {
   width: 60%;
   height: 100%;
   background: var(--gold, #d4af37);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tutor-attachment-responsive-safe *,
+  .tutor-attachment-responsive-safe *::before,
+  .tutor-attachment-responsive-safe *::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
 /* ==========================================================================

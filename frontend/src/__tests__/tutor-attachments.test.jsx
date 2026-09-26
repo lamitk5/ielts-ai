@@ -157,7 +157,8 @@ describe('AttachmentStatus component', () => {
 
     render(<AttachmentStatus attachment={attachment} onRemove={vi.fn()} />)
 
-    expect(screen.getByRole('status')).toHaveClass('tutor-attachment-row')
+    expect(screen.getByRole('status')).toHaveClass('tutor-attachment-row', 'tutor-attachment-responsive-safe')
+    expect(screen.getByRole('status')).toHaveAttribute('aria-live', 'polite')
     expect(screen.getByText('writing_task2.pdf')).toBeInTheDocument()
     expect(screen.getByText(/2(\.0)? MB/i)).toBeInTheDocument()
     expect(screen.getByText('Sẵn sàng')).toBeInTheDocument()
@@ -339,5 +340,29 @@ describe('AttachmentComposer and TutorComposer integration', () => {
     await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }))
 
     expect(onSend).toHaveBeenCalledWith('Tệp này dùng được không?')
+  })
+
+  test('attachment actions remain keyboard reachable and image preview has alternative text', async () => {
+    const user = userEvent.setup()
+    const onRemove = vi.fn()
+    render(
+      <AttachmentStatus
+        attachment={{
+          id: 'att-image',
+          filename: 'chart.webp',
+          sizeBytes: 1024,
+          status: 'IMAGE_READY',
+          previewUrl: 'blob:http://localhost/chart',
+        }}
+        onRemove={onRemove}
+      />,
+    )
+
+    expect(screen.getByRole('img', { name: 'chart.webp' })).toBeInTheDocument()
+    const remove = screen.getByRole('button', { name: 'Xóa tệp đính kèm' })
+    remove.focus()
+    expect(remove).toHaveFocus()
+    await user.keyboard('{Enter}')
+    expect(onRemove).toHaveBeenCalledTimes(1)
   })
 })

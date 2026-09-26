@@ -33,8 +33,9 @@ export function AttachmentStatus({ attachment, onRemove, onRetry, className = ''
 
   return (
     <div
-      className={`tutor-attachment-card tutor-attachment-row ${presentation.kind === 'image' ? 'tutor-attachment-image' : 'tutor-attachment-document'} ${isFailed ? 'tutor-attachment-failed' : ''} ${className}`.trim()}
+      className={`tutor-attachment-card tutor-attachment-row tutor-attachment-responsive-safe ${presentation.kind === 'image' ? 'tutor-attachment-image' : 'tutor-attachment-document'} ${isFailed ? 'tutor-attachment-failed' : ''} ${className}`.trim()}
       role="status"
+      aria-live="polite"
       aria-label={`Tệp đính kèm: ${attachment.filename}`}
     >
       <div className="tutor-attachment-header">
