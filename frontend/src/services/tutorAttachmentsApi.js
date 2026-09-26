@@ -1,31 +1,11 @@
 import { getStoredSession } from './authApi'
+import {
+  ATTACHMENT_LIMITS,
+  ATTACHMENT_STATUS,
+  validateAttachmentFile,
+} from '../features/tutor/attachmentContract'
 
-export const ATTACHMENT_LIMITS = {
-  MAX_SIZE_BYTES: 10 * 1024 * 1024, // 10 MiB
-  ALLOWED_EXTENSIONS: ['.pdf', '.docx', '.txt', '.png', '.jpg', '.jpeg', '.webp'],
-  ALLOWED_MIME_TYPES: [
-    'application/pdf',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'text/plain',
-    'image/png',
-    'image/jpeg',
-    'image/webp',
-  ],
-  DISALLOWED_EXTENSIONS: [
-    '.html', '.htm', '.exe', '.sh', '.bat', '.cmd', '.js', '.mjs', '.py', '.vbs', '.php',
-  ],
-}
-
-export const ATTACHMENT_STATUS = {
-  SELECTED: 'SELECTED',
-  UPLOADING: 'UPLOADING',
-  UPLOADED: 'UPLOADED',
-  PROCESSING: 'PROCESSING',
-  READY: 'READY',
-  FAILED: 'FAILED',
-  REMOVED: 'REMOVED',
-  EXPIRED: 'EXPIRED',
-}
+export { ATTACHMENT_LIMITS, ATTACHMENT_STATUS, validateAttachmentFile }
 
 export class AttachmentApiError extends Error {
   constructor(code, message, status) {
@@ -34,58 +14,6 @@ export class AttachmentApiError extends Error {
     this.code = code
     this.status = status
   }
-}
-
-export function validateAttachmentFile(file) {
-  if (!file) {
-    return {
-      valid: false,
-      error: { code: 'ATTACHMENT_EMPTY', message: 'Vui lòng chọn một tệp.' },
-    }
-  }
-
-  if (file.size === 0) {
-    return {
-      valid: false,
-      error: { code: 'ATTACHMENT_EMPTY', message: 'Tệp đính kèm không có nội dung.' },
-    }
-  }
-
-  if (file.size > ATTACHMENT_LIMITS.MAX_SIZE_BYTES) {
-    return {
-      valid: false,
-      error: {
-        code: 'ATTACHMENT_SIZE_EXCEEDED',
-        message: 'Dung lượng tệp vượt quá giới hạn 10MB.',
-      },
-    }
-  }
-
-  const name = file.name.toLowerCase()
-  for (const ext of ATTACHMENT_LIMITS.DISALLOWED_EXTENSIONS) {
-    if (name.endsWith(ext)) {
-      return {
-        valid: false,
-        error: {
-          code: 'ATTACHMENT_TYPE_NOT_SUPPORTED',
-          message: 'Định dạng tệp không được hỗ trợ. Chỉ chấp nhận PDF, DOCX, TXT hoặc PNG/JPG/WEBP.',
-        },
-      }
-    }
-  }
-
-  const isAllowedExt = ATTACHMENT_LIMITS.ALLOWED_EXTENSIONS.some((ext) => name.endsWith(ext))
-  if (!isAllowedExt) {
-    return {
-      valid: false,
-      error: {
-        code: 'ATTACHMENT_TYPE_NOT_SUPPORTED',
-        message: 'Định dạng tệp không được hỗ trợ. Chỉ chấp nhận PDF, DOCX, TXT hoặc PNG/JPG/WEBP.',
-      },
-    }
-  }
-
-  return { valid: true, error: null }
 }
 
 function getAuthHeader() {
@@ -101,6 +29,7 @@ export async function uploadAttachment(file, options = {}) {
 
   const formData = new FormData()
   formData.append('file', file)
+  if (options.requestId) formData.append('requestId', String(options.requestId).slice(0, 96))
 
   const headers = {
     ...getAuthHeader(),

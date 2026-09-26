@@ -1,4 +1,5 @@
-import { AlertCircle, FileText, RefreshCw, X } from 'lucide-react'
+import { AlertCircle, FileText, Image as ImageIcon, RefreshCw, X } from 'lucide-react'
+import { getAttachmentPresentation } from '../../features/tutor/attachmentContract'
 
 function formatFileSize(bytes) {
   if (!bytes || bytes <= 0) return '0 B'
@@ -27,10 +28,11 @@ export function AttachmentStatus({ attachment, onRemove, onRetry, className = ''
   const isProcessing = attachment.status === 'PROCESSING'
   const formattedSize = formatFileSize(attachment.sizeBytes)
   const statusLabel = STATUS_LABELS[attachment.status] ?? attachment.status
+  const presentation = getAttachmentPresentation(attachment)
 
   return (
     <div
-      className={`tutor-attachment-card tutor-attachment-row ${isFailed ? 'tutor-attachment-failed' : ''} ${className}`.trim()}
+      className={`tutor-attachment-card tutor-attachment-row ${presentation.kind === 'image' ? 'tutor-attachment-image' : 'tutor-attachment-document'} ${isFailed ? 'tutor-attachment-failed' : ''} ${className}`.trim()}
       role="status"
       aria-label={`Tệp đính kèm: ${attachment.filename}`}
     >
@@ -43,7 +45,11 @@ export function AttachmentStatus({ attachment, onRemove, onRetry, className = ''
             style={{ width: '2rem', height: '2rem', objectFit: 'cover', borderRadius: '0.35rem' }}
           />
         ) : (
-          <FileText size={16} aria-hidden="true" className="tutor-attachment-icon" />
+          {presentation.kind === 'image' ? (
+            <ImageIcon size={16} aria-hidden="true" className="tutor-attachment-icon" />
+          ) : (
+            <FileText size={16} aria-hidden="true" className="tutor-attachment-icon" />
+          )}
         )}
         <div className="tutor-attachment-meta">
           <span className="tutor-attachment-filename" title={attachment.filename}>

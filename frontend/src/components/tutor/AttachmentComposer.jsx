@@ -1,6 +1,6 @@
 import { Plus } from 'lucide-react'
 import { useRef } from 'react'
-import { validateAttachmentFile } from '../../services/tutorAttachmentsApi'
+import { getAttachmentAcceptAttribute, validateAttachmentFile } from '../../features/tutor/attachmentContract'
 
 export function AttachmentComposer({
   onFileSelected,
@@ -39,7 +39,7 @@ export function AttachmentComposer({
         id="tutor-attachment-file-input"
         className="sr-only"
         aria-label="Chọn tệp tải lên"
-        accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,image/png,image/jpeg,image/webp"
+        accept={getAttachmentAcceptAttribute()}
         onChange={handleFileChange}
         disabled={disabled || hasActiveAttachment}
       />

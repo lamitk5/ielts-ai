@@ -12,6 +12,10 @@ import {
   uploadAttachment,
   validateAttachmentFile,
 } from '../services/tutorAttachmentsApi'
+import {
+  ATTACHMENT_CONTRACT,
+  getAttachmentPresentation,
+} from '../features/tutor/attachmentContract'
 
 describe('bounded Tutor attachments client validation & API', () => {
   beforeEach(() => {
@@ -35,6 +39,21 @@ describe('bounded Tutor attachments client validation & API', () => {
     expect(validateAttachmentFile(validPng)).toEqual({ valid: true, error: null })
     expect(validateAttachmentFile(validJpg)).toEqual({ valid: true, error: null })
     expect(validateAttachmentFile(validWebp)).toEqual({ valid: true, error: null })
+  })
+
+  test('exposes one shared contract and presentation metadata for images/documents', () => {
+    expect(ATTACHMENT_CONTRACT.maxSizeBytes).toBe(10 * 1024 * 1024)
+    expect(ATTACHMENT_CONTRACT.extensions).toEqual(expect.arrayContaining(['.pdf', '.docx', '.txt', '.png', '.jpg', '.jpeg', '.webp']))
+    expect(getAttachmentPresentation({ filename: 'chart.webp', contentType: 'image/webp' })).toMatchObject({
+      kind: 'image',
+      showThumbnail: true,
+      capability: 'VISION_NOT_ENABLED',
+    })
+    expect(getAttachmentPresentation({ filename: 'essay.pdf', contentType: 'application/pdf' })).toMatchObject({
+      kind: 'document',
+      showThumbnail: false,
+      icon: 'file-text',
+    })
   })
 
   test('rejects files larger than 10 MiB boundary', () => {
@@ -83,7 +102,7 @@ describe('bounded Tutor attachments client validation & API', () => {
     })
 
     const file = new File(['content'], 'essay.pdf', { type: 'application/pdf' })
-    const result = await uploadAttachment(file)
+    const result = await uploadAttachment(file, { requestId: 'tutor-request-1' })
 
     expect(global.fetch).toHaveBeenCalledWith(
       '/api/ai/attachments',
@@ -99,6 +118,8 @@ describe('bounded Tutor attachments client validation & API', () => {
       filename: 'essay.pdf',
       status: ATTACHMENT_STATUS?.READY ?? 'READY',
     })
+    const requestBody = global.fetch.mock.calls[0][1].body
+    expect(requestBody.get('requestId')).toBe('tutor-request-1')
   })
 
   test('deleteAttachment sends authenticated DELETE request', async () => {
