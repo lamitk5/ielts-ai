@@ -34,6 +34,28 @@ describe('Settings drawer', () => {
     expect(opener).toHaveFocus()
   })
 
+  test('makes the background inert to assistive technology and restores its prior state', async () => {
+    const user = userEvent.setup()
+    const { container } = renderNavbar()
+    const sibling = document.createElement('aside')
+    sibling.setAttribute('aria-hidden', 'false')
+    sibling.setAttribute('inert', '')
+    document.body.appendChild(sibling)
+    container.setAttribute('aria-hidden', 'false')
+    try {
+      await user.click(screen.getByRole('button', { name: 'Cài đặt' }))
+      expect(container).toHaveAttribute('inert')
+      expect(container).toHaveAttribute('aria-hidden', 'true')
+      expect(sibling).toHaveAttribute('aria-hidden', 'true')
+      expect(screen.getByRole('dialog', { name: 'Cài đặt' })).not.toHaveAttribute('inert')
+      await user.keyboard('{Escape}')
+      expect(container).not.toHaveAttribute('inert')
+      expect(container).toHaveAttribute('aria-hidden', 'false')
+      expect(sibling).toHaveAttribute('inert')
+      expect(sibling).toHaveAttribute('aria-hidden', 'false')
+    } finally { sibling.remove() }
+  })
+
   test('traps Tab in the drawer and closes on the backdrop', async () => {
     const user = userEvent.setup()
     renderNavbar()
@@ -60,19 +82,32 @@ describe('Settings drawer', () => {
     expect(within(dialog).getByText('Đang lưu')).toBeInTheDocument()
     expect(accent).toHaveValue('emerald')
     expect(document.documentElement.style.getPropertyValue('--accent')).toBe('#216c56')
-    expect(within(dialog).getByText(/Xem trước: Emerald/)).toBeInTheDocument()
+    expect(within(dialog).getByText(/Màu nhấn: Emerald/)).toBeInTheDocument()
     await user.selectOptions(within(dialog).getByRole('combobox', { name: 'Tỷ lệ khung Reading' }), '60')
     await user.click(within(dialog).getByRole('checkbox', { name: 'Gợi ý từ Trợ giảng AI' }))
     await user.click(within(dialog).getByRole('button', { name: 'Khôi phục mặc định' }))
     expect(within(dialog).getByRole('group', { name: 'Xác nhận khôi phục' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('button', { name: 'Hủy' })).toHaveFocus()
     expect(accent).toHaveValue('emerald')
     await user.click(within(dialog).getByRole('button', { name: 'Hủy' }))
+    expect(within(dialog).getByRole('button', { name: 'Khôi phục mặc định' })).toHaveFocus()
     expect(accent).toHaveValue('emerald')
     await user.click(within(dialog).getByRole('button', { name: 'Khôi phục mặc định' }))
     await user.click(within(dialog).getByRole('button', { name: 'Xác nhận khôi phục' }))
     expect(accent).toHaveValue('gold')
     expect(within(dialog).getByRole('combobox', { name: 'Tỷ lệ khung Reading' })).toHaveValue('40')
     expect(within(dialog).getByRole('checkbox', { name: 'Gợi ý từ Trợ giảng AI' })).not.toBeChecked()
+  })
+
+  test('live preview includes theme and motion selections', async () => {
+    const user = userEvent.setup()
+    renderNavbar()
+    await user.click(screen.getByRole('button', { name: 'Cài đặt' }))
+    const dialog = screen.getByRole('dialog', { name: 'Cài đặt' })
+    await user.selectOptions(within(dialog).getByRole('combobox', { name: 'Giao diện' }), 'dark')
+    await user.selectOptions(within(dialog).getByRole('combobox', { name: 'Chuyển động' }), 'reduce')
+    expect(within(dialog).getByText(/Giao diện: Tối/)).toBeInTheDocument()
+    expect(within(dialog).getByText(/Chuyển động: Giảm chuyển động/)).toBeInTheDocument()
   })
 
   test('shows unsynced preference status and a retry action after a failed save', async () => {
@@ -110,7 +145,7 @@ describe('Settings drawer', () => {
     await user.click(screen.getByRole('button', { name: 'Open navigation menu' }))
     await user.click(screen.getByRole('button', { name: 'Cài đặt' }))
     expect(screen.getByRole('dialog', { name: 'Cài đặt' })).toHaveAttribute('aria-modal', 'true')
-    expect(screen.getByRole('button', { name: 'Open navigation menu' })).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.getByRole('button', { name: 'Open navigation menu', hidden: true })).toHaveAttribute('aria-expanded', 'false')
   })
 
   test('logging out clears account appearance from the shell', async () => {

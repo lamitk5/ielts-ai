@@ -13,10 +13,12 @@ const learning = [
 ]
 
 export default function PreferenceControlGroup({ preferences, updatePreference }) {
-  const selectedAccent = controls[1].options.find(([value]) => value === preferences.accentPreset)?.[1]
+  const preview = controls.map(({ key, label, options }) =>
+    `${label}: ${options.find(([value]) => value === preferences[key])?.[1]}`,
+  ).join(' · ')
   return (
     <>
-      <p className="settings-preview" aria-live="polite">Xem trước: {selectedAccent} · {preferences.fontScale === 'large' ? 'Lớn' : preferences.fontScale === 'small' ? 'Nhỏ' : 'Mặc định'} · {preferences.density === 'compact' ? 'Gọn' : preferences.density === 'spacious' ? 'Thoáng' : 'Mặc định'}</p>
+      <p className="settings-preview" aria-live="polite">Xem trước: {preview}</p>
       <fieldset className="settings-group">
         <legend>Giao diện</legend>
         {controls.map(({ key, label, options }) => (

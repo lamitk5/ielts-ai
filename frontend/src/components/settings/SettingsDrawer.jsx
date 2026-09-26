@@ -10,8 +10,12 @@ const focusable = 'button:not([disabled]), input:not([disabled]), select:not([di
 const statusText = { idle: 'Chưa thay đổi', loading: 'Đang tải', saving: 'Đang lưu', synced: 'Đã đồng bộ', unsynced: 'Chưa đồng bộ', conflict: 'Đã cập nhật từ tài khoản' }
 
 export default function SettingsDrawer({ open, onClose, openerRef }) {
+  const overlayRef = useRef(null)
   const dialogRef = useRef(null)
   const closeRef = useRef(null)
+  const resetTriggerRef = useRef(null)
+  const cancelResetRef = useRef(null)
+  const wasConfirmingRef = useRef(false)
   const [confirmReset, setConfirmReset] = useState(false)
   const { preferences, updatePreference, status, retry } = usePreferences()
   const closeFromKeyboard = useEffectEvent(() => { setConfirmReset(false); onClose() })
@@ -20,6 +24,17 @@ export default function SettingsDrawer({ open, onClose, openerRef }) {
     if (!open) return undefined
     const previousOverflow = document.body.style.overflow
     const opener = openerRef?.current
+    const background = Array.from(document.body.children)
+      .filter((element) => element !== overlayRef.current)
+      .map((element) => ({
+        element,
+        wasInert: element.hasAttribute('inert'),
+        ariaHidden: element.getAttribute('aria-hidden'),
+      }))
+    for (const { element } of background) {
+      element.setAttribute('inert', '')
+      element.setAttribute('aria-hidden', 'true')
+    }
     document.body.style.overflow = 'hidden'
     closeRef.current?.focus()
     const onKeyDown = (event) => {
@@ -36,9 +51,20 @@ export default function SettingsDrawer({ open, onClose, openerRef }) {
     return () => {
       document.removeEventListener('keydown', onKeyDown)
       document.body.style.overflow = previousOverflow
+      for (const { element, wasInert, ariaHidden } of background) {
+        if (!wasInert) element.removeAttribute('inert')
+        if (ariaHidden === null) element.removeAttribute('aria-hidden')
+        else element.setAttribute('aria-hidden', ariaHidden)
+      }
       opener?.focus()
     }
   }, [open, openerRef])
+
+  useLayoutEffect(() => {
+    if (open && confirmReset) cancelResetRef.current?.focus()
+    else if (open && wasConfirmingRef.current) resetTriggerRef.current?.focus()
+    wasConfirmingRef.current = confirmReset
+  }, [open, confirmReset])
 
   if (!open) return null
   const close = () => { setConfirmReset(false); onClose() }
@@ -47,7 +73,7 @@ export default function SettingsDrawer({ open, onClose, openerRef }) {
     setConfirmReset(false)
   }
   return createPortal(
-    <div className="settings-overlay">
+    <div ref={overlayRef} className="settings-overlay">
       <button type="button" className="settings-backdrop" aria-label="Đóng cài đặt bằng nền" tabIndex={-1} data-testid="settings-backdrop" onClick={close} />
       <section ref={dialogRef} className="settings-drawer" role="dialog" aria-modal="true" aria-labelledby="settings-title" tabIndex={-1}>
         <div className="settings-heading">
@@ -63,11 +89,11 @@ export default function SettingsDrawer({ open, onClose, openerRef }) {
             <div className="settings-confirm" role="group" aria-label="Xác nhận khôi phục">
               <p>Vui lòng xác nhận khôi phục tất cả thiết lập mặc định.</p>
               <div className="settings-confirm-actions">
-                <Button variant="secondary" size="sm" onClick={() => setConfirmReset(false)}>Hủy</Button>
+                <Button ref={cancelResetRef} variant="secondary" size="sm" onClick={() => setConfirmReset(false)}>Hủy</Button>
                 <Button variant="primary" size="sm" onClick={reset}>Xác nhận khôi phục</Button>
               </div>
             </div>
-          ) : <Button variant="ghost" size="sm" onClick={() => setConfirmReset(true)}>Khôi phục mặc định</Button>}
+          ) : <Button ref={resetTriggerRef} variant="ghost" size="sm" onClick={() => setConfirmReset(true)}>Khôi phục mặc định</Button>}
         </div>
       </section>
     </div>, document.body,
