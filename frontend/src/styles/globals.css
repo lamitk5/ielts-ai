@@ -3051,6 +3051,17 @@ input:focus-visible {
   color: #3fb950;
 }
 
+.tutor-attachment-status-badge.status-image_ready {
+  background: rgba(212, 175, 55, 0.15);
+  color: var(--gold-light, #d4af37);
+}
+
+.tutor-attachment-capability-note {
+  margin: 0.35rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
 .tutor-attachment-status-badge.status-uploading,
 .tutor-attachment-status-badge.status-processing {
   background: rgba(212, 175, 55, 0.15);

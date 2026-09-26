@@ -212,6 +212,22 @@ describe('AttachmentStatus component', () => {
     expect(img).toBeInTheDocument()
     expect(img).toHaveAttribute('src', 'blob:http://localhost/image-blob')
   })
+
+  test('renders image-ready state without claiming image analysis is available', () => {
+    const attachment = {
+      id: 'att-image-ready',
+      filename: 'diagram.png',
+      sizeBytes: 1024 * 50,
+      status: 'IMAGE_READY',
+      capability: 'VISION_NOT_ENABLED',
+    }
+
+    render(<AttachmentStatus attachment={attachment} onRemove={vi.fn()} />)
+
+    expect(screen.getByText('Ảnh đã sẵn sàng')).toBeInTheDocument()
+    expect(screen.getByText('Phân tích hình ảnh chưa được bật')).toBeInTheDocument()
+    expect(screen.queryByText(/đã được phân tích|đã nhận xét/i)).not.toBeInTheDocument()
+  })
 })
 
 describe('AttachmentComposer and TutorComposer integration', () => {
@@ -299,5 +315,29 @@ describe('AttachmentComposer and TutorComposer integration', () => {
     expect(onSend).toHaveBeenCalledWith('Nhận xét bài luận giúp tôi', {
       attachmentId: 'att-ready',
     })
+  })
+
+  test('TutorComposer does not send an image as if vision analysis were available', async () => {
+    const user = userEvent.setup()
+    const onSend = vi.fn()
+
+    render(
+      <TutorComposer
+        onSend={onSend}
+        loading={false}
+        attachment={{
+          id: 'att-image-ready',
+          filename: 'diagram.png',
+          status: 'IMAGE_READY',
+          capability: 'VISION_NOT_ENABLED',
+        }}
+      />,
+    )
+
+    const input = screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' })
+    await user.type(input, 'Tệp này dùng được không?')
+    await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }))
+
+    expect(onSend).toHaveBeenCalledWith('Tệp này dùng được không?')
   })
 })

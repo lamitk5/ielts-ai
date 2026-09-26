@@ -15,6 +15,7 @@ const STATUS_LABELS = {
   UPLOADED: 'Đã tải lên',
   PROCESSING: 'Đang xử lý...',
   READY: 'Sẵn sàng',
+  IMAGE_READY: 'Ảnh đã sẵn sàng',
   FAILED: 'Thất bại',
   REMOVED: 'Đã xóa',
   EXPIRED: 'Hết hạn',
@@ -45,11 +46,11 @@ export function AttachmentStatus({ attachment, onRemove, onRetry, className = ''
             style={{ width: '2rem', height: '2rem', objectFit: 'cover', borderRadius: '0.35rem' }}
           />
         ) : (
-          {presentation.kind === 'image' ? (
+          presentation.kind === 'image' ? (
             <ImageIcon size={16} aria-hidden="true" className="tutor-attachment-icon" />
           ) : (
             <FileText size={16} aria-hidden="true" className="tutor-attachment-icon" />
-          )}
+          )
         )}
         <div className="tutor-attachment-meta">
           <span className="tutor-attachment-filename" title={attachment.filename}>
@@ -88,6 +89,12 @@ export function AttachmentStatus({ attachment, onRemove, onRetry, className = ''
             </button>
           ) : null}
         </div>
+      ) : null}
+
+      {presentation.capability === 'VISION_NOT_ENABLED' && attachment.status === 'IMAGE_READY' ? (
+        <p className="tutor-attachment-capability-note">
+          Phân tích hình ảnh chưa được bật
+        </p>
       ) : null}
 
       {isUploading || isProcessing ? (

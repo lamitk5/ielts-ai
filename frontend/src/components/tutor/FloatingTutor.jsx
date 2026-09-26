@@ -128,7 +128,8 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
               id: result.id || current.id,
               filename: result.filename || current.filename,
               sizeBytes: result.sizeBytes || current.sizeBytes,
-              status: 'READY',
+              status: result.status || 'READY',
+              capability: result.capability || current.capability,
             }
           : current,
       )
