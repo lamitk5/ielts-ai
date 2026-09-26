@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import HeroSection from '../components/home/HeroSection'
 import CTASection from '../components/home/CTASection'
@@ -8,34 +7,41 @@ import TutorPreviewSection from '../components/home/TutorPreviewSection'
 import FloatingTutor from '../components/tutor/FloatingTutor'
 import { guestDemo, memberDemo, skillCards } from '../data/homepageMockData'
 import { useAuth } from '../features/auth/AuthProvider'
-import { getMemberProgress } from '../services/progressApi'
+import { LEARNING_STATE_STATUS, useLearningIntelligence } from '../features/learning/learningIntelligenceState'
 
 function HomePage() {
   const [searchParams] = useSearchParams()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, session } = useAuth()
   const isMemberDemo = searchParams.get('demo') === 'member'
-  const [memberState, setMemberState] = useState(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const learning = useLearningIntelligence({ enabled: isAuthenticated && !isMemberDemo })
+  const intelligenceState = learning.status === LEARNING_STATE_STATUS.READY
+    || learning.status === LEARNING_STATE_STATUS.EMPTY
+    ? {
+        user: {
+          firstName: session?.user?.firstName ?? null,
+          targetBand: learning.profile.targetBand,
+          examDate: null,
+        },
+        progress: learning.skills.map(({ name, band }) => ({ skill: name, band })),
+        skills: learning.skills,
+        mistakes: learning.mistakes,
+        roadmap: learning.roadmap,
+        activity: learning.activity,
+      }
+    : null
 
-  useEffect(() => {
-    if (!isAuthenticated || isMemberDemo) return undefined
-    let active = true
-    setIsLoading(true)
-    getMemberProgress()
-      .then((nextState) => active && setMemberState(nextState))
-      .catch(() => active && setMemberState(null))
-      .finally(() => active && setIsLoading(false))
-    return () => { active = false }
-  }, [isAuthenticated, isMemberDemo])
-
-  const homepageState = isMemberDemo ? memberDemo : memberState ?? guestDemo
-  const showMemberProgress = isMemberDemo || Boolean(memberState?.progress)
+  const homepageState = isMemberDemo ? memberDemo : intelligenceState ?? guestDemo
+  const showMemberProgress = isMemberDemo || Boolean(intelligenceState?.progress)
 
   return (
     <>
       <HeroSection homepageState={homepageState} />
       <SkillsSection skills={skillCards} />
-      <ProgressOverviewSection isAuthenticated={showMemberProgress} state={homepageState} loading={isAuthenticated && !isMemberDemo && isLoading} />
+      <ProgressOverviewSection
+        isAuthenticated={showMemberProgress}
+        state={homepageState}
+        loading={isAuthenticated && !isMemberDemo && learning.status === LEARNING_STATE_STATUS.LOADING}
+      />
       <TutorPreviewSection />
       <CTASection />
       <FloatingTutor />

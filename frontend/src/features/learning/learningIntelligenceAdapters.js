@@ -13,7 +13,7 @@ export function normalizeLearningProfile(raw) {
       userId: null,
       estimatedBand: null,
       bandLabel: 'Chưa đủ dữ liệu',
-      targetBand: 7.0,
+      targetBand: null,
       targetDate: null,
       daysRemaining: null,
       hasSufficientData: false,
@@ -26,7 +26,7 @@ export function normalizeLearningProfile(raw) {
     userId: raw.userId ?? null,
     estimatedBand: band,
     bandLabel: band !== null ? 'Band ước lượng' : 'Chưa đủ dữ liệu',
-    targetBand: typeof raw.targetBand === 'number' ? raw.targetBand : 7.0,
+    targetBand: typeof raw.targetBand === 'number' ? raw.targetBand : null,
     targetDate: raw.targetDate ?? null,
     daysRemaining: typeof raw.daysRemaining === 'number' ? raw.daysRemaining : null,
     hasSufficientData: band !== null,
@@ -49,7 +49,8 @@ export function normalizeSkillRecords(raw) {
 
   return FIRST_CLASS_SKILLS.map((skillKey) => {
     const record = recordsMap.get(skillKey)
-    const band = typeof record?.band === 'number' && !Number.isNaN(record.band) ? record.band : null
+    const candidateBand = record?.latestBandEstimate ?? record?.band
+    const band = typeof candidateBand === 'number' && !Number.isNaN(candidateBand) ? candidateBand : null
     const hasData = band !== null
 
     return {
@@ -67,14 +68,16 @@ export function normalizeMistakes(raw) {
   if (!Array.isArray(raw)) return []
 
   const valid = raw
-    .filter((m) => m && (m.issue || m.description || m.title))
+    .filter((m) => m && (m.issue || m.description || m.title || m.category))
     .slice(0, 4) // cap at 2-4 high-value mistakes
     .map((m, idx) => ({
       id: m.id || `mistake-${idx}`,
       skill: m.skill || 'general',
-      issue: m.issue || m.description || m.title,
+      issue: m.issue || m.description || m.title || m.category,
       recommendation: m.recommendation || m.suggestion || null,
-      count: typeof m.count === 'number' ? m.count : 1,
+      count: typeof m.occurrenceCount === 'number'
+        ? m.occurrenceCount
+        : typeof m.count === 'number' ? m.count : 1,
     }))
 
   return valid
@@ -92,17 +95,28 @@ export function normalizeRoadmap(raw) {
     }
   }
 
+  const items = Array.isArray(raw.items) ? raw.items.filter(Boolean) : []
+  const currentItem = items.find((item) => item.status !== 'COMPLETED' && item.status !== 'SKIPPED') || items[0]
+  const nextItem = items.find((item) => item !== currentItem && item.status !== 'COMPLETED' && item.status !== 'SKIPPED')
+  const routeFor = (item) => item?.targetRoute || (item?.skill ? `/practice/${String(item.skill).toLowerCase()}` : '/practice/reading')
+  const completedItems = items.filter((item) => item.status === 'COMPLETED').length
+  const derivedPercent = items.length > 0 ? Math.round((completedItems / items.length) * 100) : 0
+
   return {
-    currentMilestone: raw.currentMilestone || 'Lộ trình đang cập nhật',
-    nextMilestone: raw.nextMilestone || null,
-    completionPercent: typeof raw.completionPercent === 'number' ? raw.completionPercent : 0,
+    currentMilestone: raw.currentMilestone || currentItem?.learningObjective || 'Lộ trình đang cập nhật',
+    nextMilestone: raw.nextMilestone || nextItem?.learningObjective || null,
+    completionPercent: typeof raw.completionPercent === 'number' ? raw.completionPercent : derivedPercent,
     primaryAction: raw.primaryAction ? {
       title: raw.primaryAction.title || 'Tiếp tục luyện tập',
       targetRoute: raw.primaryAction.targetRoute || '/practice/reading',
       skill: raw.primaryAction.skill || 'reading',
+    } : currentItem ? {
+      title: currentItem.learningObjective || 'Tiếp tục luyện tập',
+      targetRoute: routeFor(currentItem),
+      skill: String(currentItem.skill || 'reading').toLowerCase(),
     } : null,
     actions: Array.isArray(raw.actions) ? raw.actions : [],
-    hasRoadmap: Boolean(raw.currentMilestone || raw.primaryAction),
+    hasRoadmap: Boolean(raw.currentMilestone || raw.primaryAction || items.length > 0),
   }
 }
 
