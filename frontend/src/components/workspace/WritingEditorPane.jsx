@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import Button from '../common/Button'
 import GlassCard from '../common/GlassCard'
 import DraftSaveStatus from './DraftSaveStatus'
@@ -16,7 +17,22 @@ export function WritingEditorPane({
   assessment = null,
   submitting = false,
   onSubmit,
+  registry,
 }) {
+  const paneRef = useRef(null)
+
+  useEffect(() => {
+    if (!registry || !paneRef.current) return
+    const unregister = registry.register({
+      targetId: 'writing-editor',
+      type: 'DRAFT',
+      element: paneRef.current,
+    })
+    return () => {
+      try { unregister?.() } catch {}
+    }
+  }, [registry])
+
   const formatTimer = (totalSeconds) => {
     const minutes = Math.floor(totalSeconds / 60)
     const seconds = totalSeconds % 60
@@ -24,7 +40,12 @@ export function WritingEditorPane({
   }
 
   return (
-    <div className="writing-editor-pane" data-writing-target-id="writing-editor" tabIndex={-1}>
+    <div
+      ref={paneRef}
+      className="writing-editor-pane"
+      data-writing-target-id="writing-editor"
+      tabIndex={-1}
+    >
       <div className="writing-editor-toolbar">
         <div className="writing-editor-stats">
           <span className={`writing-word-count-badge ${wordCount >= minWords ? 'is-sufficient' : 'is-insufficient'}`}>

@@ -1,16 +1,41 @@
 import { useEffect, useRef } from 'react'
 import { QuestionStateRail } from './QuestionStateRail'
 
-export function ReadingQuestionPane({ questions, currentQuestionId, answers, flaggedIds, reviewedIds, onSelect, onAnswer, onToggleFlag, onToggleReviewed }) {
+export function ReadingQuestionPane({
+  questions,
+  currentQuestionId,
+  answers,
+  flaggedIds,
+  reviewedIds,
+  onSelect,
+  onAnswer,
+  onToggleFlag,
+  onToggleReviewed,
+  registry,
+}) {
   const currentIndex = Math.max(0, questions.findIndex((question) => question.id === currentQuestionId))
   const question = questions[currentIndex]
   const headingRef = useRef(null)
+  const questionArticleRef = useRef(null)
   const previousQuestionId = useRef(currentQuestionId)
 
   useEffect(() => {
     if (currentQuestionId !== previousQuestionId.current) headingRef.current?.focus()
     previousQuestionId.current = currentQuestionId
   }, [currentQuestionId])
+
+  useEffect(() => {
+    if (!registry || !questionArticleRef.current || !question?.id) return
+    const unregister = registry.register({
+      targetId: question.id,
+      questionId: question.id,
+      type: 'QUESTION',
+      element: questionArticleRef.current,
+    })
+    return () => {
+      try { unregister?.() } catch {}
+    }
+  }, [question?.id, registry])
 
   if (!question) return <p>Chưa có câu hỏi trong bộ đề này.</p>
 
@@ -19,8 +44,19 @@ export function ReadingQuestionPane({ questions, currentQuestionId, answers, fla
 
   return (
     <div className="reading-questions">
-      <QuestionStateRail questions={questions} answers={answers} flaggedIds={flaggedIds} reviewedIds={reviewedIds} currentQuestionId={question.id} onSelect={onSelect} />
-      <article className="reading-current-question" data-reading-target-id={question.id}>
+      <QuestionStateRail
+        questions={questions}
+        answers={answers}
+        flaggedIds={flaggedIds}
+        reviewedIds={reviewedIds}
+        currentQuestionId={question.id}
+        onSelect={onSelect}
+      />
+      <article
+        ref={questionArticleRef}
+        className="reading-current-question"
+        data-reading-target-id={question.id}
+      >
         <div className="reading-question-heading">
           <p className="practice-question-number">CÂU {currentIndex + 1} / {questions.length}</p>
           <h2 ref={headingRef} tabIndex={-1}>{question.prompt}</h2>
@@ -28,19 +64,51 @@ export function ReadingQuestionPane({ questions, currentQuestionId, answers, fla
         <div className="practice-options" role="radiogroup" aria-label={`Đáp án cho câu ${currentIndex + 1}`}>
           {question.options.map((option, optionIndex) => {
             const value = String.fromCharCode(65 + optionIndex)
-            return <label key={value} className="practice-option">
-              <input type="radio" name={question.id} value={value} checked={answers[question.id] === value} onChange={() => onAnswer(question.id, value)} />
-              <span>{value}. {option}</span>
-            </label>
+            return (
+              <label key={value} className="practice-option">
+                <input
+                  type="radio"
+                  name={question.id}
+                  value={value}
+                  checked={answers[question.id] === value}
+                  onChange={() => onAnswer(question.id, value)}
+                />
+                <span>{value}. {option}</span>
+              </label>
+            )
           })}
         </div>
         <div className="reading-question-tools">
-          <button type="button" aria-pressed={flagged} onClick={() => onToggleFlag(question.id)}>{flagged ? 'Bỏ đánh dấu câu hỏi' : 'Đánh dấu câu hỏi'}</button>
-          <button type="button" aria-pressed={reviewed} onClick={() => onToggleReviewed(question.id)}>{reviewed ? 'Bỏ trạng thái đã xem lại' : 'Đánh dấu đã xem lại'}</button>
+          <button
+            type="button"
+            aria-pressed={flagged}
+            onClick={() => onToggleFlag(question.id)}
+          >
+            {flagged ? 'Bỏ đánh dấu câu hỏi' : 'Đánh dấu câu hỏi'}
+          </button>
+          <button
+            type="button"
+            aria-pressed={reviewed}
+            onClick={() => onToggleReviewed(question.id)}
+          >
+            {reviewed ? 'Bỏ trạng thái đã xem lại' : 'Đánh dấu đã xem lại'}
+          </button>
         </div>
         <div className="reading-question-navigation" aria-label="Chuyển câu hỏi">
-          <button type="button" disabled={currentIndex === 0} onClick={() => onSelect(questions[currentIndex - 1].id)}>Câu trước</button>
-          <button type="button" disabled={currentIndex === questions.length - 1} onClick={() => onSelect(questions[currentIndex + 1].id)}>Câu tiếp</button>
+          <button
+            type="button"
+            disabled={currentIndex === 0}
+            onClick={() => onSelect(questions[currentIndex - 1].id)}
+          >
+            Câu trước
+          </button>
+          <button
+            type="button"
+            disabled={currentIndex === questions.length - 1}
+            onClick={() => onSelect(questions[currentIndex + 1].id)}
+          >
+            Câu tiếp
+          </button>
         </div>
       </article>
     </div>
