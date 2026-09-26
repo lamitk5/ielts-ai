@@ -32,9 +32,12 @@ public class TutorAttachmentController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<TutorAttachment> upload(
             HttpServletRequest request,
-            @RequestParam("file") MultipartFile file) {
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "requestId", required = false) String requestId) {
         AuthPrincipal principal = principal(request);
-        TutorAttachment attachment = service.upload(principal.userId(), file);
+        TutorAttachment attachment = requestId == null
+                ? service.upload(principal.userId(), file)
+                : service.upload(principal.userId(), file, requestId);
         return ResponseEntity.status(HttpStatus.CREATED).body(attachment);
     }
 

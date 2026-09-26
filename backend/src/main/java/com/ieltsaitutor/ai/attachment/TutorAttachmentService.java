@@ -1,9 +1,7 @@
 package com.ieltsaitutor.ai.attachment;
 
 import java.time.Instant;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -16,66 +14,32 @@ import com.ieltsaitutor.auth.AuthException;
 
 @Service
 public class TutorAttachmentService {
-    public static final long MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024L; // 10 MiB
-
-    private static final Set<String> ALLOWED_EXTENSIONS = Set.of(".pdf", ".docx", ".txt");
-    private static final Set<String> DISALLOWED_EXTENSIONS = Set.of(
-            ".html", ".htm", ".exe", ".sh", ".bat", ".cmd", ".js", ".mjs", ".py", ".vbs", ".php"
-    );
-    private static final Set<String> DISALLOWED_MIME_PREFIXES = Set.of(
-            "text/html", "application/x-msdownload", "application/x-sh", "application/javascript"
-    );
+    public static final long MAX_FILE_SIZE_BYTES = TutorAttachmentContract.MAX_FILE_SIZE_BYTES;
 
     private final Map<UUID, Map<UUID, TutorAttachment>> store = new ConcurrentHashMap<>();
 
     public TutorAttachment upload(UUID userId, MultipartFile file) {
+        return upload(userId, file, null);
+    }
+
+    public TutorAttachment upload(UUID userId, MultipartFile file, String requestId) {
         if (file == null || file.isEmpty() || file.getSize() == 0) {
             throw new AuthException("ATTACHMENT_EMPTY", HttpStatus.BAD_REQUEST, "Tệp đính kèm không có nội dung.");
         }
 
-        if (file.getSize() > MAX_FILE_SIZE_BYTES) {
+        if (file.getSize() > TutorAttachmentContract.MAX_FILE_SIZE_BYTES) {
             throw new AuthException("ATTACHMENT_SIZE_EXCEEDED", HttpStatus.BAD_REQUEST, "Dung lượng tệp vượt quá 10MB.");
         }
 
         String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null || originalFilename.isBlank()) {
-            throw new AuthException("ATTACHMENT_TYPE_NOT_SUPPORTED", HttpStatus.BAD_REQUEST, "Tên tệp không hợp lệ.");
-        }
-
-        String lowerFilename = originalFilename.toLowerCase(Locale.ROOT);
-        for (String disallowed : DISALLOWED_EXTENSIONS) {
-            if (lowerFilename.endsWith(disallowed)) {
-                throw new AuthException("ATTACHMENT_TYPE_NOT_SUPPORTED", HttpStatus.BAD_REQUEST,
-                        "Định dạng tệp không được hỗ trợ. Chỉ chấp nhận PDF, DOCX hoặc TXT.");
-            }
-        }
-
-        boolean hasAllowedExtension = false;
-        for (String ext : ALLOWED_EXTENSIONS) {
-            if (lowerFilename.endsWith(ext)) {
-                hasAllowedExtension = true;
-                break;
-            }
-        }
-
-        if (!hasAllowedExtension) {
-            throw new AuthException("ATTACHMENT_TYPE_NOT_SUPPORTED", HttpStatus.BAD_REQUEST,
-                    "Định dạng tệp không được hỗ trợ. Chỉ chấp nhận PDF, DOCX hoặc TXT.");
-        }
-
+        String extension = validateFilename(originalFilename);
         String contentType = file.getContentType();
-        if (contentType != null) {
-            String lowerContentType = contentType.toLowerCase(Locale.ROOT);
-            for (String disallowedMime : DISALLOWED_MIME_PREFIXES) {
-                if (lowerContentType.startsWith(disallowedMime)) {
-                    throw new AuthException("ATTACHMENT_TYPE_NOT_SUPPORTED", HttpStatus.BAD_REQUEST,
-                            "Định dạng tệp không được hỗ trợ. Chỉ chấp nhận PDF, DOCX hoặc TXT.");
-                }
-            }
-        }
+        validateContentType(extension, contentType);
+        String normalizedRequestId = normalizeRequestId(requestId);
 
         Map<UUID, TutorAttachment> userMap = store.computeIfAbsent(userId, k -> new ConcurrentHashMap<>());
-        boolean hasActive = userMap.values().stream().anyMatch(this::isActive);
+        boolean hasActive = userMap.values().stream().anyMatch(existing ->
+                isActive(existing) && (normalizedRequestId == null || normalizedRequestId.equals(existing.requestId())));
         if (hasActive) {
             throw new AuthException("ATTACHMENT_LIMIT_EXCEEDED", HttpStatus.CONFLICT,
                     "Mỗi yêu cầu chỉ hỗ trợ tối đa 1 tệp đính kèm đang hoạt động.");
@@ -89,10 +53,12 @@ public class TutorAttachmentService {
                 originalFilename,
                 contentType != null ? contentType : "application/octet-stream",
                 file.getSize(),
-                AttachmentStatus.READY,
+                TutorAttachmentContract.isImage(extension) ? AttachmentStatus.IMAGE_READY : AttachmentStatus.READY,
                 null,
                 now,
-                now
+                now,
+                normalizedRequestId,
+                TutorAttachmentContract.isImage(extension) ? TutorAttachmentContract.VISION_NOT_ENABLED : null
         );
 
         userMap.put(attachmentId, attachment);
@@ -134,6 +100,46 @@ public class TutorAttachmentService {
                 || attachment.status() == AttachmentStatus.UPLOADING
                 || attachment.status() == AttachmentStatus.UPLOADED
                 || attachment.status() == AttachmentStatus.PROCESSING
-                || attachment.status() == AttachmentStatus.READY;
+                || attachment.status() == AttachmentStatus.READY
+                || attachment.status() == AttachmentStatus.IMAGE_READY;
+    }
+
+    private String validateFilename(String originalFilename) {
+        if (originalFilename == null || originalFilename.isBlank()
+                || originalFilename.contains("/") || originalFilename.contains("\\")
+                || originalFilename.indexOf('\0') >= 0) {
+            throw unsupportedType();
+        }
+        String lowerFilename = originalFilename.toLowerCase(java.util.Locale.ROOT);
+        if (TutorAttachmentContract.DISALLOWED_EXTENSIONS.stream().anyMatch(lowerFilename::endsWith)) {
+            throw unsupportedType();
+        }
+        String extension = TutorAttachmentContract.extensionOf(originalFilename);
+        if (extension.isBlank()) {
+            throw unsupportedType();
+        }
+        return extension;
+    }
+
+    private void validateContentType(String extension, String contentType) {
+        if (contentType == null || contentType.isBlank()) return;
+        String normalized = contentType.toLowerCase(java.util.Locale.ROOT).trim();
+        if (!TutorAttachmentContract.EXTENSION_MIME_TYPES.get(extension).contains(normalized)) {
+            throw unsupportedType();
+        }
+    }
+
+    private String normalizeRequestId(String requestId) {
+        if (requestId == null || requestId.isBlank()) return null;
+        String normalized = requestId.trim();
+        if (normalized.length() > 96 || !normalized.matches("[A-Za-z0-9_-]+")) {
+            throw new AuthException("ATTACHMENT_REQUEST_INVALID", HttpStatus.BAD_REQUEST, "Yêu cầu đính kèm không hợp lệ.");
+        }
+        return normalized;
+    }
+
+    private AuthException unsupportedType() {
+        return new AuthException("ATTACHMENT_TYPE_NOT_SUPPORTED", HttpStatus.BAD_REQUEST,
+                "Định dạng tệp không được hỗ trợ. Chỉ chấp nhận PDF, DOCX, TXT hoặc PNG/JPG/WEBP.");
     }
 }

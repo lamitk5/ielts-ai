@@ -10,6 +10,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -89,6 +91,40 @@ class TutorAttachmentControllerTest {
                 .andExpect(jsonPath("$.contentType").value("application/pdf"))
                 .andExpect(jsonPath("$.sizeBytes").value(1024))
                 .andExpect(jsonPath("$.status").value("READY"));
+    }
+
+    @Test
+    void serviceAcceptsJpgAndWebpAndMarksImagesReady() {
+        TutorAttachmentService realService = new TutorAttachmentService();
+        UUID userId = UUID.randomUUID();
+
+        TutorAttachment jpg = realService.upload(userId,
+                new MockMultipartFile("file", "photo.jpg", "image/jpeg", new byte[] { 1, 2, 3 }), "request-jpg");
+
+        assertThat(jpg.contentType()).isEqualTo("image/jpeg");
+        assertThat(jpg.status()).isEqualTo(AttachmentStatus.IMAGE_READY);
+        assertThat(jpg.capability()).isEqualTo(TutorAttachmentContract.VISION_NOT_ENABLED);
+        assertThat(realService.upload(UUID.randomUUID(),
+                new MockMultipartFile("file", "photo.webp", "image/webp", new byte[] { 1 }), "request-webp").contentType())
+                .isEqualTo("image/webp");
+    }
+
+    @Test
+    void serviceAcceptsExact10MiBButRejectsUnsupportedSpoofedAndEmptyFiles() {
+        TutorAttachmentService realService = new TutorAttachmentService();
+        UUID userId = UUID.randomUUID();
+
+        TutorAttachment exact = realService.upload(userId,
+                new MockMultipartFile("file", "exact.pdf", "application/pdf", new byte[10 * 1024 * 1024]), "request-exact");
+        assertThat(exact.sizeBytes()).isEqualTo(10 * 1024 * 1024L);
+
+        assertThatThrownBy(() -> realService.upload(UUID.randomUUID(),
+                new MockMultipartFile("file", "spoof.jpg", "application/pdf", new byte[] { 1 }), "request-spoof"))
+                .hasMessageContaining("Định dạng tệp không được hỗ trợ")
+                .extracting("code").isEqualTo("ATTACHMENT_TYPE_NOT_SUPPORTED");
+        assertThatThrownBy(() -> realService.upload(UUID.randomUUID(),
+                new MockMultipartFile("file", "empty.png", "image/png", new byte[0]), "request-empty"))
+                .extracting("code").isEqualTo("ATTACHMENT_EMPTY");
     }
 
     @Test
