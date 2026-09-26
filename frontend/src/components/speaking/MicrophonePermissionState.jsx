@@ -12,7 +12,7 @@ export function MicrophonePermissionState({
 
   if (permissionState === 'requesting') {
     return (
-      <GlassCard className="speaking-mic-state-card" role="status">
+      <GlassCard className="speaking-mic-state-card speaking-permission-boundary" role="status">
         <p className="speaking-mic-state-text">
           Đang yêu cầu quyền truy cập microphone trên thiết bị của bạn…
         </p>
@@ -23,7 +23,7 @@ export function MicrophonePermissionState({
   const isDenied = permissionState === 'denied'
 
   return (
-    <GlassCard className="speaking-mic-fallback-card" role="alert">
+    <GlassCard className="speaking-mic-fallback-card speaking-permission-boundary" role="alert">
       <p className="speaking-mic-error-text">
         {isDenied
           ? 'Quyền truy cập microphone bị từ chối. Bạn vẫn có thể tiếp tục luyện tập bằng cách ghi lại câu trả lời văn bản.'

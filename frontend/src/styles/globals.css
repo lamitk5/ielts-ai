@@ -3234,6 +3234,39 @@ input:focus-visible {
   width: 100%;
 }
 
+.speaking-room-editorial {
+  max-width: 58rem;
+  gap: 1.25rem;
+}
+
+.speaking-room-stage-editorial {
+  border-color: var(--border-subtle, var(--border));
+  background: var(--surface-1, var(--surface));
+  box-shadow: var(--shadow-sm, 0 12px 30px rgba(6, 11, 22, 0.12));
+}
+
+.speaking-timer-editorial {
+  border-color: var(--border-subtle, var(--border));
+  background: var(--surface-2, rgba(12, 20, 36, 0.7));
+}
+
+.local-visualizer-editorial {
+  border-color: var(--border-subtle, var(--border));
+  background: var(--surface-2, rgba(12, 20, 36, 0.5));
+}
+
+.speaking-permission-boundary { border-color: var(--border-subtle, var(--border)); }
+
+@media (prefers-reduced-motion: reduce) {
+  .speaking-room-editorial *,
+  .speaking-room-editorial *::before,
+  .speaking-room-editorial *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 .speaking-orb-wrapper {
   position: relative;
   display: grid;

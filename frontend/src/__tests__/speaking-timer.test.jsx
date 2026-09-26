@@ -38,6 +38,7 @@ describe('Task 2: Speaking Timers and Orb States', () => {
 
   test('SpeakingTimer formats minutes and seconds without negative numbers', () => {
     render(<SpeakingTimer secondsLeft={65} mode="PREPARATION" isRunning={true} />)
+    expect(screen.getByRole('timer')).toHaveClass('speaking-timer-editorial')
     expect(screen.getByText('01:05')).toBeInTheDocument()
     expect(screen.getByText(/Thời gian chuẩn bị/i)).toBeInTheDocument()
 

@@ -19,7 +19,7 @@ export function SpeakingTimer({
       : 'Thời gian luyện nói'
 
   return (
-    <div className="speaking-timer-widget" role="timer" aria-label={modeLabel} aria-live="off">
+    <div className="speaking-timer-widget speaking-timer-editorial" role="timer" aria-label={modeLabel} aria-live="off">
       <div className="speaking-timer-header">
         <span className="speaking-timer-kicker">{modeLabel}</span>
         <strong className="speaking-timer-digits font-display">{formattedTime}</strong>

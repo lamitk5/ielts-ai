@@ -15,7 +15,7 @@ export function LocalAudioVisualizer({
 
   return (
     <div
-      className={`local-visualizer ${reducedMotion ? 'reduced-motion' : ''}`}
+      className={`local-visualizer local-visualizer-editorial ${reducedMotion ? 'reduced-motion' : ''}`}
       role="img"
       aria-label="Biểu đồ sóng âm microphone cục bộ"
     >

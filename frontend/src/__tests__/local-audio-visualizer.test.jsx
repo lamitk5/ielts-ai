@@ -175,6 +175,7 @@ describe('Task 3: Local Audio Amplitude & Visualizer Boundary', () => {
       expect(
         screen.getByText(/Biểu đồ sóng âm cục bộ/i)
       ).toBeInTheDocument()
+      expect(screen.getByRole('img', { name: /sóng âm microphone cục bộ/i })).toHaveClass('local-visualizer-editorial')
       expect(container.querySelectorAll('.visualizer-bar').length).toBeGreaterThan(0)
 
       // Test reduced motion rendering

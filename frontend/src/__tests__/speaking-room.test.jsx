@@ -94,6 +94,11 @@ describe('Task 1: Speaking Room Components & Text Submission', () => {
       />
     )
 
+    expect(screen.getByRole('region', { name: 'Phòng luyện Speaking' })).toHaveClass('speaking-room-editorial')
+    expect(screen.getByRole('region', { name: 'Không gian luyện Speaking' })).toHaveClass('speaking-room-stage-editorial')
+    expect(screen.getByRole('timer')).toHaveClass('speaking-timer-editorial')
+    expect(screen.getByRole('img', { name: /sóng âm microphone cục bộ/i })).toHaveClass('local-visualizer-editorial')
+
     // Truthful boundary note is present
     expect(screen.getByText(/STT chưa được cấu hình/i)).toBeInTheDocument()
 

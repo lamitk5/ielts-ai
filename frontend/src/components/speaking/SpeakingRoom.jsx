@@ -101,8 +101,8 @@ export function SpeakingRoom({
         : permissionState
 
   return (
-    <div className="speaking-room">
-      <div className="speaking-room-stage">
+    <div className="speaking-room speaking-room-editorial" role="region" aria-label="Phòng luyện Speaking">
+      <div className="speaking-room-stage speaking-room-stage-editorial" role="region" aria-label="Không gian luyện Speaking">
         <SpeakingOrb state={state.status} reducedMotion={reducedMotion} />
 
         <div className="speaking-stage-details">
