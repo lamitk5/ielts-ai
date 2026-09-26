@@ -16,6 +16,19 @@ export function isCompletePreferences(value) {
     ['proactiveAiEnabled', 'crossHighlightEnabled', 'timerDefaultEnabled'].every((key) => typeof value[key] === 'boolean')
 }
 
+export function isValidPreferenceRecord(record) {
+  if (!record || record.version !== 1 || !record.preferences || typeof record.preferences !== 'object' || Array.isArray(record.preferences)) {
+    return false
+  }
+  for (const [key, val] of Object.entries(record.preferences)) {
+    if (allowed[key] && !allowed[key].includes(val)) return false
+    if (['proactiveAiEnabled', 'crossHighlightEnabled', 'timerDefaultEnabled'].includes(key) && typeof val !== 'boolean') {
+      return false
+    }
+  }
+  return true
+}
+
 export function normalizePreferences(value) {
   const input = value && typeof value === 'object' && !Array.isArray(value) ? value : {}
   const result = { ...DEFAULT_PREFERENCES }

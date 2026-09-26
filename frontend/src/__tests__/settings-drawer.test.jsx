@@ -16,7 +16,15 @@ function renderNavbar() {
 beforeEach(() => {
   localStorage.clear()
   localStorage.setItem('ielts-ai-tutor.session', JSON.stringify({ token: 'token', user: account }))
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => server }))
+  let state = { ...server }
+  vi.stubGlobal('fetch', vi.fn((url, options) => {
+    if (options?.method === 'PUT' && options?.body) {
+      const parsed = JSON.parse(options.body)
+      state = { ...state, ...parsed, version: (state.version || 1) + 1 }
+      return Promise.resolve({ ok: true, json: async () => state })
+    }
+    return Promise.resolve({ ok: true, json: async () => state })
+  }))
 })
 afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); localStorage.clear() })
 

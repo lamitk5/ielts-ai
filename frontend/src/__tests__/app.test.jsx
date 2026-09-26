@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, test } from 'vitest'
@@ -79,5 +79,44 @@ describe('app shell and routing', () => {
 
     expect(screen.getByRole('heading', { name: /Practice area unavailable/ })).toBeInTheDocument()
     expect(screen.getByText(/unknown/)).toBeInTheDocument()
+  })
+
+  test('provider composition exposes accessible Settings drawer for guest and authenticated learners', async () => {
+    const user = userEvent.setup()
+    renderApp('/')
+
+    const settingsBtn = screen.getByRole('button', { name: /mở cài đặt|cài đặt/i })
+    expect(settingsBtn).toBeInTheDocument()
+
+    await user.click(settingsBtn)
+    expect(screen.getByRole('dialog', { name: 'Cài đặt' })).toBeInTheDocument()
+    expect(screen.getByText('Tùy chỉnh trải nghiệm học của bạn.')).toBeInTheDocument()
+  })
+
+  test('guest opening Tutor on writing practice sees personalized auth guidance with returnTo path', async () => {
+    const user = userEvent.setup()
+    renderApp('/practice/writing')
+
+    const tutorBtn = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
+    await user.click(tutorBtn)
+
+    const dialog = screen.getByRole('dialog', { name: 'Trợ giảng AI' })
+    expect(dialog).toBeInTheDocument()
+    expect(within(dialog).getByRole('link', { name: 'Đăng nhập' })).toBeInTheDocument()
+    expect(screen.queryByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' })).not.toBeInTheDocument()
+  })
+
+  test('mobile navigation and settings drawer coordinate open states without conflicting', async () => {
+    const user = userEvent.setup()
+    renderApp('/')
+
+    const menuToggle = screen.getByRole('button', { name: /open navigation menu/i })
+    await user.click(menuToggle)
+    expect(menuToggle).toHaveAttribute('aria-expanded', 'true')
+
+    const settingsBtn = screen.getByRole('button', { name: /mở cài đặt|cài đặt/i })
+    await user.click(settingsBtn)
+    expect(screen.getByRole('dialog', { name: 'Cài đặt' })).toBeInTheDocument()
+    expect(menuToggle).toHaveAttribute('aria-expanded', 'false')
   })
 })

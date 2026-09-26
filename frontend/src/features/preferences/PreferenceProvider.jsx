@@ -63,6 +63,12 @@ export function applyPreferenceTokens(value) {
 }
 
 export function PreferenceProvider({ children }) {
+  const existing = useContext(PreferenceContext)
+  if (existing) return children
+  return <PreferenceRootProvider>{children}</PreferenceRootProvider>
+}
+
+function PreferenceRootProvider({ children }) {
   const auth = useOptionalAuth()
   const userId = auth?.isAuthenticated ? auth.user?.id : null
   const initial = () => userId ? (readAccountPreferenceCache(userId)?.preferences ?? DEFAULT_PREFERENCES) : readGuestPreferences()
