@@ -3506,5 +3506,142 @@ input:focus-visible {
   text-decoration: underline;
 }
 
+.progress-main-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.streak-card {
+  padding: 1.25rem;
+}
+
+.streak-flame-active {
+  color: #ff9800;
+}
+
+.streak-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.streak-number-display {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.streak-digits {
+  font-size: 2.25rem;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.streak-unit {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.streak-message {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.45;
+}
+
+.streak-status-pill {
+  margin-top: 0.25rem;
+}
+
+.streak-active-pill,
+.streak-pending-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+}
+
+.streak-active-pill {
+  background: rgba(46, 125, 50, 0.2);
+  color: #81c784;
+  border: 1px solid rgba(129, 199, 132, 0.3);
+}
+
+.streak-pending-pill {
+  background: rgba(183, 192, 207, 0.1);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+
+.skill-energy-card {
+  padding: 1.25rem;
+}
+
+.skill-energy-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-top: 0.75rem;
+}
+
+.skill-energy-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.skill-energy-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.skill-energy-name {
+  font-size: 0.875rem;
+  color: var(--text);
+}
+
+.skill-energy-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.skill-energy-label.has-data {
+  color: var(--gold);
+}
+
+.skill-energy-label.empty {
+  color: var(--muted);
+}
+
+.skill-energy-track {
+  height: 6px;
+  background: var(--surface-alt);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.skill-energy-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.skill-energy-fill.filled {
+  background: linear-gradient(90deg, #cfb070 0%, #e5c982 100%);
+}
+
+.skill-energy-fill.insufficient {
+  background: var(--border);
+  opacity: 0.5;
+}
+
+
 
 
