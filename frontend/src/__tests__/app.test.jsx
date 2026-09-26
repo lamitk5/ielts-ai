@@ -119,4 +119,18 @@ describe('app shell and routing', () => {
     expect(screen.getByRole('dialog', { name: 'Cài đặt' })).toBeInTheDocument()
     expect(menuToggle).toHaveAttribute('aria-expanded', 'false')
   })
+
+  test('authenticated learners get a compact account menu with logout inside it', async () => {
+    const user = userEvent.setup()
+    localStorage.setItem('ielts-ai-tutor.session', JSON.stringify({
+      token: 'member-token', user: { id: 'user-1', email: 'student@example.com', firstName: 'Mai' },
+    }))
+    renderApp('/')
+
+    const accountButton = screen.getByRole('button', { name: 'Mở menu tài khoản' })
+    expect(accountButton).toBeInTheDocument()
+    await user.click(accountButton)
+    expect(screen.getByRole('menu')).toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: 'Đăng xuất' })).toBeInTheDocument()
+  })
 })

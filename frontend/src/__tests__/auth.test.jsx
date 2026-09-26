@@ -27,7 +27,8 @@ describe('authentication foundation', () => {
     localStorage.setItem('ielts-ai-tutor.preferences.account.user-1.v1', JSON.stringify({ version: 3, preferences: { themeMode: 'light' } }))
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 204, json: async () => null }))
     render(<MemoryRouter initialEntries={['/']}><App /></MemoryRouter>)
-    await user.click(screen.getByRole('button', { name: 'Đăng xuất' }))
+    await user.click(screen.getByRole('button', { name: 'Mở menu tài khoản' }))
+    await user.click(screen.getByRole('menuitem', { name: 'Đăng xuất' }))
     await waitFor(() => expect(localStorage.getItem('ielts-ai-tutor.session')).toBeNull())
     expect(localStorage.getItem('ielts-ai-tutor.preferences.account.user-1.v1')).toBeNull()
     expect(localStorage.getItem('ielts-ai-tutor.preferences.v1')).not.toBeNull()
@@ -82,11 +83,12 @@ describe('authentication foundation', () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByRole('button', { name: 'Đăng xuất' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Mở menu tài khoản' }))
+    expect(screen.getByRole('menuitem', { name: 'Đăng xuất' })).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Đăng nhập' })).not.toBeInTheDocument()
     expect(screen.getAllByRole('link', { name: 'Tiến độ' }).every((link) => link.getAttribute('href') === '/#progress')).toBe(true)
 
-    await user.click(screen.getByRole('button', { name: 'Đăng xuất' }))
+    await user.click(screen.getByRole('menuitem', { name: 'Đăng xuất' }))
 
     await waitFor(() => expect(screen.getByRole('link', { name: 'Đăng nhập' })).toBeInTheDocument())
     expect(localStorage.getItem('ielts-ai-tutor.session')).toBeNull()

@@ -1,4 +1,4 @@
-import { Menu, X } from 'lucide-react'
+import { ChevronDown, Menu, UserCircle, X } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from '../../features/auth/AuthProvider'
@@ -16,6 +16,7 @@ const links = [
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isAccountOpen, setIsAccountOpen] = useState(false)
   const [settingsRoute, setSettingsRoute] = useState(null)
   const settingsOpenerRef = useRef(null)
   const { isAuthenticated, logout } = useAuth()
@@ -26,6 +27,7 @@ function Navbar() {
 
   const handleLogout = async () => {
     closeMenu()
+    setIsAccountOpen(false)
     try { await logout() } finally { applyPreferenceTokens(DEFAULT_PREFERENCES) }
   }
 
@@ -54,7 +56,7 @@ function Navbar() {
         <div
           id="primary-navigation"
           className={`nav-content ${isMenuOpen ? 'nav-content-open' : ''}`.trim()}
-        >
+          >
           <div className="nav-links">
             {links.map((link) => (
               <NavLink
@@ -70,9 +72,28 @@ function Navbar() {
             ))}
           </div>
           {isAuthenticated ? (
-            <button className="signin-link nav-auth-button" type="button" onClick={handleLogout}>
-              Đăng xuất
-            </button>
+            <div className="account-menu">
+              <button
+                type="button"
+                className="account-trigger"
+                aria-expanded={isAccountOpen}
+                aria-haspopup="menu"
+                aria-label="Mở menu tài khoản"
+                onClick={() => setIsAccountOpen((open) => !open)}
+              >
+                <UserCircle aria-hidden="true" />
+                <span>Tài khoản</span>
+                <ChevronDown aria-hidden="true" className={isAccountOpen ? 'account-chevron-open' : ''} />
+              </button>
+              {isAccountOpen ? (
+                <div className="account-panel" role="menu" aria-label="Menu tài khoản">
+                  <span className="account-email" role="presentation">Tài khoản học tập</span>
+                  <button className="account-menu-item" role="menuitem" type="button" onClick={handleLogout}>
+                    Đăng xuất
+                  </button>
+                </div>
+              ) : null}
+            </div>
           ) : (
             <NavLink className="signin-link" to="/login" onClick={closeMenu}>
               Đăng nhập
