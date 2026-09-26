@@ -1,6 +1,7 @@
 package com.ieltsaitutor.tutor;
 
 import com.ieltsaitutor.ai.dto.AiChatResponse;
+import com.ieltsaitutor.ai.dto.ChatHistoryItem;
 import com.ieltsaitutor.ai.dto.AiGrounding;
 import com.ieltsaitutor.ai.dto.AiSource;
 import com.ieltsaitutor.ai.model.AiChatCommand;
@@ -98,7 +99,7 @@ public class TutorOrchestrator {
             throw new AiProviderException("AI_RATE_LIMITED", HttpStatus.TOO_MANY_REQUESTS,
                     "Trợ giảng AI đang nhận nhiều yêu cầu. Hãy thử lại sau một chút.");
         }
-        AiChatCommand command = new AiChatCommand(request.message().trim(), request.context(), boundedHistory(request),
+        AiChatCommand command = new AiChatCommand(request.message().trim(), request.context(), boundedHistory(principal, request),
                 requestId, compactContext(context));
         if (route.ragAllowed()) {
             RagChatResult result = rag.chat(command);
@@ -162,8 +163,13 @@ public class TutorOrchestrator {
         catch (IllegalArgumentException ignored) { return null; }
     }
 
-    private List<com.ieltsaitutor.ai.dto.ChatHistoryItem> boundedHistory(com.ieltsaitutor.ai.dto.AiChatRequest request) {
-        List<com.ieltsaitutor.ai.dto.ChatHistoryItem> history = request.history();
+    private List<ChatHistoryItem> boundedHistory(AuthPrincipal principal, com.ieltsaitutor.ai.dto.AiChatRequest request) {
+        List<ChatHistoryItem> stored = conversations != null && principal != null && request.conversationId() != null
+                ? conversations.messages(principal.userId(), request.conversationId()).stream()
+                        .map(message -> new ChatHistoryItem(message.role() == AiMessageRole.USER ? "USER" : "ASSISTANT", message.content()))
+                        .toList()
+                : List.of();
+        List<ChatHistoryItem> history = java.util.stream.Stream.concat(stored.stream(), request.history().stream()).toList();
         return history.stream().skip(Math.max(0, history.size() - 8)).toList();
     }
 
