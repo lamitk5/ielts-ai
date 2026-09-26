@@ -7,6 +7,8 @@ import FloatingTutor from '../components/tutor/FloatingTutor'
 import { SplitLearningWorkspace } from '../components/workspace/SplitLearningWorkspace'
 import { WritingPromptPane } from '../components/workspace/WritingPromptPane'
 import { WritingEditorPane } from '../components/workspace/WritingEditorPane'
+import { saveSessionSnapshot, loadSessionSnapshot } from '../features/session/sessionStorage'
+import { validateSessionSnapshot } from '../features/session/sessionContinuity'
 
 const tasks = [
   { id: 'task-1-academic-01', label: 'Task 1 · Academic', prompt: 'Summarise the information in a chart or process.', minimumWords: 150 },
@@ -14,8 +16,17 @@ const tasks = [
 ]
 
 function WritingPage() {
-  const { isAuthenticated } = useAuth()
-  const [taskId, setTaskId] = useState(tasks[0].id)
+  const { user, isAuthenticated } = useAuth()
+  const [taskId, setTaskId] = useState(() => {
+    if (user?.id) {
+      const loaded = loadSessionSnapshot(user.id)
+      const validated = validateSessionSnapshot(loaded, { validSetIds: tasks.map((t) => t.id) })
+      if (validated?.setId && tasks.some((t) => t.id === validated.setId)) {
+        return validated.setId
+      }
+    }
+    return tasks[0].id
+  })
   const [responseText, setResponseText] = useState('')
   const [assessment, setAssessment] = useState(null)
   const [error, setError] = useState('')
@@ -30,8 +41,10 @@ function WritingPage() {
   const latestTextRef = useRef(responseText)
   const draftVersionRef = useRef(draftVersion)
 
-  latestTextRef.current = responseText
-  draftVersionRef.current = draftVersion
+  useEffect(() => {
+    latestTextRef.current = responseText
+    draftVersionRef.current = draftVersion
+  }, [responseText, draftVersion])
 
   // Practice timer state (optional learning aid)
   const [timerEnabled, setTimerEnabled] = useState(false)
@@ -74,6 +87,14 @@ function WritingPage() {
           setDraftId(draft.id)
           setDraftVersion(draft.version ?? 1)
           setSaveStatus('saved')
+          if (user?.id) {
+            saveSessionSnapshot(user.id, {
+              skill: 'writing',
+              setId: taskId,
+              draftId: draft.id,
+              draftVersion: draft.version ?? 1,
+            })
+          }
         } else {
           setResponseText('')
           setDraftId(null)
@@ -89,7 +110,7 @@ function WritingPage() {
       active = false
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
     }
-  }, [isAuthenticated, taskId])
+  }, [isAuthenticated, taskId, user?.id])
 
   // Fetch history for authenticated members
   useEffect(() => {
@@ -107,6 +128,7 @@ function WritingPage() {
 
   const handleTextChange = (nextText) => {
     setResponseText(nextText)
+    latestTextRef.current = nextText
     if (!isAuthenticated) {
       setSaveStatus('idle')
       return
@@ -129,7 +151,16 @@ function WritingPage() {
         })
         setDraftId(result.id)
         setDraftVersion(result.version)
+        draftVersionRef.current = result.version
         setSaveStatus('saved')
+        if (user?.id) {
+          saveSessionSnapshot(user.id, {
+            skill: 'writing',
+            setId: taskId,
+            draftId: result.id,
+            draftVersion: result.version,
+          })
+        }
       } catch (err) {
         if (err.code === 'VERSION_CONFLICT') {
           setSaveStatus('conflict')
@@ -190,6 +221,12 @@ function WritingPage() {
                 setTaskId(id)
                 setAssessment(null)
                 setError('')
+                if (user?.id) {
+                  saveSessionSnapshot(user.id, {
+                    skill: 'writing',
+                    setId: id,
+                  })
+                }
               }}
               wordCount={wordCount}
             />

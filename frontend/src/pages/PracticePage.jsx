@@ -10,6 +10,8 @@ import FloatingTutor from '../components/tutor/FloatingTutor'
 import { SplitLearningWorkspace } from '../components/workspace/SplitLearningWorkspace'
 import { ReadingPassagePane } from '../components/workspace/ReadingPassagePane'
 import { ReadingQuestionPane } from '../components/workspace/ReadingQuestionPane'
+import { saveSessionSnapshot, loadSessionSnapshot } from '../features/session/sessionStorage'
+import { validateSessionSnapshot } from '../features/session/sessionContinuity'
 
 function PracticeSkillSession({ skill, fixture }) {
   const [practiceSet, setPracticeSet] = useState(fixture)
@@ -28,16 +30,41 @@ function PracticeSkillSession({ skill, fixture }) {
 }
 
 function PracticeSetSession({ skill, practiceSet }) {
-  const { isAuthenticated } = useAuth()
+  const { user, isAuthenticated } = useAuth()
+  const setId = practiceSet.setId ?? practiceSet.id
+  const questions = practiceSet.questions ?? []
+
   const [answers, setAnswers] = useState({})
-  const [currentQuestionId, setCurrentQuestionId] = useState(practiceSet.questions?.[0]?.id ?? null)
+  const [currentQuestionId, setCurrentQuestionId] = useState(() => {
+    if (user?.id) {
+      const loaded = loadSessionSnapshot(user.id)
+      const validated = validateSessionSnapshot(loaded, { validSetIds: [setId] })
+      if (validated?.currentQuestionId && questions.some((q) => q.id === validated.currentQuestionId)) {
+        return validated.currentQuestionId
+      }
+    }
+    return practiceSet.questions?.[0]?.id ?? null
+  })
   const [result, setResult] = useState(null)
   const [error, setError] = useState('')
   const [flaggedIds, setFlaggedIds] = useState(() => new Set())
   const [reviewedIds, setReviewedIds] = useState(() => new Set())
 
-  const questions = practiceSet.questions ?? []
-  const activeQuestionId = questions.some((question) => question.id === currentQuestionId) ? currentQuestionId : questions[0]?.id ?? null
+  const activeQuestionId = questions.some((question) => question.id === currentQuestionId)
+    ? currentQuestionId
+    : questions[0]?.id ?? null
+
+  const handleSelectQuestion = (newId) => {
+    setCurrentQuestionId(newId)
+    if (user?.id) {
+      saveSessionSnapshot(user.id, {
+        skill,
+        setId,
+        currentQuestionId: newId,
+      })
+    }
+  }
+
   const toggleId = (setter, id) => setter((current) => {
     const next = new Set(current)
     if (next.has(id)) next.delete(id)
@@ -80,26 +107,28 @@ function PracticeSetSession({ skill, practiceSet }) {
             leftLabel="Nội dung"
             rightLabel="Câu hỏi"
             left={<ReadingPassagePane practiceSet={practiceSet} />}
-            right={<ReadingQuestionPane
-              questions={questions}
-              currentQuestionId={activeQuestionId}
-              answers={answers}
-              flaggedIds={flaggedIds}
-              reviewedIds={reviewedIds}
-              onSelect={setCurrentQuestionId}
-              onAnswer={(id, value) => {
-                setCurrentQuestionId(id)
-                setAnswers((current) => ({ ...current, [id]: value }))
-                setReviewedIds((current) => {
-                  const next = new Set(current)
-                  next.delete(id)
-                  return next
-                })
-                setResult(null)
-              }}
-              onToggleFlag={(id) => toggleId(setFlaggedIds, id)}
-              onToggleReviewed={(id) => toggleId(setReviewedIds, id)}
-            />}
+            right={
+              <ReadingQuestionPane
+                questions={questions}
+                currentQuestionId={activeQuestionId}
+                answers={answers}
+                flaggedIds={flaggedIds}
+                reviewedIds={reviewedIds}
+                onSelect={handleSelectQuestion}
+                onAnswer={(id, value) => {
+                  handleSelectQuestion(id)
+                  setAnswers((current) => ({ ...current, [id]: value }))
+                  setReviewedIds((current) => {
+                    const next = new Set(current)
+                    next.delete(id)
+                    return next
+                  })
+                  setResult(null)
+                }}
+                onToggleFlag={(id) => toggleId(setFlaggedIds, id)}
+                onToggleReviewed={(id) => toggleId(setReviewedIds, id)}
+              />
+            }
           />
         ) : questions.map((question, index) => (
           <GlassCard className="practice-question" key={question.id}>
@@ -110,10 +139,16 @@ function PracticeSetSession({ skill, practiceSet }) {
                 const value = String.fromCharCode(65 + optionIndex)
                 return (
                   <label key={option} className="practice-option">
-                    <input type="radio" name={question.id} value={value} checked={answers[question.id] === value} onChange={() => {
-                      setCurrentQuestionId(question.id)
-                      setAnswers((current) => ({ ...current, [question.id]: value }))
-                    }} />
+                    <input
+                      type="radio"
+                      name={question.id}
+                      value={value}
+                      checked={answers[question.id] === value}
+                      onChange={() => {
+                        handleSelectQuestion(question.id)
+                        setAnswers((current) => ({ ...current, [question.id]: value }))
+                      }}
+                    />
                     <span>{value}. {option}</span>
                   </label>
                 )
@@ -122,19 +157,26 @@ function PracticeSetSession({ skill, practiceSet }) {
           </GlassCard>
         ))}
         {error ? <p className="auth-error" role="alert">{error}</p> : null}
-        {result ? <GlassCard className="practice-result" role="status"><strong>{result.score}/{result.total}</strong><span>Kết quả đã được lưu trong tiến độ của bạn.</span></GlassCard> : null}
+        {result ? (
+          <GlassCard className="practice-result" role="status">
+            <strong>{result.score}/{result.total}</strong>
+            <span>Kết quả đã được lưu trong tiến độ của bạn.</span>
+          </GlassCard>
+        ) : null}
         <div className="practice-actions">
           <Button type="submit" variant="primary" size="lg">Nộp bài</Button>
           <Link className="button button-secondary button-lg" to="/">Về trang chủ</Link>
         </div>
       </form>
-      <FloatingTutor context={{
-        skill: skill.toUpperCase(),
-        lessonId: practiceSet.setId ?? practiceSet.id,
-        exerciseId: practiceSet.setId ?? practiceSet.id,
-        questionId: activeQuestionId,
-        ...(result?.attemptId ? { attemptId: result.attemptId } : {}),
-      }} />
+      <FloatingTutor
+        context={{
+          skill: skill.toUpperCase(),
+          lessonId: practiceSet.setId ?? practiceSet.id,
+          exerciseId: practiceSet.setId ?? practiceSet.id,
+          questionId: activeQuestionId,
+          ...(result?.attemptId ? { attemptId: result.attemptId } : {}),
+        }}
+      />
     </section>
   )
 }
