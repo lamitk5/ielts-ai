@@ -37,7 +37,7 @@ describe('TutorShell component and sub-components', () => {
     expect(within(screen.getByRole('status')).getByText('WRITING')).toBeInTheDocument()
   })
 
-  test('toggles shell states: expanded and standard with single toggle', async () => {
+  test('toggles shell states: fullscreen and standard with single toggle', async () => {
     const user = userEvent.setup()
     const onStateChange = vi.fn()
     const { rerender } = render(
@@ -53,21 +53,67 @@ describe('TutorShell component and sub-components', () => {
     expect(expandBtn).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /thu gọn/i })).not.toBeInTheDocument()
     await user.click(expandBtn)
-    expect(onStateChange).toHaveBeenCalledWith(SHELL_STATES.EXPANDED)
+    expect(onStateChange).toHaveBeenCalledWith(SHELL_STATES.FULLSCREEN_DESKTOP)
 
     rerender(
       <TutorShell
-        state={SHELL_STATES.EXPANDED}
+        state={SHELL_STATES.FULLSCREEN_DESKTOP}
         messages={sampleMessages}
         onStateChange={onStateChange}
         onClose={vi.fn()}
       />,
     )
-    expect(screen.getByRole('dialog')).toHaveClass('tutor-shell-expanded')
+    expect(screen.getByRole('dialog')).toHaveClass('tutor-shell-fullscreen')
 
     const minimizeBtn = screen.getByRole('button', { name: /thu nhỏ/i })
     await user.click(minimizeBtn)
     expect(onStateChange).toHaveBeenCalledWith(SHELL_STATES.STANDARD)
+  })
+
+  test('renders a fullscreen study workspace with a safe context pane and one toggle', () => {
+    render(
+      <TutorShell
+        state={SHELL_STATES.FULLSCREEN_DESKTOP}
+        messages={sampleMessages}
+        context={{
+          skill: 'READING',
+          taskType: 'Matching Headings',
+          exerciseId: 'reading-42',
+          title: 'Không được render tùy ý',
+        }}
+        onStateChange={vi.fn()}
+        onSend={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByRole('dialog')).toHaveClass('tutor-shell-fullscreen', 'tutor-shell-viewport-safe')
+    expect(screen.getByRole('complementary', { name: 'Ngữ cảnh bài luyện' })).toBeInTheDocument()
+    const contextPane = screen.getByRole('complementary', { name: 'Ngữ cảnh bài luyện' })
+    expect(within(contextPane).getByText('READING')).toBeInTheDocument()
+    expect(within(contextPane).getByText('Matching Headings')).toBeInTheDocument()
+    expect(within(contextPane).getByText(/Mã bài: reading-42/)).toBeInTheDocument()
+    expect(screen.queryByText('Không được render tùy ý')).not.toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Thu nhỏ' })).toHaveLength(1)
+  })
+
+  test('chooses the mobile fullscreen state on narrow viewports', async () => {
+    const user = userEvent.setup()
+    const onStateChange = vi.fn()
+    const matchMedia = vi.spyOn(window, 'matchMedia').mockReturnValue({ matches: true })
+
+    render(
+      <TutorShell
+        state={SHELL_STATES.STANDARD}
+        messages={sampleMessages}
+        onStateChange={onStateChange}
+        onClose={vi.fn()}
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Toàn màn hình' }))
+    expect(onStateChange).toHaveBeenCalledWith(SHELL_STATES.FULLSCREEN_MOBILE)
+    matchMedia.mockRestore()
   })
 
   test('ContextBadge shows practice context and allows switching to general question mode', async () => {
@@ -106,6 +152,28 @@ describe('TutorShell component and sub-components', () => {
     const promptBtn = screen.getByRole('button', { name: 'Giải thích lỗi Writing của tôi' })
     await user.click(promptBtn)
     expect(onSelect).toHaveBeenCalledWith('Giải thích lỗi Writing của tôi')
+  })
+
+  test('TutorQuickActions renders only valid prompt definitions', async () => {
+    const user = userEvent.setup()
+    const onSelect = vi.fn()
+    render(
+      <TutorQuickActions
+        onSelectPrompt={onSelect}
+        suggestions={[
+          { label: 'Gợi ý hợp lệ', prompt: 'Hỏi về bài này', valid: true },
+          { label: 'Gợi ý không hợp lệ', prompt: 'Không được dùng', valid: false },
+          { label: 'Thiếu prompt' },
+          '',
+        ]}
+      />,
+    )
+
+    expect(screen.getByRole('button', { name: 'Gợi ý hợp lệ' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Gợi ý không hợp lệ' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Thiếu prompt')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Gợi ý hợp lệ' }))
+    expect(onSelect).toHaveBeenCalledWith('Hỏi về bài này')
   })
 
   test('TimeoutRetry surfaces timeout with retry and cancel actions', async () => {

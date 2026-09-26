@@ -14,6 +14,26 @@ export const SHELL_STATES = {
   FULLSCREEN_MOBILE: 'FULLSCREEN_MOBILE',
 }
 
+const TRUSTED_SKILLS = new Set(['READING', 'LISTENING', 'WRITING', 'SPEAKING'])
+
+function getTrustedContext(context) {
+  if (!context || !TRUSTED_SKILLS.has(String(context.skill || '').toUpperCase())) {
+    return null
+  }
+
+  return {
+    skill: String(context.skill).toUpperCase(),
+    taskType: typeof context.taskType === 'string' ? context.taskType.trim().slice(0, 120) : '',
+    exerciseId: typeof context.exerciseId === 'string' ? context.exerciseId.trim().slice(0, 80) : '',
+  }
+}
+
+function getFullscreenState() {
+  return window.matchMedia?.('(max-width: 767px)').matches
+    ? SHELL_STATES.FULLSCREEN_MOBILE
+    : SHELL_STATES.FULLSCREEN_DESKTOP
+}
+
 export function TutorShell({
   state = SHELL_STATES.STANDARD,
   context,
@@ -48,11 +68,13 @@ export function TutorShell({
   const isCompact = state === SHELL_STATES.COMPACT
   const isExpanded = state === SHELL_STATES.EXPANDED
   const isFullscreen = state === SHELL_STATES.FULLSCREEN_DESKTOP || state === SHELL_STATES.FULLSCREEN_MOBILE
+  const trustedContext = getTrustedContext(context)
 
   const shellClasses = [
     'tutor-panel',
     'tutor-shell',
     'tutor-shell-editorial',
+    'tutor-shell-viewport-safe',
     isCompact ? 'tutor-shell-compact' : '',
     isExpanded ? 'tutor-shell-expanded' : '',
     isFullscreen ? 'tutor-shell-fullscreen' : '',
@@ -85,7 +107,7 @@ export function TutorShell({
               aria-label={isExpanded || isFullscreen ? 'Thu nhỏ' : 'Toàn màn hình'}
               onClick={() =>
                 onStateChange(
-                  isExpanded || isFullscreen ? SHELL_STATES.STANDARD : SHELL_STATES.EXPANDED,
+                  isExpanded || isFullscreen ? SHELL_STATES.STANDARD : getFullscreenState(),
                 )
               }
             >
@@ -108,6 +130,17 @@ export function TutorShell({
       </header>
 
       {context ? <ContextBadge context={context} onClearContext={onClearContext} /> : null}
+
+      {isFullscreen && trustedContext ? (
+        <aside className="tutor-context-pane" aria-label="Ngữ cảnh bài luyện">
+          <p className="tutor-context-pane-kicker">NGỮ CẢNH BÀI LUYỆN</p>
+          <div className="tutor-context-pane-values">
+            <span className="tutor-context-pane-skill">{trustedContext.skill}</span>
+            {trustedContext.taskType ? <span>{trustedContext.taskType}</span> : null}
+            {trustedContext.exerciseId ? <span>Mã bài: {trustedContext.exerciseId}</span> : null}
+          </div>
+        </aside>
+      ) : null}
 
       {!isCompact ? (
         <>

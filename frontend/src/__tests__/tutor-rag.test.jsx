@@ -19,6 +19,14 @@ async function send(response) {
 }
 
 describe('Tutor RAG citations', () => {
+  test('opens a viewport-safe Tutor shell for mobile-sized surfaces', async () => {
+    const user = userEvent.setup()
+    render(<FloatingTutor />)
+    await user.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
+
+    expect(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).toHaveClass('tutor-shell-viewport-safe')
+  })
+
   test('renders real title, section and page citation', async () => {
     await send({ answer: 'Grounded answer', sources: [{ sourceId: 'guide-1', title: 'Writing Guide', section: 'Task Response', page: 4, version: 'v1', chunkId: 'chunk-1' }] })
     expect(screen.getByText(/Writing Guide/)).toBeInTheDocument()
