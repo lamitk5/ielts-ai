@@ -132,6 +132,7 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
           role: 'assistant',
           status: response.status,
           content: response.answer,
+          references: response.references ?? [],
           grounding:
             response.status === 'INSUFFICIENT_CONTEXT'
               ? { status: 'insufficient_context', sourceCount: 0 }
