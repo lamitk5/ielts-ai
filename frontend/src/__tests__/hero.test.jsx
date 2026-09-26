@@ -39,6 +39,15 @@ describe('premium hero', () => {
     expect(screen.getByTestId('hero-visual')).toHaveAttribute('aria-hidden', 'true')
   })
 
+  test('uses the compact editorial hero layout contract', () => {
+    renderApp()
+
+    const hero = screen.getByRole('region', { name: 'Bứt phá Band điểm IELTS cùng Trợ giảng AI Độc quyền' })
+    expect(hero).toHaveClass('hero-section', 'hero-editorial')
+    expect(screen.getByRole('search')).toHaveClass('hero-search')
+    expect(screen.getByRole('heading', { level: 1 })).toHaveClass('hero-title')
+  })
+
   test('places assessment actions before quick suggestions', () => {
     renderApp()
 
