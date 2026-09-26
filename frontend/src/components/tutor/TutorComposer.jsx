@@ -37,7 +37,7 @@ export function TutorComposer({
   const isSendDisabled = loading || !draft.trim() || isAttachmentInProgress
 
   return (
-    <div className="tutor-composer-container">
+    <div className="tutor-composer-container tutor-composer-viewport-safe">
       {attachment ? (
         <AttachmentStatus
           attachment={attachment}

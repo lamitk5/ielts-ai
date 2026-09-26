@@ -2753,6 +2753,9 @@ input:focus-visible {
   transition: width 0.2s ease, max-height 0.2s ease;
 }
 
+.tutor-shell-editorial { background: var(--surface-1); box-shadow: var(--shadow-lg); }
+.tutor-shell-editorial .tutor-message-list { min-height: 0; }
+
 .tutor-shell-compact {
   max-height: 5rem;
   overflow: hidden;
@@ -2889,7 +2892,10 @@ input:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  flex: 0 0 auto;
 }
+
+.tutor-composer-viewport-safe { max-height: 11rem; overflow-y: auto; }
 
 .tutor-attachment-composer {
   display: inline-flex;
@@ -2930,6 +2936,8 @@ input:focus-visible {
   border-radius: 0.5rem;
   font-size: 0.8rem;
 }
+
+.tutor-attachment-row { flex: 0 0 auto; }
 
 .tutor-attachment-header {
   display: flex;

@@ -52,6 +52,7 @@ export function TutorShell({
   const shellClasses = [
     'tutor-panel',
     'tutor-shell',
+    'tutor-shell-editorial',
     isCompact ? 'tutor-shell-compact' : '',
     isExpanded ? 'tutor-shell-expanded' : '',
     isFullscreen ? 'tutor-shell-fullscreen' : '',

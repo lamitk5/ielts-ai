@@ -30,7 +30,7 @@ export function AttachmentStatus({ attachment, onRemove, onRetry, className = ''
 
   return (
     <div
-      className={`tutor-attachment-card ${isFailed ? 'tutor-attachment-failed' : ''} ${className}`.trim()}
+      className={`tutor-attachment-card tutor-attachment-row ${isFailed ? 'tutor-attachment-failed' : ''} ${className}`.trim()}
       role="status"
       aria-label={`Tệp đính kèm: ${attachment.filename}`}
     >

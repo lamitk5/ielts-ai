@@ -29,10 +29,10 @@ describe('TutorShell component and sub-components', () => {
       />,
     )
 
-    expect(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).toHaveClass('tutor-shell-editorial')
     expect(screen.getByText('Xin chào! Mình có thể giúp gì cho bạn?')).toBeInTheDocument()
     expect(screen.getByText('Task Achievement đánh giá mức độ bạn trả lời đầy đủ yêu cầu của đề bài.')).toBeInTheDocument()
-    expect(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' })).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' }).closest('.tutor-composer-container')).toHaveClass('tutor-composer-viewport-safe')
     expect(screen.getByRole('button', { name: 'Gửi câu hỏi' })).toBeInTheDocument()
     expect(within(screen.getByRole('status')).getByText('WRITING')).toBeInTheDocument()
   })

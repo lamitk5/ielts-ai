@@ -136,6 +136,7 @@ describe('AttachmentStatus component', () => {
 
     render(<AttachmentStatus attachment={attachment} onRemove={vi.fn()} />)
 
+    expect(screen.getByRole('status')).toHaveClass('tutor-attachment-row')
     expect(screen.getByText('writing_task2.pdf')).toBeInTheDocument()
     expect(screen.getByText(/2(\.0)? MB/i)).toBeInTheDocument()
     expect(screen.getByText('Sẵn sàng')).toBeInTheDocument()
