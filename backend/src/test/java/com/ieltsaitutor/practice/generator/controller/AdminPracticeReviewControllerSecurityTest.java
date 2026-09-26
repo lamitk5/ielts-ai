@@ -28,20 +28,23 @@ import com.ieltsaitutor.practice.generator.dto.GeneratedSetReviewPayload;
 import com.ieltsaitutor.practice.generator.dto.ReviewActionResponse;
 import com.ieltsaitutor.practice.generator.domain.GenerationState;
 import com.ieltsaitutor.practice.generator.service.PracticeReviewService;
+import com.ieltsaitutor.practice.generator.service.PracticeRevisionService;
 import org.springframework.http.HttpStatus;
 
 class AdminPracticeReviewControllerSecurityTest {
 
     private PracticeReviewService reviewService;
+    private PracticeRevisionService revisionService;
     private AuthService authService;
     private MockMvc mvc;
 
     @BeforeEach
     void setUp() {
         reviewService = mock(PracticeReviewService.class);
+        revisionService = mock(PracticeRevisionService.class);
         authService = mock(AuthService.class);
         AuthInterceptor authInterceptor = new AuthInterceptor(authService);
-        AdminPracticeReviewController controller = new AdminPracticeReviewController(reviewService);
+        AdminPracticeReviewController controller = new AdminPracticeReviewController(reviewService, revisionService);
 
         mvc = MockMvcBuilders.standaloneSetup(controller)
                 .addInterceptors(authInterceptor)
