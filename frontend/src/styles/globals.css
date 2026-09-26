@@ -3,21 +3,33 @@
 
 :root {
   --background: #060b16;
+  --bg-page: #060b16;
+  --bg-section: #101b30;
   --surface: #0c1424;
+  --surface-1: #0c1424;
+  --surface-2: #101b30;
+  --surface-elevated: #17253d;
+  --surface-interactive: #101b30;
   --surface-alt: #101b30;
   --navy: #071426;
   --navy-light: #102746;
   --gold: #cfae67;
   --gold-light: #e5c982;
   --text: #f5f7fa;
+  --text-primary: #f5f7fa;
   --text-secondary: #b7c0cf;
+  --text-muted: #929cad;
+  --text-inverse: #071426;
   --muted: #929cad;
   --border: rgba(229, 201, 130, 0.16);
+  --border-subtle: rgba(229, 201, 130, 0.16);
   --border-strong: #e5c982;
   --focus: #e5c982;
   --accent: #cfae67;
   --accent-strong: #e5c982;
+  --accent-hover: #e5c982;
   --accent-soft: rgba(207, 174, 103, 0.16);
+  --focus-ring: #e5c982;
   --link: #e5c982;
   --selected: #e5c982;
   --selected-soft: rgba(207, 174, 103, 0.16);
@@ -31,6 +43,11 @@
   --danger: #e6a3b4;
   --info: #9cc4ee;
   --shadow: 0 16px 40px rgba(0, 0, 0, 0.24);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.18);
+  --shadow-md: 0 16px 40px rgba(0, 0, 0, 0.24);
+  --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.32);
+  --overlay: rgba(0, 0, 0, 0.65);
+  --glass-bg: rgba(12, 20, 36, 0.78);
   --radius: 1rem;
   --space: 1;
   --type-scale: 1;
@@ -3669,7 +3686,6 @@ input:focus-visible {
     justify-content: center;
   }
 }
-
 
 
 

@@ -139,6 +139,22 @@ describe('preference foundation', () => {
     }
   })
 
+  test('publishes the canonical Academic Luxury semantic roles for every theme and accent', () => {
+    const roles = [
+      '--bg-page', '--bg-section', '--surface-1', '--surface-2', '--surface-elevated',
+      '--surface-interactive', '--text-primary', '--text-secondary', '--text-muted',
+      '--text-inverse', '--border-subtle', '--border-strong', '--accent', '--accent-hover',
+      '--accent-soft', '--focus-ring', '--success', '--warning', '--danger',
+      '--shadow-sm', '--shadow-md', '--shadow-lg', '--overlay', '--glass-bg',
+    ]
+    for (const themeMode of ['light', 'dark']) {
+      for (const accentPreset of ['gold', 'sapphire', 'emerald', 'burgundy', 'violet', 'slate']) {
+        applyPreferenceTokens({ themeMode, accentPreset })
+        roles.forEach((role) => expect(token(role), `${themeMode}/${accentPreset}/${role}`).toBeTruthy())
+      }
+    }
+  })
+
   test('keeps the unmounted dark CSS defaults readable before the provider starts', () => {
     const names = ['--muted', '--border-strong']
     const previous = names.map((name) => document.documentElement.style.getPropertyValue(name))
