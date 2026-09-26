@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 
 public class LearningEventIngestionService {
-    private static final Set<String> FORBIDDEN = Set.of("correctanswer", "answerkey", "score", "band", "apikey",
+    private static final Set<String> FORBIDDEN = Set.of("correctanswer", "answerkey", "band", "apikey",
             "token", "secret", "essay", "audio", "providerpayload", "reasoning");
     private final LearningEventRepository repository;
     private final Clock clock;

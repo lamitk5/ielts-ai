@@ -10,15 +10,24 @@ import java.util.stream.Collectors;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.beans.factory.annotation.Autowired;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ieltsaitutor.learning.intelligence.LearningEvidencePipeline;
+import com.ieltsaitutor.learning.intelligence.Skill;
 
 @Repository
 public class JdbcPracticeAttemptStore implements PracticeAttemptStore {
     private final NamedParameterJdbcTemplate jdbc;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final LearningEvidencePipeline evidence;
 
-    public JdbcPracticeAttemptStore(NamedParameterJdbcTemplate jdbc) { this.jdbc = jdbc; }
+    public JdbcPracticeAttemptStore(NamedParameterJdbcTemplate jdbc) { this(jdbc, null); }
+
+    @Autowired
+    public JdbcPracticeAttemptStore(NamedParameterJdbcTemplate jdbc, LearningEvidencePipeline evidence) {
+        this.jdbc = jdbc; this.evidence = evidence;
+    }
 
     @Override
     public void save(UUID userId, String skill, String setId, int score, int total, Map<String, String> answers) {
@@ -44,6 +53,10 @@ public class JdbcPracticeAttemptStore implements PracticeAttemptStore {
                 """, new MapSqlParameterSource().addValue("id", UUID.randomUUID()).addValue("userId", userId)
                 .addValue("skill", skill.toUpperCase()).addValue("referenceId", setId).addValue("score", score * 9d / total)
                 .addValue("createdAt", now.atOffset(ZoneOffset.UTC), Types.TIMESTAMP_WITH_TIMEZONE));
+        if (evidence != null) {
+            try { evidence.practiceCompleted(userId, Skill.valueOf(skill.toUpperCase()), setId, id, score, total, now); }
+            catch (RuntimeException ignored) { /* adaptive refresh must not break a saved attempt */ }
+        }
         return id;
     }
 

@@ -5,14 +5,22 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.ieltsaitutor.learning.intelligence.LearningEvidencePipeline;
 
 @Service
 public class SpeakingService {
     private final SpeechToTextProvider speechToText;
     private final SpeakingRepository repository;
+    private final LearningEvidencePipeline evidence;
 
     public SpeakingService(SpeechToTextProvider speechToText, SpeakingRepository repository) {
-        this.speechToText = speechToText; this.repository = repository;
+        this(speechToText, repository, null);
+    }
+
+    @Autowired
+    public SpeakingService(SpeechToTextProvider speechToText, SpeakingRepository repository, LearningEvidencePipeline evidence) {
+        this.speechToText = speechToText; this.repository = repository; this.evidence = evidence;
     }
 
     public List<SpeakingPrompt> prompts() { return List.of(
@@ -31,6 +39,10 @@ public class SpeakingService {
         SpeakingAttempt attempt = new SpeakingAttempt(UUID.randomUUID(), userId, promptId, resolvedTranscript,
                 audioFilename, status, null, Instant.now());
         repository.save(attempt);
+        if (evidence != null) {
+            try { evidence.speakingSubmitted(userId, promptId, resolvedTranscript != null, attempt.createdAt()); }
+            catch (RuntimeException ignored) { /* adaptive refresh must not break speaking persistence */ }
+        }
         return attempt;
     }
 
