@@ -111,6 +111,22 @@ input:focus-visible {
   min-height: 100vh;
 }
 
+.skip-link {
+  position: fixed;
+  z-index: 200;
+  top: 0.75rem;
+  left: 0.75rem;
+  transform: translateY(-180%);
+  border: 1px solid var(--accent);
+  border-radius: 0.6rem;
+  padding: 0.65rem 0.85rem;
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-md);
+  transition: transform 0.2s ease;
+}
+.skip-link:focus { transform: translateY(0); }
+
 .font-display {
   font-family: 'Playfair Display', Georgia, serif;
 }
