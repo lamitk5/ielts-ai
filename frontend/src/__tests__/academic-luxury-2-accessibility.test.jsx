@@ -46,9 +46,9 @@ describe('Academic Luxury 2.0 accessibility and responsive matrix', () => {
       />,
     )
 
-    const dialog = screen.getByRole('dialog', { name: 'Trợ giảng AI' })
+    const dialog = screen.getByRole('dialog', { name: 'Én' })
     expect(dialog).toHaveClass('tutor-shell-fullscreen', 'tutor-shell-viewport-safe')
-    expect(within(dialog).getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' })).toBeEnabled()
+    expect(within(dialog).getByRole('textbox', { name: 'Tin nhắn cho Én' })).toBeEnabled()
     expect(within(dialog).getByRole('button', { name: 'Thêm tệp đính kèm' })).toBeEnabled()
     expect(within(dialog).getByRole('button', { name: 'Gửi câu hỏi' })).toBeDisabled()
   })

@@ -52,7 +52,7 @@ export function WritingPromptPane({
           <ul className="writing-instruction-list">
             <li>Đọc kỹ yêu cầu đề bài và xác định các điểm then chốt cần phân tích.</li>
             <li>Sử dụng cấu trúc đoạn mạch lạc (Mở bài, Thân bài, Kết luận).</li>
-            <li>Sau khi hoàn thành, nhấn <strong>Gửi bài viết</strong> để nhận phân tích và ước lượng band điểm từ Trợ giảng AI.</li>
+            <li>Sau khi hoàn thành, nhấn <strong>Gửi bài viết</strong> để nhận phân tích và ước lượng band điểm từ Én.</li>
           </ul>
         </div>
       </GlassCard>

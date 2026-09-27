@@ -65,7 +65,7 @@ describe('authentication foundation', () => {
     await user.type(screen.getByLabelText('Mật khẩu'), 'password-123')
     await user.click(screen.getByRole('button', { name: 'Đăng nhập' }))
 
-    expect(await screen.findByRole('heading', { name: 'Bứt phá Band điểm IELTS cùng Trợ giảng AI Độc quyền' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Bứt phá Band điểm IELTS cùng Én Độc quyền' })).toBeInTheDocument()
     expect(localStorage.getItem('ielts-ai-tutor.session')).toContain('opaque-token')
   })
 

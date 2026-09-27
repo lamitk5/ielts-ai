@@ -17,7 +17,7 @@ beforeEach(() => {
 
 describe('Academic Luxury 2.0 route and product regression matrix', () => {
   test.each([
-    ['/','Bứt phá Band điểm IELTS cùng Trợ giảng AI Độc quyền'],
+    ['/','Bứt phá Band điểm IELTS cùng Én Độc quyền'],
     ['/assessment', 'Đánh giá năng lực IELTS'],
     ['/practice/reading', 'Reading'],
     ['/practice/listening', 'Listening'],

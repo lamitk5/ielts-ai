@@ -29,10 +29,10 @@ describe('TutorShell component and sub-components', () => {
       />,
     )
 
-    expect(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).toHaveClass('tutor-shell-editorial')
+    expect(screen.getByRole('dialog', { name: 'Én' })).toHaveClass('tutor-shell-editorial')
     expect(screen.getByText('Xin chào! Mình có thể giúp gì cho bạn?')).toBeInTheDocument()
     expect(screen.getByText('Task Achievement đánh giá mức độ bạn trả lời đầy đủ yêu cầu của đề bài.')).toBeInTheDocument()
-    expect(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' }).closest('.tutor-composer-container')).toHaveClass('tutor-composer-viewport-safe')
+    expect(screen.getByRole('textbox', { name: 'Tin nhắn cho Én' }).closest('.tutor-composer-container')).toHaveClass('tutor-composer-viewport-safe')
     expect(screen.getByRole('button', { name: 'Gửi câu hỏi' })).toBeInTheDocument()
     expect(within(screen.getByRole('status')).getByText('WRITING')).toBeInTheDocument()
   })
@@ -182,13 +182,13 @@ describe('TutorShell component and sub-components', () => {
     const onCancel = vi.fn()
     render(
       <TimeoutRetry
-        message="Không thể kết nối tới Trợ giảng AI. Vui lòng thử lại."
+        message="Không thể kết nối tới Én. Vui lòng thử lại."
         onRetry={onRetry}
         onCancel={onCancel}
       />,
     )
 
-    expect(screen.getByText('Không thể kết nối tới Trợ giảng AI. Vui lòng thử lại.')).toBeInTheDocument()
+    expect(screen.getByText('Không thể kết nối tới Én. Vui lòng thử lại.')).toBeInTheDocument()
     const retryBtn = screen.getByRole('button', { name: 'Thử lại' })
     await user.click(retryBtn)
     expect(onRetry).toHaveBeenCalledTimes(1)
@@ -204,7 +204,7 @@ describe('TutorShell component and sub-components', () => {
     const onCancel = vi.fn()
     const { rerender } = render(<TutorComposer onSend={onSend} loading={false} />)
 
-    const input = screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' })
+    const input = screen.getByRole('textbox', { name: 'Tin nhắn cho Én' })
     const submitBtn = screen.getByRole('button', { name: 'Gửi câu hỏi' })
 
     expect(submitBtn).toBeDisabled()
@@ -216,7 +216,7 @@ describe('TutorShell component and sub-components', () => {
     expect(input).toHaveValue('')
 
     rerender(<TutorComposer onSend={onSend} loading={true} onCancel={onCancel} />)
-    expect(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' })).toBeDisabled()
+    expect(screen.getByRole('textbox', { name: 'Tin nhắn cho Én' })).toBeDisabled()
     const cancelAction = screen.getByRole('button', { name: 'Hủy' })
     await user.click(cancelAction)
     expect(onCancel).toHaveBeenCalledTimes(1)

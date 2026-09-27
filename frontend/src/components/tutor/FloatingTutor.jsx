@@ -9,6 +9,7 @@ import { useOptionalAuth } from '../../features/auth/AuthProvider'
 import { useOptionalPreferences } from '../../features/preferences/PreferenceProvider'
 import { loadLatestTutorConversation, sendTutorMessage } from '../../services/aiTutorApi'
 import { uploadAttachment } from '../../services/tutorAttachmentsApi'
+import { ASSISTANT_NAME } from '../../features/tutor/assistantIdentity'
 
 const welcomeMessage = {
   id: 'welcome',
@@ -285,7 +286,7 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
           <button
             className="tutor-backdrop"
             type="button"
-            aria-label="Đóng Trợ giảng AI"
+            aria-label={`Đóng ${ASSISTANT_NAME}`}
             onClick={() => setOpen(false)}
           />
           {isGuest ? (
@@ -300,13 +301,13 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
                 <div>
                   <p className="progress-card-kicker">SẴN SÀNG HỖ TRỢ</p>
                   <h2 id="tutor-dialog-title" className="font-display">
-                    Trợ giảng AI
+                    {ASSISTANT_NAME}
                   </h2>
                 </div>
                 <button
                   className="tutor-close-button"
                   type="button"
-                  aria-label="Đóng Trợ giảng AI"
+                  aria-label={`Đóng ${ASSISTANT_NAME}`}
                   onClick={() => setOpen(false)}
                 >
                   <X aria-hidden="true" size={19} />

@@ -21,7 +21,7 @@ describe('AI Tutor mascot launcher', () => {
   test('renders the premium LUMEN Pixel Owl identity', () => {
     renderTutor()
 
-    const launcher = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
+    const launcher = screen.getByRole('button', { name: 'Mở Én' })
     expect(launcher).toHaveAttribute('data-mascot', 'lumen-pixel-owl')
     expect(screen.getByTestId('lumen-scholar-mascot')).toBeInTheDocument()
     expect(screen.getByTestId('lumen-scholar-mascot')).toHaveClass('ai-tutor-mascot', 'ai-tutor-pixel-owl-scholar')
@@ -42,17 +42,17 @@ describe('AI Tutor mascot launcher', () => {
     expect(screen.getByTestId('lumen-scholar-mascot').querySelector('.pixel-owl-medallion')).toBeInTheDocument()
     expect(screen.getByTestId('lumen-scholar-mascot').querySelector('.pixel-owl-tear')).toBeInTheDocument()
     expect(screen.getByTestId('lumen-scholar-mascot').querySelector('.pixel-owl-thought')).toBeInTheDocument()
-    expect(screen.getByText('Trợ giảng AI')).toHaveClass('ai-tutor-mascot-tooltip')
+    expect(screen.getByText('Én')).toHaveClass('ai-tutor-mascot-tooltip')
   })
 
   test('replaces the legacy launcher with an accessible mascot button and tooltip', () => {
     renderTutor()
 
-    const launcher = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
+    const launcher = screen.getByRole('button', { name: 'Mở Én' })
     expect(launcher).toHaveClass('ai-tutor-mascot-launcher')
     expect(launcher).toHaveAttribute('data-pointer-direction', 'center')
     expect(launcher).toHaveAttribute('data-mascot', 'lumen-pixel-owl')
-    expect(screen.getByText('Trợ giảng AI')).toHaveClass('ai-tutor-mascot-tooltip')
+    expect(screen.getByText('Én')).toHaveClass('ai-tutor-mascot-tooltip')
     expect(screen.queryByTestId('floating-tutor-button')).not.toBeInTheDocument()
   })
 
@@ -60,16 +60,16 @@ describe('AI Tutor mascot launcher', () => {
     vi.useFakeTimers()
     renderTutor()
 
-    const launcher = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
+    const launcher = screen.getByRole('button', { name: 'Mở Én' })
     fireEvent.click(launcher)
     expect(launcher).toHaveClass('ai-tutor-mascot-launcher-activating')
     expect(screen.getByTestId('lumen-scholar-mascot')).toHaveAttribute('data-blink', 'closed')
-    expect(screen.queryByRole('dialog', { name: 'Trợ giảng AI' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('dialog', { name: 'Én' })).not.toBeInTheDocument()
 
     act(() => vi.advanceTimersByTime(259))
-    expect(screen.queryByRole('dialog', { name: 'Trợ giảng AI' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('dialog', { name: 'Én' })).not.toBeInTheDocument()
     act(() => vi.advanceTimersByTime(1))
-    expect(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: 'Én' })).toBeInTheDocument()
     vi.useRealTimers()
   })
 
@@ -77,26 +77,26 @@ describe('AI Tutor mascot launcher', () => {
     const user = userEvent.setup()
     renderTutor()
 
-    const launcher = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
+    const launcher = screen.getByRole('button', { name: 'Mở Én' })
     await user.click(launcher)
-    await waitFor(() => expect(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).toBeInTheDocument())
-    expect(screen.queryByRole('button', { name: 'Mở Trợ giảng AI' })).not.toBeInTheDocument()
+    await waitFor(() => expect(screen.getByRole('dialog', { name: 'Én' })).toBeInTheDocument())
+    expect(screen.queryByRole('button', { name: 'Mở Én' })).not.toBeInTheDocument()
 
-    await user.click(within(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).getByRole('button', { name: 'Đóng Trợ giảng AI' }))
-    const restoredLauncher = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
+    await user.click(within(screen.getByRole('dialog', { name: 'Én' })).getByRole('button', { name: 'Đóng Én' }))
+    const restoredLauncher = screen.getByRole('button', { name: 'Mở Én' })
     restoredLauncher.focus()
     await user.keyboard('{Enter}')
-    await waitFor(() => expect(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByRole('dialog', { name: 'Én' })).toBeInTheDocument())
 
-    await user.click(within(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).getByRole('button', { name: 'Đóng Trợ giảng AI' }))
-    screen.getByRole('button', { name: 'Mở Trợ giảng AI' }).focus()
+    await user.click(within(screen.getByRole('dialog', { name: 'Én' })).getByRole('button', { name: 'Đóng Én' }))
+    screen.getByRole('button', { name: 'Mở Én' }).focus()
     await user.keyboard(' ')
-    await waitFor(() => expect(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByRole('dialog', { name: 'Én' })).toBeInTheDocument())
   })
 
   test('tracks a global pointer outside the launcher and clamps visible pupil direction', async () => {
     renderTutor()
-    const launcher = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
+    const launcher = screen.getByRole('button', { name: 'Mở Én' })
     const mascot = screen.getByTestId('lumen-scholar-mascot')
     launcher.getBoundingClientRect = () => ({ left: 100, top: 100, width: 80, height: 80 })
     const anchoredTransform = launcher.style.transform
@@ -120,7 +120,7 @@ describe('AI Tutor mascot launcher', () => {
 
   test('keeps global tracking disabled for touch pointers', async () => {
     renderTutor()
-    const launcher = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
+    const launcher = screen.getByRole('button', { name: 'Mở Én' })
     const mascot = screen.getByTestId('lumen-scholar-mascot')
     launcher.getBoundingClientRect = () => ({ left: 100, top: 100, width: 80, height: 80 })
 
@@ -144,18 +144,18 @@ describe('AI Tutor mascot launcher', () => {
     const user = userEvent.setup()
     writeGuestPreferences({ reduceMotion: 'reduce' })
     renderTutor()
-    const launcher = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
+    const launcher = screen.getByRole('button', { name: 'Mở Én' })
     fireEvent.pointerMove(launcher, { pointerType: 'touch', clientX: 999, clientY: 999 })
     expect(launcher).toHaveAttribute('data-pointer-direction', 'center')
     await user.click(launcher)
-    expect(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: 'Én' })).toBeInTheDocument()
   })
 
   test('keeps functional pupil direction when reduced motion is enabled', async () => {
     writeGuestPreferences({ reduceMotion: 'reduce' })
     renderTutor()
 
-    const launcher = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
+    const launcher = screen.getByRole('button', { name: 'Mở Én' })
     const mascot = screen.getByTestId('lumen-scholar-mascot')
     launcher.getBoundingClientRect = () => ({ left: 100, top: 100, width: 80, height: 80 })
 
@@ -169,7 +169,7 @@ describe('AI Tutor mascot launcher', () => {
     vi.useFakeTimers()
     renderTutor()
 
-    const launcher = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
+    const launcher = screen.getByRole('button', { name: 'Mở Én' })
     const mascot = screen.getByTestId('lumen-scholar-mascot')
     expect(mascot).toHaveAttribute('data-idle-blink', 'open')
 
@@ -183,7 +183,7 @@ describe('AI Tutor mascot launcher', () => {
     vi.useFakeTimers()
     renderTutor()
 
-    const launcher = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
+    const launcher = screen.getByRole('button', { name: 'Mở Én' })
     const mascot = screen.getByTestId('lumen-scholar-mascot')
     expect(mascot).toHaveAttribute('data-expression', 'neutral')
 
@@ -199,10 +199,10 @@ describe('AI Tutor mascot launcher', () => {
     writeGuestPreferences({ proactiveAiEnabled: true })
     renderTutor()
 
-    expect(screen.queryByRole('button', { name: /Mở Trợ giảng AI: / })).not.toBeInTheDocument()
-    act(() => vi.advanceTimersByTime(90000))
+    expect(screen.queryByRole('button', { name: /Mở Én: / })).not.toBeInTheDocument()
+    act(() => vi.advanceTimersByTime(18000))
 
-    expect(screen.getByRole('button', { name: 'Mở Trợ giảng AI: Học đi bạn ê 👀' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Mở Én: Học đi bạn ê 👀' })).toBeInTheDocument()
   })
 
   test('suppresses reminder bubbles when proactive AI is disabled but keeps manual Tutor opening', async () => {
@@ -212,11 +212,11 @@ describe('AI Tutor mascot launcher', () => {
     renderTutor()
 
     act(() => vi.advanceTimersByTime(180000))
-    expect(screen.queryByRole('button', { name: /Mở Trợ giảng AI: / })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Mở Én: / })).not.toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Mở Én' }))
     act(() => vi.advanceTimersByTime(260))
-    expect(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: 'Én' })).toBeInTheDocument()
   })
 
   test('suppresses reminder bubbles while Tutor is open', () => {
@@ -224,11 +224,11 @@ describe('AI Tutor mascot launcher', () => {
     vi.spyOn(Math, 'random').mockReturnValue(0)
     renderTutor()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Mở Én' }))
     act(() => vi.advanceTimersByTime(260))
     act(() => vi.advanceTimersByTime(180000))
 
-    expect(screen.queryByRole('button', { name: /Mở Trợ giảng AI: / })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Mở Én: / })).not.toBeInTheDocument()
   })
 })
 
@@ -240,7 +240,7 @@ describe('premium UI polish', () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByRole('heading', { name: 'Bứt phá Band điểm IELTS cùng Trợ giảng AI Độc quyền' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Bứt phá Band điểm IELTS cùng Én Độc quyền' })).toBeInTheDocument()
     expect(screen.getByRole('search')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Làm bài Test đánh giá năng lực' })).toBeInTheDocument()
     expect(screen.getByTestId('hero-visual')).toHaveClass('hero-visual-large')

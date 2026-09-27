@@ -5,7 +5,7 @@ import FloatingTutor from '../components/tutor/FloatingTutor'
 describe('LUMEN Scholar', () => {
   test('connects bounded global pointer variables to both pupils and the subtle head reaction', async () => {
     render(<FloatingTutor />)
-    const launcher = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
+    const launcher = screen.getByRole('button', { name: 'Mở Én' })
     const mascot = screen.getByTestId('lumen-scholar-mascot')
     const pupils = mascot.querySelectorAll('.ai-tutor-mascot-pupil')
     const face = mascot.querySelector('.ai-tutor-mascot-face')

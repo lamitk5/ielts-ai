@@ -1,3 +1,5 @@
+import { ASSISTANT_NAME } from '../../features/tutor/assistantIdentity'
+
 const defaultPromptSuggestions = [
   'Giải thích lỗi Writing của tôi',
   'Vì sao đáp án Reading này sai?',
@@ -33,7 +35,7 @@ export function TutorQuickActions({ onSelectPrompt, suggestions = defaultPromptS
   if (validSuggestions.length === 0) return null
 
   return (
-    <div className="tutor-prompt-list" aria-label="Gợi ý cho Trợ giảng AI">
+    <div className="tutor-prompt-list" aria-label={`Gợi ý cho ${ASSISTANT_NAME}`}>
       {validSuggestions.map(({ label, prompt }) => (
         <button
           key={prompt}

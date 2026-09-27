@@ -94,10 +94,10 @@ function PreferenceControlGroup({ preferences, updatePreference }) {
       </fieldset>
 
       <fieldset className="settings-group settings-section">
-        <legend><span role="heading" aria-level="3">{translate('learning', 'Không gian học tập & AI Tutor')}</span></legend>
+        <legend><span role="heading" aria-level="3">{translate('learning', 'Không gian học tập & Én')}</span></legend>
         <label className="settings-switch">
-          <span>{translate('proactive', 'AI gợi ý chủ động')}</span>
-          <input aria-label={translate('proactive', 'AI gợi ý chủ động')} type="checkbox" checked={preferences.proactiveAiEnabled} onChange={(event) => updatePreference('proactiveAiEnabled', event.target.checked)} />
+          <span>{translate('proactive', 'Bật gợi ý chủ động từ Én')}</span>
+          <input aria-label={translate('proactive', 'Bật gợi ý chủ động từ Én')} type="checkbox" checked={preferences.proactiveAiEnabled} onChange={(event) => updatePreference('proactiveAiEnabled', event.target.checked)} />
         </label>
         <label className="settings-switch">
           <span>{translate('crossHighlight', 'Bật hiệu ứng sáng vùng lỗi sai (Cross-highlighting)')}</span>

@@ -11,7 +11,7 @@ import LumenLogo from './LumenLogo'
 const links = [
   { key: 'navHome', label: 'Trang chủ', to: '/' },
   { key: 'navSkills', label: '4 kỹ năng', to: '/#skills' },
-  { key: 'navTutor', label: 'Trợ giảng AI', to: '/#ai-tutor' },
+  { key: 'navTutor', label: 'Én', to: '/#ai-tutor' },
   { key: 'navProgress', label: 'Tiến độ', to: '/#progress' },
 ]
 

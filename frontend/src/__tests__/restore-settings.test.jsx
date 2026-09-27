@@ -118,7 +118,7 @@ describe('final Academic Luxury restore', () => {
     expect(within(density).getByRole('option', { name: 'Gọn' })).toBeInTheDocument()
     expect(within(dialog).getByRole('combobox', { name: 'Tỷ lệ chia Reading' })).toBeInTheDocument()
     expect(within(dialog).getByRole('combobox', { name: 'Tỷ lệ chia Writing' })).toBeInTheDocument()
-    expect(within(dialog).getByRole('checkbox', { name: 'AI gợi ý chủ động' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('checkbox', { name: 'Bật gợi ý chủ động từ Én' })).toBeInTheDocument()
     await userEvent.setup().selectOptions(density, 'compact')
     expect(document.documentElement).toHaveAttribute('data-density', 'compact')
     unmount()
@@ -133,9 +133,9 @@ describe('final Academic Luxury restore', () => {
         </PreferenceProvider>
       </MemoryRouter>,
     )
-    await user.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
-    await waitFor(() => expect(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).toBeInTheDocument())
-    expect(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Mở Én' }))
+    await waitFor(() => expect(screen.getByRole('dialog', { name: 'Én' })).toBeInTheDocument())
+    expect(screen.getByRole('dialog', { name: 'Én' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Giải thích lỗi Writing của tôi' })).not.toBeInTheDocument()
   })
 
@@ -145,11 +145,11 @@ describe('final Academic Luxury restore', () => {
         <FloatingTutor />
       </MemoryRouter>,
     )
-    const launcher = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
+    const launcher = screen.getByRole('button', { name: 'Mở Én' })
     fireEvent.click(launcher)
-    expect(screen.queryByRole('dialog', { name: 'Trợ giảng AI' })).not.toBeInTheDocument()
-    await waitFor(() => expect(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).toBeInTheDocument())
-    const dialog = screen.getByRole('dialog', { name: 'Trợ giảng AI' })
+    expect(screen.queryByRole('dialog', { name: 'Én' })).not.toBeInTheDocument()
+    await waitFor(() => expect(screen.getByRole('dialog', { name: 'Én' })).toBeInTheDocument())
+    const dialog = screen.getByRole('dialog', { name: 'Én' })
     expect(dialog.closest('.tutor-panel-layer')).toHaveClass('tutor-panel-layer-launching')
     await waitFor(() => expect(dialog.closest('.tutor-panel-layer')).not.toHaveClass('tutor-panel-layer-launching'))
   })
@@ -160,7 +160,7 @@ describe('final Academic Luxury restore', () => {
         <FloatingTutor />
       </MemoryRouter>,
     )
-    const launcher = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
+    const launcher = screen.getByRole('button', { name: 'Mở Én' })
     launcher.getBoundingClientRect = () => ({ left: 100, top: 100, width: 80, height: 80 })
     expect(screen.getByTestId('mascot-pupil-left')).toBeInTheDocument()
     fireEvent.pointerMove(launcher, { pointerType: 'mouse', clientX: 175, clientY: 140 })

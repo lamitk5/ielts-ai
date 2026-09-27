@@ -81,7 +81,7 @@ describe('auth fullscreen and approved settings panel', () => {
     await user.click(screen.getByRole('button', { name: 'Cài đặt' }))
     const dialog = screen.getByRole('dialog', { name: 'Cài đặt' })
 
-    for (const title of ['Giao diện & Hiển thị', 'Chuyển động & Trợ năng', 'Không gian học tập & AI Tutor']) {
+    for (const title of ['Giao diện & Hiển thị', 'Chuyển động & Trợ năng', 'Không gian học tập & Én']) {
       expect(within(dialog).getByRole('heading', { name: title })).toBeInTheDocument()
     }
     for (const label of ['Tối', 'Sáng', 'Theo hệ thống', 'Gold', 'Sapphire', 'Emerald', 'Burgundy', 'Violet', 'Slate', 'Thoáng', 'Tiêu chuẩn', 'Gọn']) {
@@ -91,7 +91,7 @@ describe('auth fullscreen and approved settings panel', () => {
     expect(within(dialog).getByRole('slider', { name: 'Cỡ chữ' })).toBeInTheDocument()
     expect(within(dialog).getByRole('combobox', { name: 'Ngôn ngữ' })).toHaveTextContent('Tiếng Việt')
     expect(within(dialog).getByRole('option', { name: 'English' })).toBeInTheDocument()
-    expect(within(dialog).getByRole('checkbox', { name: 'AI gợi ý chủ động' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('checkbox', { name: 'Bật gợi ý chủ động từ Én' })).toBeInTheDocument()
     expect(within(dialog).getByRole('checkbox', { name: 'Bật hiệu ứng sáng vùng lỗi sai (Cross-highlighting)' })).toBeInTheDocument()
     expect(within(dialog).getByRole('checkbox', { name: 'Hiển thị đồng hồ đếm ngược' })).toBeInTheDocument()
     expect(within(dialog).getAllByRole('combobox', { name: 'Tỷ lệ chia Reading' })[0].querySelectorAll('option')).toHaveLength(3)

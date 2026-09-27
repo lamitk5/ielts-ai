@@ -1,14 +1,15 @@
 import { normalizeTutorReferences } from '../features/tutor/tutorReferenceSchema'
+import { ASSISTANT_NAME } from '../features/tutor/assistantIdentity'
 
 export const MAX_HISTORY_MESSAGES = 8
 
 const ERROR_MESSAGES = {
-  AI_RATE_LIMITED: 'Trợ giảng AI đang nhận nhiều yêu cầu. Hãy thử lại sau một chút.',
-  AI_TEMPORARILY_UNAVAILABLE: 'Trợ giảng AI tạm thời chưa sẵn sàng.',
-  AI_TIMEOUT: 'Không thể kết nối tới Trợ giảng AI. Vui lòng thử lại.',
-  AI_PROVIDER_ERROR: 'Trợ giảng AI chưa thể trả lời lúc này. Vui lòng thử lại.',
+  AI_RATE_LIMITED: `${ASSISTANT_NAME} đang nhận nhiều yêu cầu. Hãy thử lại sau một chút.`,
+  AI_TEMPORARILY_UNAVAILABLE: `${ASSISTANT_NAME} tạm thời chưa sẵn sàng.`,
+  AI_TIMEOUT: `Không thể kết nối tới ${ASSISTANT_NAME}. Vui lòng thử lại.`,
+  AI_PROVIDER_ERROR: `${ASSISTANT_NAME} chưa thể trả lời lúc này. Vui lòng thử lại.`,
   AI_INVALID_REQUEST: 'Câu hỏi chưa hợp lệ. Vui lòng thử lại với nội dung rõ hơn.',
-  AUTH_REQUIRED: 'Vui lòng đăng nhập để sử dụng Trợ giảng AI.',
+  AUTH_REQUIRED: `Vui lòng đăng nhập để sử dụng ${ASSISTANT_NAME}.`,
 }
 
 function getAuthHeaders() {
@@ -106,7 +107,7 @@ export async function sendTutorMessage({ message, context = { skill: 'GENERAL' }
   } catch (error) {
     if (error instanceof AiTutorApiError) throw error
     if (error?.name === 'AbortError') throw new AiTutorApiError('AI_TIMEOUT', ERROR_MESSAGES.AI_TIMEOUT)
-    throw new AiTutorApiError('AI_TEMPORARILY_UNAVAILABLE', 'Không thể kết nối tới Trợ giảng AI. Vui lòng thử lại.')
+    throw new AiTutorApiError('AI_TEMPORARILY_UNAVAILABLE', `Không thể kết nối tới ${ASSISTANT_NAME}. Vui lòng thử lại.`)
   } finally {
     window.clearTimeout(timeoutId)
     removeAbortListener()

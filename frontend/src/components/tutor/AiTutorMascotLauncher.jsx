@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useEffectiveReducedMotion } from '../../features/preferences/PreferenceProvider'
+import { ASSISTANT_NAME } from '../../features/tutor/assistantIdentity'
 import LumenScholarMascot from './LumenScholarMascot'
 
 function getPointerDirection(rect, clientX, clientY) {
@@ -17,14 +18,16 @@ const HEAD_ROTATION = 2.5
 const TRACKING_DISTANCE = 180
 const REMINDER_LINES = [
   'Học đi bạn ê 👀',
-  'Biết là bận rồi… nhưng chú ý tao một chút.',
+  `Biết là bận rồi… nhưng chú ý ${ASSISTANT_NAME} một chút.`,
   'Hmmm…',
   'Làm thêm 1 bài nữa thôi.',
   'Ê, Reading đang đợi kìa.',
-  'Đừng bỏ tao ở góc này chứ 🥲',
-  'Tao nhớ mày rồi đấy.',
-  'Nhìn tao một chút đi.',
-  'Cần tao gợi ý bài tiếp theo không?',
+  `Đừng bỏ ${ASSISTANT_NAME} ở góc này chứ 🥲`,
+  `${ASSISTANT_NAME} nhớ bạn rồi đấy.`,
+  `Nhìn ${ASSISTANT_NAME} một chút đi.`,
+  `Cần ${ASSISTANT_NAME} gợi ý bài tiếp theo không?`,
+  '20 giây rồi đấy… học tí nào.',
+  `${ASSISTANT_NAME} vẫn đang nhìn đấy nhé 👀`,
 ]
 
 function getTrackingVector(rect, clientX, clientY) {
@@ -92,7 +95,7 @@ function AiTutorMascotLauncher({ onClick, buttonRef, open = false, proactiveAiEn
     let disposed = false
 
     function scheduleReminder() {
-      const delay = 90000 + Math.round(Math.random() * 90000)
+      const delay = 18000 + Math.round(Math.random() * 6000)
       reminderTimerRef.current = window.setTimeout(() => {
         if (disposed) return
         const line = REMINDER_LINES[Math.floor(Math.random() * REMINDER_LINES.length)]
@@ -133,7 +136,7 @@ function AiTutorMascotLauncher({ onClick, buttonRef, open = false, proactiveAiEn
         <button
           className="ai-tutor-mascot-reminder"
           type="button"
-          aria-label={`Mở Trợ giảng AI: ${reminder}`}
+          aria-label={`Mở ${ASSISTANT_NAME}: ${reminder}`}
           aria-live="polite"
           onClick={handleClick}
         >
@@ -144,7 +147,7 @@ function AiTutorMascotLauncher({ onClick, buttonRef, open = false, proactiveAiEn
         ref={buttonRef}
         className={`ai-tutor-mascot-launcher ${isActivating ? 'ai-tutor-mascot-launcher-activating' : ''} ${open && isActivating ? 'ai-tutor-mascot-launcher-open-reaction' : ''}`.trim()}
         type="button"
-        aria-label="Mở Trợ giảng AI"
+        aria-label={`Mở ${ASSISTANT_NAME}`}
         aria-expanded={open}
         aria-controls="tutor-dialog"
         aria-hidden={open ? 'true' : undefined}
@@ -155,7 +158,7 @@ function AiTutorMascotLauncher({ onClick, buttonRef, open = false, proactiveAiEn
         onClick={handleClick}
       >
         <LumenScholarMascot prefersReducedMotion={prefersReducedMotion} isBlinking={isActivating} />
-        <span className="ai-tutor-mascot-tooltip" role="tooltip">Trợ giảng AI</span>
+        <span className="ai-tutor-mascot-tooltip" role="tooltip">{ASSISTANT_NAME}</span>
       </button>
     </>
   )

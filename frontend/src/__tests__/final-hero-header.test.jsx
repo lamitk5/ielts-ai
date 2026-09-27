@@ -16,7 +16,7 @@ describe('final hero and LUMEN header polish', () => {
   test('renders a full-bleed bookshelf hero with an explicit light/dark theme state', () => {
     renderApp()
 
-    const hero = screen.getByRole('region', { name: 'Bứt phá Band điểm IELTS cùng Trợ giảng AI Độc quyền' })
+    const hero = screen.getByRole('region', { name: 'Bứt phá Band điểm IELTS cùng Én Độc quyền' })
     expect(hero).toHaveClass('hero-section-full-bleed')
     expect(screen.getByTestId('hero-bookshelf-background')).toHaveAttribute('data-full-bleed', 'true')
     expect(document.documentElement).toHaveAttribute('data-theme', 'light')

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 const footerLinks = [
   { label: 'Trang chủ', to: '/' },
   { label: '4 kỹ năng', to: '/#skills' },
-  { label: 'Trợ giảng AI', to: '/#ai-tutor' },
+  { label: 'Én', to: '/#ai-tutor' },
   { label: 'Tiến độ', to: '/#progress' },
 ]
 
@@ -16,7 +16,7 @@ function Footer() {
             IELTS AI Tutor
           </Link>
           <p className="footer-description">
-            Trợ giảng AI hỗ trợ luyện tập Reading, Listening, Writing và Speaking.
+            Én hỗ trợ luyện tập Reading, Listening, Writing và Speaking.
           </p>
         </div>
         <nav aria-label="Footer navigation" className="footer-links">

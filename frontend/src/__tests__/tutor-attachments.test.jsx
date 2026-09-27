@@ -306,7 +306,7 @@ describe('AttachmentComposer and TutorComposer integration', () => {
       />,
     )
 
-    const input = screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' })
+    const input = screen.getByRole('textbox', { name: 'Tin nhắn cho Én' })
     await user.type(input, 'Nhận xét bài luận giúp tôi')
 
     const sendBtn = screen.getByRole('button', { name: 'Gửi câu hỏi' })
@@ -335,7 +335,7 @@ describe('AttachmentComposer and TutorComposer integration', () => {
       />,
     )
 
-    const input = screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' })
+    const input = screen.getByRole('textbox', { name: 'Tin nhắn cho Én' })
     await user.type(input, 'Tệp này dùng được không?')
     await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }))
 

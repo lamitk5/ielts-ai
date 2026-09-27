@@ -1,5 +1,6 @@
 import { Maximize2, Minimize2, X } from 'lucide-react'
 import { useEffect } from 'react'
+import { ASSISTANT_NAME } from '../../features/tutor/assistantIdentity'
 import ContextBadge from './ContextBadge'
 import TutorComposer from './TutorComposer'
 import TutorMessageList from './TutorMessageList'
@@ -89,14 +90,14 @@ export function TutorShell({
       role="dialog"
       aria-modal="true"
       aria-labelledby="tutor-dialog-title"
-      aria-label="Trợ giảng AI"
+      aria-label={ASSISTANT_NAME}
       aria-busy={loading}
     >
       <header className="tutor-panel-header">
         <div>
           <p className="progress-card-kicker">SẴN SÀNG HỖ TRỢ</p>
           <h2 id="tutor-dialog-title" className="font-display">
-            Trợ giảng AI
+            {ASSISTANT_NAME}
           </h2>
         </div>
         <div className="tutor-header-actions">
@@ -121,7 +122,7 @@ export function TutorShell({
           <button
             className="tutor-close-button"
             type="button"
-            aria-label="Đóng Trợ giảng AI"
+            aria-label={`Đóng ${ASSISTANT_NAME}`}
             onClick={onClose}
           >
             <X aria-hidden="true" size={19} />

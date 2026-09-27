@@ -107,9 +107,9 @@ describe('deterministic practice routes', () => {
     )
 
     await user.click(screen.getByLabelText('B. To improve recall'))
-    await user.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
-    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' })).toBeInTheDocument())
-    await user.type(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' }), 'Vì sao đáp án này đúng?')
+    await user.click(screen.getByRole('button', { name: 'Mở Én' }))
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Tin nhắn cho Én' })).toBeInTheDocument())
+    await user.type(screen.getByRole('textbox', { name: 'Tin nhắn cho Én' }), 'Vì sao đáp án này đúng?')
     await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }))
 
     const tutorCall = global.fetch.mock.calls.find(([url]) => url === '/api/ai/chat')

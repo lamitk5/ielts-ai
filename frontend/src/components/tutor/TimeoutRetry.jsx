@@ -1,12 +1,13 @@
 import { AlertCircle, RefreshCw, X } from 'lucide-react'
 import Button from '../common/Button'
+import { ASSISTANT_NAME } from '../../features/tutor/assistantIdentity'
 
 export function TimeoutRetry({ message, onRetry, onCancel }) {
   return (
     <div className="tutor-timeout-retry" role="alert">
       <div className="tutor-timeout-header">
         <AlertCircle size={16} aria-hidden="true" className="tutor-timeout-icon" />
-        <p className="tutor-timeout-message">{message || 'Không thể kết nối tới Trợ giảng AI. Vui lòng thử lại.'}</p>
+        <p className="tutor-timeout-message">{message || `Không thể kết nối tới ${ASSISTANT_NAME}. Vui lòng thử lại.`}</p>
       </div>
       <div className="tutor-timeout-actions">
         {onRetry ? (

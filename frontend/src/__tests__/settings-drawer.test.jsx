@@ -93,7 +93,7 @@ describe('Settings drawer', () => {
     expect(document.documentElement.style.getPropertyValue('--accent')).toBe('#216c56')
     expect(within(dialog).getByText(/Màu nhấn: Emerald/)).toBeInTheDocument()
     await user.selectOptions(within(dialog).getByRole('combobox', { name: 'Tỷ lệ chia Reading' }), '50')
-    await user.click(within(dialog).getByRole('checkbox', { name: 'AI gợi ý chủ động' }))
+    await user.click(within(dialog).getByRole('checkbox', { name: 'Bật gợi ý chủ động từ Én' }))
     await user.click(within(dialog).getByRole('button', { name: 'Khôi phục mặc định' }))
     expect(within(dialog).getByRole('group', { name: 'Xác nhận khôi phục' })).toBeInTheDocument()
     expect(within(dialog).getByRole('button', { name: 'Hủy' })).toHaveFocus()
@@ -105,7 +105,7 @@ describe('Settings drawer', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Xác nhận khôi phục' }))
     expect(accent).toHaveValue('gold')
     expect(within(dialog).getByRole('combobox', { name: 'Tỷ lệ chia Reading' })).toHaveValue('40')
-    expect(within(dialog).getByRole('checkbox', { name: 'AI gợi ý chủ động' })).not.toBeChecked()
+    expect(within(dialog).getByRole('checkbox', { name: 'Bật gợi ý chủ động từ Én' })).not.toBeChecked()
   })
 
   test('live preview includes theme selection and animation preference', async () => {
@@ -142,7 +142,7 @@ describe('Settings drawer', () => {
     await user.selectOptions(within(dialog).getByRole('combobox', { name: 'Ngôn ngữ' }), 'en')
     const englishDialog = screen.getByRole('dialog', { name: 'Settings' })
     expect(within(englishDialog).getByText(/Preview:/)).toBeInTheDocument()
-    expect(within(englishDialog).getByRole('group', { name: 'Learning Space & AI Tutor' })).toBeInTheDocument()
+    expect(within(englishDialog).getByRole('group', { name: 'Learning Space & Én' })).toBeInTheDocument()
     expect(within(englishDialog).getByRole('button', { name: 'Choose accent color Gold' })).toBeInTheDocument()
     expect(within(englishDialog).getByRole('button', { name: 'Restore defaults' })).toBeInTheDocument()
     expect(within(englishDialog).queryByText('Xem trước:')).not.toBeInTheDocument()
@@ -153,7 +153,7 @@ describe('Settings drawer', () => {
     renderNavbar()
     await user.click(screen.getByRole('button', { name: 'Cài đặt' }))
     const dialog = screen.getByRole('dialog', { name: 'Cài đặt' })
-    for (const label of ['Giao diện & Hiển thị', 'Chuyển động & Trợ năng', 'Không gian học tập & AI Tutor', 'Đặt lại']) {
+    for (const label of ['Giao diện & Hiển thị', 'Chuyển động & Trợ năng', 'Không gian học tập & Én', 'Đặt lại']) {
       expect(within(dialog).getByText(label, { selector: 'legend, h3, [role="heading"]' })).toBeInTheDocument()
     }
     for (const label of ['Theo hệ thống', 'Sáng', 'Tối', 'Gold', 'Sapphire', 'Emerald', 'Burgundy', 'Violet', 'Slate']) {

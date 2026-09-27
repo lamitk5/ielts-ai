@@ -46,7 +46,7 @@ describe('app shell and routing', () => {
     expect(screen.queryByText(/member demo/i)).not.toBeInTheDocument()
     expect(
       screen.getByRole('heading', {
-        name: 'Bứt phá Band điểm IELTS cùng Trợ giảng AI Độc quyền',
+        name: 'Bứt phá Band điểm IELTS cùng Én Độc quyền',
       }),
     ).toBeInTheDocument()
     expect(memberDemo.user.firstName).toBe('Đăng')
@@ -97,14 +97,14 @@ describe('app shell and routing', () => {
     const user = userEvent.setup()
     renderApp('/practice/writing')
 
-    const tutorBtn = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
+    const tutorBtn = screen.getByRole('button', { name: 'Mở Én' })
     await user.click(tutorBtn)
 
-    await waitFor(() => expect(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).toBeInTheDocument())
-    const dialog = screen.getByRole('dialog', { name: 'Trợ giảng AI' })
+    await waitFor(() => expect(screen.getByRole('dialog', { name: 'Én' })).toBeInTheDocument())
+    const dialog = screen.getByRole('dialog', { name: 'Én' })
     expect(dialog).toBeInTheDocument()
     expect(within(dialog).getByRole('link', { name: 'Đăng nhập' })).toBeInTheDocument()
-    expect(screen.queryByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('textbox', { name: 'Tin nhắn cho Én' })).not.toBeInTheDocument()
   })
 
   test('mobile navigation and settings drawer coordinate open states without conflicting', async () => {

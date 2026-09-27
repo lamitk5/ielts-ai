@@ -28,7 +28,7 @@ export function AuthGate({ children, reason, returnTo, forceGate = false }) {
     <div className="auth-gate-card">
       <div className="auth-gate-content">
         <p className="auth-gate-kicker">TÀI KHOẢN HỌC VIÊN</p>
-        <h3 className="auth-gate-title font-display">Tham gia cùng IELTS AI Tutor</h3>
+        <h3 className="auth-gate-title font-display">Tham gia cùng Én</h3>
         <p className="auth-gate-reason">
           {reason || 'Cần tài khoản thành viên để nhận hỗ trợ cá nhân hóa theo bài học và lưu lại tiến độ.'}
         </p>

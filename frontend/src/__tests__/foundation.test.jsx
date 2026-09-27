@@ -24,13 +24,13 @@ describe('frontend foundation', () => {
     ).toBeInTheDocument()
     expect(
       screen.getByRole('heading', {
-        name: 'Bứt phá Band điểm IELTS cùng Trợ giảng AI Độc quyền',
+        name: 'Bứt phá Band điểm IELTS cùng Én Độc quyền',
       }),
     ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Làm bài Test đánh giá năng lực' })).toBeEnabled()
     expect(
       within(screen.getByRole('region', {
-        name: 'Bứt phá Band điểm IELTS cùng Trợ giảng AI Độc quyền',
+        name: 'Bứt phá Band điểm IELTS cùng Én Độc quyền',
       })).getByText(/Reading, Listening, Writing và Speaking/),
     ).toBeInTheDocument()
     expect(screen.getByRole('contentinfo')).toBeInTheDocument()

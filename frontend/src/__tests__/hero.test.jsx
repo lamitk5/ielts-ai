@@ -21,12 +21,12 @@ describe('premium hero', () => {
     expect(screen.queryByText(/guest mode/i)).not.toBeInTheDocument()
     expect(
       screen.getByRole('heading', {
-        name: 'Bứt phá Band điểm IELTS cùng Trợ giảng AI Độc quyền',
+        name: 'Bứt phá Band điểm IELTS cùng Én Độc quyền',
       }),
     ).toBeInTheDocument()
     expect(
       within(screen.getByRole('region', {
-        name: 'Bứt phá Band điểm IELTS cùng Trợ giảng AI Độc quyền',
+        name: 'Bứt phá Band điểm IELTS cùng Én Độc quyền',
       })).getByText(/Reading, Listening, Writing và Speaking/),
     ).toBeInTheDocument()
     expect(screen.getByRole('search')).toBeInTheDocument()
@@ -43,7 +43,7 @@ describe('premium hero', () => {
   test('uses the compact editorial hero layout contract', () => {
     renderApp()
 
-    const hero = screen.getByRole('region', { name: 'Bứt phá Band điểm IELTS cùng Trợ giảng AI Độc quyền' })
+    const hero = screen.getByRole('region', { name: 'Bứt phá Band điểm IELTS cùng Én Độc quyền' })
     expect(hero).toHaveClass('hero-section', 'hero-editorial')
     expect(screen.getByRole('search')).toHaveClass('hero-search')
     expect(screen.getByRole('heading', { level: 1 })).toHaveClass('hero-title')
@@ -129,7 +129,7 @@ describe('premium hero', () => {
 
     expect(
       screen.getByRole('heading', {
-        name: 'Bứt phá Band điểm IELTS cùng Trợ giảng AI Độc quyền',
+        name: 'Bứt phá Band điểm IELTS cùng Én Độc quyền',
       }),
     ).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: 'Tìm nội dung luyện tập IELTS' })).toBeInTheDocument()

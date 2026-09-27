@@ -12,9 +12,9 @@ async function send(response) {
   global.fetch.mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({ ...base, ...response }) })
   const user = userEvent.setup()
   render(<FloatingTutor />)
-  await user.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
-  await waitFor(() => expect(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' })).toBeInTheDocument())
-  await user.type(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' }), 'Explain this rubric')
+  await user.click(screen.getByRole('button', { name: 'Mở Én' }))
+  await waitFor(() => expect(screen.getByRole('textbox', { name: 'Tin nhắn cho Én' })).toBeInTheDocument())
+  await user.type(screen.getByRole('textbox', { name: 'Tin nhắn cho Én' }), 'Explain this rubric')
   await user.keyboard('{Enter}')
   return waitFor(() => screen.getByText(response.answer))
 }
@@ -23,10 +23,10 @@ describe('Tutor RAG citations', () => {
   test('opens a viewport-safe Tutor shell for mobile-sized surfaces', async () => {
     const user = userEvent.setup()
     render(<FloatingTutor />)
-    await user.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
+    await user.click(screen.getByRole('button', { name: 'Mở Én' }))
 
-    await waitFor(() => expect(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).toBeInTheDocument())
-    expect(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).toHaveClass('tutor-shell-viewport-safe')
+    await waitFor(() => expect(screen.getByRole('dialog', { name: 'Én' })).toBeInTheDocument())
+    expect(screen.getByRole('dialog', { name: 'Én' })).toHaveClass('tutor-shell-viewport-safe')
   })
 
   test('renders real title, section and page citation', async () => {

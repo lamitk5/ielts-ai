@@ -1,5 +1,6 @@
 import { Send, X } from 'lucide-react'
 import { useState } from 'react'
+import { ASSISTANT_NAME } from '../../features/tutor/assistantIdentity'
 import Button from '../common/Button'
 import AttachmentComposer from './AttachmentComposer'
 import AttachmentStatus from './AttachmentStatus'
@@ -53,7 +54,7 @@ export function TutorComposer({
           hasActiveAttachment={Boolean(attachment)}
         />
         <label className="sr-only" htmlFor="tutor-input">
-          Tin nhắn cho Trợ giảng AI
+          Tin nhắn cho {ASSISTANT_NAME}
         </label>
         <input
           id="tutor-input"
