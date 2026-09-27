@@ -142,6 +142,20 @@ describe('AI Tutor mascot launcher', () => {
     await user.click(launcher)
     expect(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).toBeInTheDocument()
   })
+
+  test('keeps functional pupil direction when reduced motion is enabled', async () => {
+    writeGuestPreferences({ reduceMotion: 'reduce' })
+    renderTutor()
+
+    const launcher = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
+    const mascot = screen.getByTestId('lumen-scholar-mascot')
+    launcher.getBoundingClientRect = () => ({ left: 100, top: 100, width: 80, height: 80 })
+
+    fireEvent.pointerMove(window, { pointerType: 'mouse', clientX: 0, clientY: 0 })
+
+    await waitFor(() => expect(Number.parseFloat(mascot.style.getPropertyValue('--mascot-pupil-x'))).toBeLessThan(0))
+    expect(Number.parseFloat(mascot.style.getPropertyValue('--mascot-pupil-y'))).toBeLessThan(0)
+  })
 })
 
 describe('premium UI polish', () => {

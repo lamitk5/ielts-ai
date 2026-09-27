@@ -35,7 +35,7 @@ function AiTutorMascotLauncher({ onClick, buttonRef, open = false }) {
 
   useEffect(() => {
     function handleGlobalPointerMove(event) {
-      if (prefersReducedMotion || (event.pointerType && event.pointerType !== 'mouse' && event.pointerType !== 'pen')) return
+      if (event.pointerType && event.pointerType !== 'mouse' && event.pointerType !== 'pen') return
       pendingPointerRef.current = { clientX: event.clientX, clientY: event.clientY }
       if (frameRef.current) return
       frameRef.current = requestAnimationFrame(() => {
