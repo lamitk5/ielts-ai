@@ -28,7 +28,7 @@ describe('Academic Luxury 2.0 accessibility and responsive matrix', () => {
     const dialog = screen.getByRole('dialog', { name: 'Cài đặt' })
 
     await user.click(within(dialog).getByRole('button', { name: 'Sáng' }))
-    expect(document.documentElement.style.getPropertyValue('--bg-page')).toBe('#f5f7fa')
+    expect(document.documentElement.style.getPropertyValue('--bg-page')).toBe('#f3ecdf')
     await user.click(within(dialog).getByRole('checkbox', { name: 'Cho phép hiệu ứng giao diện (Animation)' }))
     expect(document.documentElement).toHaveAttribute('data-reduced-motion', 'true')
     await user.keyboard('{Escape}')

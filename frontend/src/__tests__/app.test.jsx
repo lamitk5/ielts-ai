@@ -146,7 +146,7 @@ describe('app shell and routing', () => {
     await user.click(screen.getByRole('button', { name: 'Cài đặt' }))
     const dialog = screen.getByRole('dialog', { name: 'Cài đặt' })
     await user.click(within(dialog).getByRole('button', { name: 'Sáng' }))
-    expect(document.documentElement.style.getPropertyValue('--bg-page')).toBe('#f5f7fa')
+    expect(document.documentElement.style.getPropertyValue('--bg-page')).toBe('#f3ecdf')
     await user.click(within(dialog).getByRole('button', { name: 'Tối' }))
     expect(document.documentElement.style.getPropertyValue('--bg-page')).toBe('#060b16')
     await user.click(within(dialog).getByRole('checkbox', { name: 'Cho phép hiệu ứng giao diện (Animation)' }))

@@ -116,7 +116,7 @@ describe('preference foundation', () => {
 
   test('uses a readable focus token on the light surface', () => {
     applyPreferenceTokens({ themeMode: 'light', accentPreset: 'gold' })
-    expect(document.documentElement.style.getPropertyValue('--focus')).toBe('#8a6426')
+    expect(document.documentElement.style.getPropertyValue('--focus')).toBe('#7a591f')
   })
 
   test('keeps text, control boundaries, action fills, and chart marks readable for every preset in both themes', () => {
@@ -203,7 +203,7 @@ describe('preference foundation', () => {
     const motion = mediaQuery(false)
     vi.stubGlobal('matchMedia', (query) => query.includes('color-scheme') ? color : motion)
     const { unmount } = render(<PreferenceProvider><span>Preferences</span></PreferenceProvider>)
-    expect(token('--background')).toBe('#f5f7fa')
+    expect(token('--background')).toBe('#f3ecdf')
     act(() => color.change(true))
     expect(token('--background')).toBe('#060b16')
     act(() => motion.change(true))

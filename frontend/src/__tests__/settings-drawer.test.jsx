@@ -209,6 +209,6 @@ describe('Settings drawer', () => {
     await user.click(screen.getByRole('button', { name: 'Mở menu tài khoản' }))
     await user.click(screen.getByRole('menuitem', { name: 'Đăng xuất' }))
     await waitFor(() => expect(screen.getByRole('link', { name: 'Đăng nhập' })).toBeInTheDocument())
-    expect(document.documentElement.style.getPropertyValue('--accent')).toBe('#8a6426')
+    expect(document.documentElement.style.getPropertyValue('--accent')).toBe('#7a591f')
   })
 })
