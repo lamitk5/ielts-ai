@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -22,6 +23,8 @@ import com.ieltsaitutor.practice.generator.domain.PracticeGenerationJob;
 import com.ieltsaitutor.practice.generator.repository.PracticeGenerationRepository;
 import com.ieltsaitutor.practice.generator.repository.PracticeProvenanceRepository;
 import com.ieltsaitutor.practice.repository.DatabasePracticeCatalogStore;
+import com.ieltsaitutor.practice.catalog.PracticePublication;
+import com.ieltsaitutor.practice.catalog.PracticePublicationRepository;
 
 @Service
 public class DefaultPracticeBankHydrationService implements PracticeBankHydrationService {
@@ -29,15 +32,26 @@ public class DefaultPracticeBankHydrationService implements PracticeBankHydratio
     private final DatabasePracticeCatalogStore catalogStore;
     private final PracticeProvenanceRepository provenanceRepository;
     private final PracticeGenerationRepository generationRepository;
+    private final PracticePublicationRepository publicationRepository;
     private final ObjectMapper mapper;
 
     public DefaultPracticeBankHydrationService(
             DatabasePracticeCatalogStore catalogStore,
             PracticeProvenanceRepository provenanceRepository,
             PracticeGenerationRepository generationRepository) {
+        this(catalogStore, provenanceRepository, generationRepository, null);
+    }
+
+    @Autowired
+    public DefaultPracticeBankHydrationService(
+            DatabasePracticeCatalogStore catalogStore,
+            PracticeProvenanceRepository provenanceRepository,
+            PracticeGenerationRepository generationRepository,
+            PracticePublicationRepository publicationRepository) {
         this.catalogStore = catalogStore;
         this.provenanceRepository = provenanceRepository;
         this.generationRepository = generationRepository;
+        this.publicationRepository = publicationRepository;
         this.mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
@@ -86,6 +100,18 @@ public class DefaultPracticeBankHydrationService implements PracticeBankHydratio
         );
 
         catalogStore.save(studentSet);
+
+        if (publicationRepository != null) {
+            publicationRepository.save(new PracticePublication(
+                    publishedSetId,
+                    set.id(),
+                    version.id(),
+                    set.skill().name().toLowerCase(),
+                    true,
+                    version.versionNumber(),
+                    set.id().toString() + ":" + version.id(),
+                    Instant.now()));
+        }
 
         UUID bpId = null;
         if (set.jobId() != null) {
