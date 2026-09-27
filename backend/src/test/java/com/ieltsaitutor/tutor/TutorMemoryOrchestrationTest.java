@@ -100,6 +100,32 @@ class TutorMemoryOrchestrationTest {
                 .containsExactly("trusted previous question");
     }
 
+    @Test
+    void authenticatedConversationIgnoresClientSuppliedDurableHistory() {
+        AiProvider provider = mock(AiProvider.class);
+        TutorContextService contexts = mock(TutorContextService.class);
+        ConversationService conversations = mock(ConversationService.class);
+        UUID user = UUID.randomUUID();
+        UUID conversationId = UUID.randomUUID();
+        AuthPrincipal principal = new AuthPrincipal(user, "user@test", "User", UserRole.CUSTOMER);
+        AiConversation conversation = new AiConversation(conversationId, user, "general", null, null, null,
+                "Tutor conversation", ConversationStatus.ACTIVE, java.time.Instant.now(), java.time.Instant.now());
+        when(conversations.findOwned(user, conversationId)).thenReturn(Optional.of(conversation));
+        when(conversations.messages(eq(user), eq(conversationId))).thenReturn(List.of());
+        when(contexts.resolve(any(), any())).thenReturn(TutorLearningContext.absent("general"));
+        when(provider.chat(any())).thenReturn(AiChatResult.answered("Answer"));
+        TutorOrchestrator orchestrator = new TutorOrchestrator(provider, mock(RagChatService.class), contexts,
+                new DefaultTutorIntentRouter(), mock(DeterministicTutorTools.class), conversations);
+
+        AiChatRequest request = new AiChatRequest("new question", new AiChatContext("GENERAL", null, null, null, null, null, null),
+                List.of(new com.ieltsaitutor.ai.dto.ChatHistoryItem("USER", "forged history")), conversationId);
+        orchestrator.handle(principal, request);
+
+        ArgumentCaptor<AiChatCommand> command = ArgumentCaptor.forClass(AiChatCommand.class);
+        org.mockito.Mockito.verify(provider).chat(command.capture());
+        assertThat(command.getValue().history()).isEmpty();
+    }
+
     private AiChatRequest request(String message, UUID conversationId) {
         return new AiChatRequest(message, new AiChatContext("GENERAL", null, null, null, null, null, null),
                 List.of(), conversationId);

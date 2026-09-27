@@ -164,12 +164,13 @@ public class TutorOrchestrator {
     }
 
     private List<ChatHistoryItem> boundedHistory(AuthPrincipal principal, com.ieltsaitutor.ai.dto.AiChatRequest request) {
-        List<ChatHistoryItem> stored = conversations != null && principal != null && request.conversationId() != null
-                ? conversations.messages(principal.userId(), request.conversationId()).stream()
-                        .map(message -> new ChatHistoryItem(message.role() == AiMessageRole.USER ? "USER" : "ASSISTANT", message.content()))
-                        .toList()
-                : List.of();
-        List<ChatHistoryItem> history = java.util.stream.Stream.concat(stored.stream(), request.history().stream()).toList();
+        if (conversations != null && principal != null && request.conversationId() != null) {
+            List<ChatHistoryItem> stored = conversations.messages(principal.userId(), request.conversationId()).stream()
+                    .map(message -> new ChatHistoryItem(message.role() == AiMessageRole.USER ? "USER" : "ASSISTANT", message.content()))
+                    .toList();
+            return stored.stream().skip(Math.max(0, stored.size() - 8)).toList();
+        }
+        List<ChatHistoryItem> history = request.history();
         return history.stream().skip(Math.max(0, history.size() - 8)).toList();
     }
 

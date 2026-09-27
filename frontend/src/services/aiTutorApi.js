@@ -29,6 +29,30 @@ export class AiTutorApiError extends Error {
   }
 }
 
+export async function loadLatestTutorConversation(options = {}) {
+  const headers = { ...getAuthHeaders() }
+  const listResponse = await fetch('/api/ai/conversations', { headers, signal: options.signal })
+  if (!listResponse.ok) return null
+  const conversations = await listResponse.json().catch(() => [])
+  const latest = Array.isArray(conversations)
+    ? conversations.find((conversation) => conversation?.status !== 'ARCHIVED')
+    : null
+  if (!latest?.id) return null
+
+  const detailResponse = await fetch(`/api/ai/conversations/${latest.id}`, { headers, signal: options.signal })
+  if (!detailResponse.ok) return null
+  const detail = await detailResponse.json().catch(() => null)
+  const messages = Array.isArray(detail?.messages)
+    ? detail.messages.map((message) => ({
+      id: message.id || `history-${Date.now()}-${Math.random()}`,
+      role: String(message.role || '').toUpperCase() === 'USER' ? 'user' : 'assistant',
+      content: typeof message.content === 'string' ? message.content : '',
+      status: message.responseStatus || undefined,
+    })).filter((message) => message.content)
+    : []
+  return { conversationId: latest.id, messages }
+}
+
 export async function sendTutorMessage({ message, context = { skill: 'GENERAL' }, history = [], conversationId = null }, options = {}) {
   const controller = new AbortController()
   const timeout = options.timeoutMs ?? 20000
@@ -48,8 +72,9 @@ export async function sendTutorMessage({ message, context = { skill: 'GENERAL' }
       body: JSON.stringify({
         message,
         context,
-        history: history.slice(-MAX_HISTORY_MESSAGES),
-        ...(conversationId ? { conversationId } : {}),
+        ...(conversationId
+          ? { conversationId }
+          : { history: history.slice(-MAX_HISTORY_MESSAGES) }),
       }),
       signal: controller.signal,
     })

@@ -7,7 +7,7 @@ import { SHELL_STATES } from './TutorShell'
 import AuthGate from '../auth/AuthGate'
 import { useOptionalAuth } from '../../features/auth/AuthProvider'
 import { useOptionalPreferences } from '../../features/preferences/PreferenceProvider'
-import { MAX_HISTORY_MESSAGES, sendTutorMessage } from '../../services/aiTutorApi'
+import { loadLatestTutorConversation, sendTutorMessage } from '../../services/aiTutorApi'
 import { uploadAttachment } from '../../services/tutorAttachmentsApi'
 
 const welcomeMessage = {
@@ -50,7 +50,15 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
     setMessages([welcomeMessage])
     setConversationId(null)
     setSessionExpired(false)
-  }, [accountKey])
+    if (!auth?.isAuthenticated) return undefined
+    const controller = new AbortController()
+    loadLatestTutorConversation({ signal: controller.signal }).then((conversation) => {
+      if (!conversation || controller.signal.aborted || !mountedRef.current) return
+      setConversationId(conversation.conversationId)
+      setMessages(conversation.messages.length > 0 ? conversation.messages : [welcomeMessage])
+    }).catch(() => {})
+    return () => controller.abort()
+  }, [accountKey, auth?.isAuthenticated])
 
   const isGuest = Boolean(auth && !auth.isAuthenticated) || sessionExpired
 
@@ -196,10 +204,12 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
 
   async function sendMessage(content, options = {}) {
     if (loading) return
-    const history = messages.slice(-MAX_HISTORY_MESSAGES).map((message) => ({
-      role: message.role === 'user' ? 'USER' : 'ASSISTANT',
-      content: message.content,
-    }))
+    const history = (!auth?.isAuthenticated || isGuest)
+      ? messages.slice(-8).map((message) => ({
+        role: message.role === 'user' ? 'USER' : 'ASSISTANT',
+        content: message.content,
+      }))
+      : []
     setMessages((current) => [
       ...current,
       { id: `user-${Date.now()}`, role: 'user', content },
