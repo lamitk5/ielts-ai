@@ -26,4 +26,8 @@ ALTER TABLE writing_submissions ADD COLUMN IF NOT EXISTS attempt_status VARCHAR(
 ALTER TABLE writing_submissions ADD COLUMN IF NOT EXISTS submitted_at TIMESTAMPTZ;
 ALTER TABLE speaking_attempts ADD COLUMN IF NOT EXISTS practice_version_id UUID;
 ALTER TABLE speaking_attempts ADD COLUMN IF NOT EXISTS submitted_at TIMESTAMPTZ;
+ALTER TABLE speaking_attempts DROP CONSTRAINT IF EXISTS speaking_attempts_status_ck;
+ALTER TABLE speaking_attempts ADD CONSTRAINT speaking_attempts_status_ck CHECK (attempt_status IN (
+    'RECORDED', 'INPUT_SAVED', 'STT_NOT_CONFIGURED', 'IN_PROGRESS', 'DRAFT', 'SUBMITTED', 'FEEDBACK_READY'
+));
 ALTER TABLE user_preferences ADD COLUMN IF NOT EXISTS language VARCHAR(12) NOT NULL DEFAULT 'vi';

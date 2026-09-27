@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import GlassCard from '../components/common/GlassCard'
 import { useAuth } from '../features/auth/AuthProvider'
-import { getSpeakingAttempts, saveSpeakingAttempt } from '../features/speaking/speakingApi'
+import { getSpeakingAttempts, saveSpeakingAttempt, startSpeakingAttempt, submitSpeakingAttempt } from '../features/speaking/speakingApi'
 import FloatingTutor from '../components/tutor/FloatingTutor'
 import SpeakingRoom from '../components/speaking/SpeakingRoom'
 
@@ -26,12 +26,15 @@ function SpeakingPage() {
       return undefined
     }
     let active = true
+    startSpeakingAttempt(promptId)
+      .then((result) => active && setAttemptId(result.attemptId ?? null))
+      .catch(() => active && setAttemptId(null))
     setHistory({ status: 'loading', items: [] })
     getSpeakingAttempts()
       .then((items) => active && setHistory({ status: 'ready', items: Array.isArray(items) ? items : [] }))
       .catch(() => active && setHistory({ status: 'error', items: [] }))
     return () => { active = false }
-  }, [isAuthenticated])
+  }, [isAuthenticated, promptId])
 
   async function handleSaveTranscript(selectedId, transcriptText) {
     setError('')
@@ -42,7 +45,9 @@ function SpeakingPage() {
     }
     setSubmitting(true)
     try {
-      const result = await saveSpeakingAttempt(selectedId, transcriptText)
+      const result = attemptId
+        ? await submitSpeakingAttempt(attemptId, transcriptText)
+        : await saveSpeakingAttempt(selectedId, transcriptText)
       setStatus(result.status)
       setAttemptId(result.attemptId ?? null)
     } catch (submissionError) {
