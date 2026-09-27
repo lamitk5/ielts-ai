@@ -13,6 +13,7 @@ import com.ieltsaitutor.rag.chat.RagChatResult;
 import com.ieltsaitutor.rag.chat.RagChatService;
 import com.ieltsaitutor.tutor.context.TutorContextRequest;
 import com.ieltsaitutor.tutor.context.TutorContextService;
+import com.ieltsaitutor.tutor.context.TutorContextException;
 import com.ieltsaitutor.tutor.context.TutorLearningContext;
 import com.ieltsaitutor.tutor.intent.TutorIntent;
 import com.ieltsaitutor.tutor.intent.TutorIntentRoute;
@@ -159,8 +160,11 @@ public class TutorOrchestrator {
     }
 
     private UUID parseUuid(String value) {
-        try { return value == null ? null : UUID.fromString(value); }
-        catch (IllegalArgumentException ignored) { return null; }
+        if (value == null || value.isBlank()) return null;
+        try { return UUID.fromString(value); }
+        catch (IllegalArgumentException exception) {
+            throw new TutorContextException("TUTOR_CONTEXT_INVALID", 400, "Context Tutor không hợp lệ.");
+        }
     }
 
     private List<ChatHistoryItem> boundedHistory(AuthPrincipal principal, com.ieltsaitutor.ai.dto.AiChatRequest request) {

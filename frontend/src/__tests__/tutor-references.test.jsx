@@ -149,5 +149,31 @@ describe('Tutor reference schema & normalization', () => {
       global.fetch = originalFetch
     }
   })
+
+  test('sends stable Tutor context identifiers without client answer or score data', async () => {
+    const { sendTutorMessage } = await import('../services/aiTutorApi')
+    const originalFetch = global.fetch
+    global.fetch = async (_url, options) => {
+      const body = JSON.parse(options.body)
+      expect(body.context).toEqual(expect.objectContaining({
+        skill: 'READING',
+        exerciseId: 'reading-foundation-01',
+        questionId: 'reading-q1',
+        attemptId: 'attempt-1',
+      }))
+      expect(body.context).not.toHaveProperty('correctAnswer')
+      expect(body.context).not.toHaveProperty('score')
+      return { ok: true, status: 200, json: async () => ({ status: 'APP_DATA', answer: 'Bạn đã chọn C.' }) }
+    }
+
+    try {
+      await sendTutorMessage({
+        message: 'đáp án tôi vừa chọn',
+        context: { skill: 'READING', exerciseId: 'reading-foundation-01', questionId: 'reading-q1', attemptId: 'attempt-1' },
+      })
+    } finally {
+      global.fetch = originalFetch
+    }
+  })
 })
 

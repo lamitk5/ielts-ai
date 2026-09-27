@@ -53,6 +53,13 @@ describe('Tutor RAG citations', () => {
     expect(screen.queryByText(/Writing Guide/)).not.toBeInTheDocument()
   })
 
+  test('keeps provider-neutral insufficient evidence state without provider payloads', async () => {
+    await send({ status: 'INSUFFICIENT_EVIDENCE', answer: 'Chưa có đủ bằng chứng từ nguồn đã duyệt.', sources: [], grounding: { status: 'INSUFFICIENT_EVIDENCE', ragEnabled: true }, providerResponse: { raw: 'hidden' } })
+    expect(screen.getByText('Chưa có đủ bằng chứng từ nguồn đã duyệt.')).toBeInTheDocument()
+    expect(screen.getByText('Cần thêm ngữ cảnh')).toBeInTheDocument()
+    expect(screen.queryByText(/hidden|providerResponse/)).not.toBeInTheDocument()
+  })
+
   test('ignores unsupported provider fields', async () => {
     await send({ answer: 'Normalized answer', sources: [{ sourceId: 'safe', title: 'Safe', section: 'Section', similarity: 0.99, providerPayload: { secret: 'do not render' } }] })
     expect(screen.getByText(/Safe/)).toBeInTheDocument()
