@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useEffectiveReducedMotion } from '../../features/preferences/PreferenceProvider'
-import LumenPixelScholarMascot from './LumenPixelScholarMascot'
+import LumenScholarMascot from './LumenScholarMascot'
 
 function getPointerDirection(rect, clientX, clientY) {
   const horizontal = clientX - (rect.left + rect.width / 2)
@@ -95,11 +95,11 @@ function AiTutorMascotLauncher({ onClick, buttonRef, open = false }) {
       aria-hidden={open ? 'true' : undefined}
       tabIndex={open ? -1 : undefined}
       hidden={open && !isActivating}
-      data-mascot="lumen-pixel-scholar"
+      data-mascot="lumen-scholar"
       data-pointer-direction="center"
       onClick={handleClick}
     >
-      <LumenPixelScholarMascot prefersReducedMotion={prefersReducedMotion} isBlinking={isActivating} />
+      <LumenScholarMascot prefersReducedMotion={prefersReducedMotion} isBlinking={isActivating} />
       <span className="ai-tutor-mascot-tooltip" role="tooltip">Trợ giảng AI</span>
     </button>
   )

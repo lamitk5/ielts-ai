@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, test } from 'vitest'
 import FloatingTutor from '../components/tutor/FloatingTutor'
 
-describe('LUMEN Pixel Owl Scholar', () => {
+describe('LUMEN Scholar', () => {
   test('connects bounded global pointer variables to both pupils and the subtle head reaction', async () => {
     render(<FloatingTutor />)
     const launcher = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })

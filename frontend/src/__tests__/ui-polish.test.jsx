@@ -18,14 +18,15 @@ function renderTutor() {
 afterEach(() => { vi.useRealTimers(); localStorage.clear() })
 
 describe('AI Tutor mascot launcher', () => {
-  test('renders the premium LUMEN Pixel Scholar identity', () => {
+  test('renders the premium LUMEN Scholar identity', () => {
     renderTutor()
 
     const launcher = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
-    expect(launcher).toHaveAttribute('data-mascot', 'lumen-pixel-scholar')
+    expect(launcher).toHaveAttribute('data-mascot', 'lumen-scholar')
     expect(screen.getByTestId('lumen-scholar-mascot')).toBeInTheDocument()
-    expect(screen.getByTestId('lumen-scholar-mascot')).toHaveClass('ai-tutor-mascot', 'ai-tutor-pixel-scholar')
-    expect(screen.getByTestId('lumen-scholar-mascot')).toHaveAttribute('shape-rendering', 'crispEdges')
+    expect(screen.getByTestId('lumen-scholar-mascot')).toHaveClass('ai-tutor-mascot', 'ai-tutor-lumen-scholar')
+    expect(screen.getByTestId('lumen-scholar-mascot')).not.toHaveAttribute('shape-rendering')
+    expect(screen.getByTestId('lumen-scholar-mascot')).toHaveAttribute('aria-label', 'LUMEN Scholar')
     expect(screen.getByTestId('lumen-scholar-mascot')).toHaveAttribute('data-blink', 'open')
     expect(screen.getByTestId('lumen-scholar-mascot').querySelector('.ai-tutor-mascot-cap')).toBeInTheDocument()
     expect(screen.getByTestId('lumen-scholar-mascot').querySelector('.ai-tutor-mascot-eye-left')).toBeInTheDocument()
@@ -33,7 +34,8 @@ describe('AI Tutor mascot launcher', () => {
     expect(screen.getByTestId('lumen-scholar-mascot').querySelectorAll('.ai-tutor-mascot-pupil')).toHaveLength(2)
     expect(screen.getByTestId('lumen-scholar-mascot').querySelector('.ai-tutor-mascot-glasses')).not.toBeInTheDocument()
     expect(screen.getByTestId('lumen-scholar-mascot').querySelector('.ai-tutor-mascot-ear')).not.toBeInTheDocument()
-    expect(screen.getByTestId('lumen-scholar-mascot').querySelector('defs, linearGradient')).not.toBeInTheDocument()
+    expect(screen.getByTestId('lumen-scholar-mascot').querySelector('.lumen-scholar-face-plate')).toBeInTheDocument()
+    expect(screen.getByTestId('lumen-scholar-mascot').querySelector('.lumen-scholar-book')).toBeInTheDocument()
     expect(screen.getByText('Trợ giảng AI')).toHaveClass('ai-tutor-mascot-tooltip')
   })
 
@@ -43,7 +45,7 @@ describe('AI Tutor mascot launcher', () => {
     const launcher = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
     expect(launcher).toHaveClass('ai-tutor-mascot-launcher')
     expect(launcher).toHaveAttribute('data-pointer-direction', 'center')
-    expect(launcher).toHaveAttribute('data-mascot', 'lumen-pixel-scholar')
+    expect(launcher).toHaveAttribute('data-mascot', 'lumen-scholar')
     expect(screen.getByText('Trợ giảng AI')).toHaveClass('ai-tutor-mascot-tooltip')
     expect(screen.queryByTestId('floating-tutor-button')).not.toBeInTheDocument()
   })
@@ -155,6 +157,20 @@ describe('AI Tutor mascot launcher', () => {
 
     await waitFor(() => expect(Number.parseFloat(mascot.style.getPropertyValue('--mascot-pupil-x'))).toBeLessThan(0))
     expect(Number.parseFloat(mascot.style.getPropertyValue('--mascot-pupil-y'))).toBeLessThan(0)
+  })
+
+  test('gives the scholar a subtle idle blink without changing its anchored launcher', () => {
+    vi.useFakeTimers()
+    renderTutor()
+
+    const launcher = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
+    const mascot = screen.getByTestId('lumen-scholar-mascot')
+    expect(mascot).toHaveAttribute('data-idle-blink', 'open')
+
+    act(() => vi.advanceTimersByTime(5600))
+
+    expect(mascot).toHaveAttribute('data-idle-blink', 'closed')
+    expect(launcher.style.transform).toBe('')
   })
 })
 

@@ -50,7 +50,7 @@ describe('Academic Luxury light mode polish', () => {
     expect(token('--text')).toBe('#f5f7fa')
   })
 
-  test('keeps the bookshelf, learning intelligence card, and Pixel Scholar in the polished shell', () => {
+  test('keeps the bookshelf, learning intelligence card, and LUMEN Scholar in the polished shell', () => {
     applyPreferenceTokens({ themeMode: 'light', accentPreset: 'gold' })
     render(
       <MemoryRouter initialEntries={['/']}>
@@ -61,7 +61,7 @@ describe('Academic Luxury light mode polish', () => {
     expect(document.documentElement).toHaveAttribute('data-theme', 'light')
     expect(screen.getByTestId('hero-bookshelf-background')).toBeInTheDocument()
     expect(screen.getByTestId('hero-visual')).toHaveClass('hero-visual-large')
-    expect(screen.getByTestId('lumen-scholar-mascot')).toHaveClass('ai-tutor-pixel-scholar')
+    expect(screen.getByTestId('lumen-scholar-mascot')).toHaveClass('ai-tutor-lumen-scholar')
   })
 
   test('keeps accent preferences mapped to the refined semantic controls', () => {
