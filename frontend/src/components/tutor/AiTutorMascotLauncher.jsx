@@ -11,9 +11,9 @@ function getPointerDirection(rect, clientX, clientY) {
   return vertical > 0 ? 'below' : 'above'
 }
 
-const PUPIL_TRAVEL = 1.6
-const HEAD_TRAVEL = 1.2
-const HEAD_ROTATION = 2
+const PUPIL_TRAVEL = 4
+const HEAD_TRAVEL = 1.5
+const HEAD_ROTATION = 2.5
 const TRACKING_DISTANCE = 180
 
 function getTrackingVector(rect, clientX, clientY) {
