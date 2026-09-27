@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, afterEach, describe, expect, test, vi } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
 import { AuthProvider } from '../features/auth/AuthProvider'
+import { PreferenceProvider } from '../features/preferences/PreferenceProvider'
 import Navbar from '../components/layout/Navbar'
 import { DEFAULT_PREFERENCES } from '../features/preferences/preferenceDefaults'
 
@@ -10,7 +11,7 @@ const account = { id: 'learner-1', email: 'learner@example.com' }
 const server = { ...DEFAULT_PREFERENCES, version: 1 }
 
 function renderNavbar() {
-  return render(<MemoryRouter><AuthProvider><Navbar /></AuthProvider></MemoryRouter>)
+  return render(<MemoryRouter><AuthProvider><PreferenceProvider><Navbar /></PreferenceProvider></AuthProvider></MemoryRouter>)
 }
 
 beforeEach(() => {
@@ -116,6 +117,21 @@ describe('Settings drawer', () => {
     await user.click(within(dialog).getByRole('checkbox', { name: 'Cho phép hiệu ứng giao diện (Animation)' }))
     expect(within(dialog).getByText(/Giao diện: Tối/)).toBeInTheDocument()
     expect(document.documentElement).toHaveAttribute('data-reduced-motion', 'true')
+  })
+
+  test('language preference changes supported header labels and font scale live', async () => {
+    const user = userEvent.setup()
+    renderNavbar()
+    await user.click(screen.getByRole('button', { name: 'Cài đặt' }))
+    const dialog = screen.getByRole('dialog', { name: 'Cài đặt' })
+    await user.selectOptions(within(dialog).getByRole('combobox', { name: 'Ngôn ngữ' }), 'en')
+    expect(screen.getByRole('dialog', { name: 'Settings' })).toBeInTheDocument()
+    await userEvent.setup().click(within(screen.getByRole('dialog', { name: 'Settings' })).getByRole('button', { name: 'Close settings' }))
+    expect(screen.getByRole('link', { name: 'Home' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Settings' }))
+    const reopened = screen.getByRole('dialog', { name: 'Settings' })
+    await userEvent.setup().click(within(reopened).getByRole('button', { name: 'A+' }))
+    expect(document.documentElement.style.getPropertyValue('--type-scale')).toBe('1.125')
   })
 
   test('presents settings as labeled premium personalization groups', async () => {

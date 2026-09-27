@@ -7,7 +7,7 @@ import { DEFAULT_PREFERENCES } from '../../features/preferences/preferenceDefaul
 import PreferenceControlGroup from './PreferenceControlGroup'
 
 const focusable = 'button:not([disabled]), input:not([disabled]), select:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
-const statusText = { idle: 'Chưa thay đổi', loading: 'Đang tải', saving: 'Đang lưu', synced: 'Đã đồng bộ', unsynced: 'Chưa đồng bộ', conflict: 'Đã cập nhật từ tài khoản' }
+const statusKeys = { idle: 'statusIdle', loading: 'statusLoading', saving: 'statusSaving', synced: 'statusSynced', unsynced: 'statusUnsynced', conflict: 'statusConflict' }
 
 export default function SettingsDrawer({ open, onClose, openerRef }) {
   const overlayRef = useRef(null)
@@ -17,7 +17,7 @@ export default function SettingsDrawer({ open, onClose, openerRef }) {
   const cancelResetRef = useRef(null)
   const wasConfirmingRef = useRef(false)
   const [confirmReset, setConfirmReset] = useState(false)
-  const { preferences, updatePreference, status, retry } = usePreferences()
+  const { preferences, updatePreference, status, retry, translate } = usePreferences()
   const closeFromKeyboard = useEffectEvent(() => { setConfirmReset(false); onClose() })
 
   useLayoutEffect(() => {
@@ -74,29 +74,29 @@ export default function SettingsDrawer({ open, onClose, openerRef }) {
   }
   return createPortal(
     <div ref={overlayRef} className="settings-overlay">
-      <button type="button" className="settings-backdrop" aria-label="Đóng cài đặt bằng nền" tabIndex={-1} data-testid="settings-backdrop" onClick={close} />
+      <button type="button" className="settings-backdrop" aria-label={translate('closeByBackdrop', 'Đóng cài đặt bằng nền')} tabIndex={-1} data-testid="settings-backdrop" onClick={close} />
       <section ref={dialogRef} className="settings-drawer" role="dialog" aria-modal="true" aria-labelledby="settings-title" tabIndex={-1}>
         <div className="settings-heading">
-          <h2 id="settings-title" className="font-display">Cài đặt</h2>
-          <button ref={closeRef} type="button" className="settings-close" aria-label="Đóng cài đặt" onClick={close}><X aria-hidden="true" /></button>
+          <h2 id="settings-title" className="font-display">{translate('settings', 'Cài đặt')}</h2>
+          <button ref={closeRef} type="button" className="settings-close" aria-label={translate('closeSettings', 'Đóng cài đặt')} onClick={close}><X aria-hidden="true" /></button>
         </div>
         <div className="settings-scroll">
-          <p className="settings-intro">Tùy chỉnh trải nghiệm học của bạn.</p>
-          <p className="settings-status" role="status">{statusText[status] ?? statusText.idle}</p>
+          <p className="settings-intro">{translate('settingsIntro', 'Tùy chỉnh trải nghiệm học của bạn.')}</p>
+          <p className="settings-status" role="status">{translate(statusKeys[status] ?? statusKeys.idle, statusKeys[status] ?? statusKeys.idle)}</p>
           {status === 'unsynced' && <Button variant="ghost" size="sm" onClick={retry}>Thử lại</Button>}
           <PreferenceControlGroup preferences={preferences} updatePreference={updatePreference} />
           {confirmReset ? (
             <div className="settings-confirm" role="group" aria-label="Xác nhận khôi phục">
-              <p>Vui lòng xác nhận khôi phục tất cả thiết lập mặc định.</p>
+              <p>{translate('confirmReset', 'Vui lòng xác nhận khôi phục tất cả thiết lập mặc định.')}</p>
               <div className="settings-confirm-actions">
-                <Button ref={cancelResetRef} variant="secondary" size="sm" onClick={() => setConfirmReset(false)}>Hủy</Button>
-                <Button variant="primary" size="sm" onClick={reset}>Xác nhận khôi phục</Button>
+                <Button ref={cancelResetRef} variant="secondary" size="sm" onClick={() => setConfirmReset(false)}>{translate('cancel', 'Hủy')}</Button>
+                <Button variant="primary" size="sm" onClick={reset}>{translate('confirmReset', 'Xác nhận khôi phục')}</Button>
               </div>
             </div>
           ) : (
             <fieldset className="settings-group settings-reset-group">
-              <legend>Đặt lại</legend>
-              <Button ref={resetTriggerRef} variant="ghost" size="sm" onClick={() => setConfirmReset(true)}>Khôi phục mặc định</Button>
+              <legend>{translate('resetLegend', 'Đặt lại')}</legend>
+              <Button ref={resetTriggerRef} variant="ghost" size="sm" onClick={() => setConfirmReset(true)}>{translate('reset', 'Khôi phục mặc định')}</Button>
             </fieldset>
           )}
         </div>

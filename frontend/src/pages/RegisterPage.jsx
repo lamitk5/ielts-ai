@@ -4,11 +4,14 @@ import Button from '../components/common/Button'
 import AuthCinematicShell from '../components/auth/AuthCinematicShell'
 import PasswordFlashlightField from '../components/auth/PasswordFlashlightField'
 import { useAuth } from '../features/auth/AuthProvider'
+import { useOptionalPreferences } from '../features/preferences/PreferenceProvider'
 
 function RegisterPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { register } = useAuth()
+  const preferenceContext = useOptionalPreferences()
+  const translate = preferenceContext?.translate ?? ((_key, fallback) => fallback)
   const [firstName, setFirstName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -38,16 +41,18 @@ function RegisterPage() {
     <AuthCinematicShell labelledBy="register-title">
       <div className="auth-card">
         <p className="eyebrow">LUMEN IELTS · AI TUTOR</p>
-        <h1 id="register-title" className="font-display">Tạo tài khoản</h1>
-        <p className="foundation-copy">Lưu bài luyện và theo dõi tiến bộ bốn kỹ năng trong một lộ trình riêng.</p>
+        <h1 id="register-title" className="font-display">{translate('register', 'Tạo tài khoản')}</h1>
+        <p className="foundation-copy">{translate('registerCopy', 'Lưu bài luyện và theo dõi tiến bộ bốn kỹ năng trong một lộ trình riêng.')}</p>
         <form className="auth-form" onSubmit={handleSubmit}>
-          <label htmlFor="register-name">Tên hiển thị</label>
+          <label htmlFor="register-name">{translate('displayName', 'Tên hiển thị')}</label>
           <input id="register-name" type="text" autoComplete="given-name" value={firstName} onChange={(event) => setFirstName(event.target.value)} required />
           <label htmlFor="register-email">Email</label>
           <input id="register-email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
           <PasswordFlashlightField
             id="register-password"
-            label="Mật khẩu"
+            label={translate('password', 'Mật khẩu')}
+            showLabel={translate('showPassword', 'Hiện')}
+            hideLabel={translate('hidePassword', 'Ẩn')}
             autoComplete="new-password"
             minLength="8"
             value={password}
@@ -55,17 +60,19 @@ function RegisterPage() {
           />
           <PasswordFlashlightField
             id="register-password-confirmation"
-            label="Xác nhận mật khẩu"
-            visibilityLabel="mật khẩu xác nhận"
+            label={translate('confirmPassword', 'Xác nhận mật khẩu')}
+            visibilityLabel={translate('passwordConfirmationVisibility', 'mật khẩu xác nhận')}
+            showLabel={translate('showPassword', 'Hiện')}
+            hideLabel={translate('hidePassword', 'Ẩn')}
             autoComplete="new-password"
             minLength="8"
             value={passwordConfirmation}
             onChange={(event) => setPasswordConfirmation(event.target.value)}
           />
           {error ? <p className="auth-error" role="alert">{error}</p> : null}
-          <Button type="submit" variant="primary" size="lg" disabled={isSubmitting}>{isSubmitting ? 'Đang xử lý…' : 'Tạo tài khoản'}</Button>
+          <Button type="submit" variant="primary" size="lg" disabled={isSubmitting}>{isSubmitting ? 'Đang xử lý…' : translate('register', 'Tạo tài khoản')}</Button>
         </form>
-        <p className="auth-footer-copy">Đã có tài khoản? <Link to="/login">Đăng nhập</Link></p>
+        <p className="auth-footer-copy">{translate('hasAccount', 'Đã có tài khoản?')} <Link to="/login">{translate('login', 'Đăng nhập')}</Link></p>
       </div>
     </AuthCinematicShell>
   )

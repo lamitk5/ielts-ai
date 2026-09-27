@@ -4,11 +4,14 @@ import Button from '../components/common/Button'
 import AuthCinematicShell from '../components/auth/AuthCinematicShell'
 import PasswordFlashlightField from '../components/auth/PasswordFlashlightField'
 import { useAuth } from '../features/auth/AuthProvider'
+import { useOptionalPreferences } from '../features/preferences/PreferenceProvider'
 
 function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { login } = useAuth()
+  const preferenceContext = useOptionalPreferences()
+  const translate = preferenceContext?.translate ?? ((_key, fallback) => fallback)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -32,24 +35,26 @@ function LoginPage() {
     <AuthCinematicShell labelledBy="login-title">
       <div className="auth-card">
         <p className="eyebrow">LUMEN IELTS · AI TUTOR</p>
-        <h1 id="login-title" className="font-display">Đăng nhập</h1>
-        <p className="foundation-copy">Tiếp tục lộ trình bốn kỹ năng và xem tiến bộ của bạn.</p>
+        <h1 id="login-title" className="font-display">{translate('login', 'Đăng nhập')}</h1>
+        <p className="foundation-copy">{translate('loginCopy', 'Tiếp tục lộ trình bốn kỹ năng và xem tiến bộ của bạn.')}</p>
         <form className="auth-form" onSubmit={handleSubmit}>
           <label htmlFor="login-email">Email</label>
           <input id="login-email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
           <PasswordFlashlightField
             id="login-password"
-            label="Mật khẩu"
+            label={translate('password', 'Mật khẩu')}
+            showLabel={translate('showPassword', 'Hiện')}
+            hideLabel={translate('hidePassword', 'Ẩn')}
             autoComplete="current-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
           />
           {error ? <p className="auth-error" role="alert">{error}</p> : null}
           <Button type="submit" variant="primary" size="lg" disabled={isSubmitting}>
-            {isSubmitting ? 'Đang xử lý…' : 'Đăng nhập'}
+            {isSubmitting ? 'Đang xử lý…' : translate('login', 'Đăng nhập')}
           </Button>
         </form>
-        <p className="auth-footer-copy">Chưa có tài khoản? <Link to="/register">Tạo tài khoản</Link></p>
+        <p className="auth-footer-copy">{translate('noAccount', 'Chưa có tài khoản?')} <Link to="/register">{translate('createAccount', 'Tạo tài khoản')}</Link></p>
       </div>
     </AuthCinematicShell>
   )

@@ -5,9 +5,12 @@ import Button from '../common/Button'
 import HeroSearch, { HeroSuggestions } from './HeroSearch'
 import HeroBackground from './HeroBackground'
 import HeroVisual from './HeroVisual'
+import { useOptionalPreferences } from '../../features/preferences/PreferenceProvider'
 
 function HeroSection() {
   const navigate = useNavigate()
+  const preferenceContext = useOptionalPreferences()
+  const translate = preferenceContext?.translate ?? ((_key, fallback) => fallback)
 
   return (
     <AnimatedSection className="hero-section hero-section-full-bleed hero-editorial" aria-labelledby="hero-title">
@@ -18,23 +21,20 @@ function HeroSection() {
       </div>
       <div className="hero-grid">
         <div className="hero-content">
-          <p className="eyebrow hero-eyebrow">IELTS 4 KỸ NĂNG • AI TUTOR 24/7</p>
+          <p className="eyebrow hero-eyebrow">{translate('heroEyebrow', 'IELTS 4 KỸ NĂNG • AI TUTOR 24/7')}</p>
           <h1 id="hero-title" className="font-display hero-title">
-            <span className="hero-title-line">Bứt phá Band điểm IELTS</span>{' '}
-            <span className="hero-title-line">cùng <span className="hero-title-phrase">Trợ giảng AI</span></span>{' '}
-            <span className="hero-title-line">Độc quyền</span>
+            <span className="hero-title-line">{translate('heroTitleLine1', 'Bứt phá Band điểm IELTS')}</span>{' '}
+            <span className="hero-title-line">{translate('heroTitleLine2', 'cùng')} <span className="hero-title-phrase">{translate('heroTitlePhrase', 'Trợ giảng AI')}</span></span>{' '}
+            <span className="hero-title-line">{translate('heroTitleLine3', 'Độc quyền')}</span>
           </h1>
-          <p className="hero-description">
-            Luyện tập Reading, Listening, Writing và Speaking trên một nền tảng duy nhất.
-            Nhận phản hồi theo ngữ cảnh và cải thiện từng kỹ năng cùng trợ giảng AI.
-          </p>
+          <p className="hero-description">{translate('heroDescription', 'Luyện tập Reading, Listening, Writing và Speaking trên một nền tảng duy nhất. Nhận phản hồi theo ngữ cảnh và cải thiện từng kỹ năng cùng trợ giảng AI.')}</p>
           <HeroSearch />
           <div className="hero-actions" aria-label="Assessment actions">
             <Button size="lg" onClick={() => navigate('/assessment')}>
-              Làm bài Test đánh giá năng lực
+              {translate('assessment', 'Làm bài Test đánh giá năng lực')}
             </Button>
             <Link className="hero-secondary-action" to="/#skills">
-              Khám phá 4 kỹ năng
+              {translate('exploreSkills', 'Khám phá 4 kỹ năng')}
               <ArrowRight aria-hidden="true" size={16} />
             </Link>
           </div>

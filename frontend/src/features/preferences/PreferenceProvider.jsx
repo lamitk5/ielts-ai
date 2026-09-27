@@ -5,6 +5,7 @@ import { DEFAULT_PREFERENCES } from './preferenceDefaults'
 import { normalizePreferences } from './preferenceSchema'
 import { readAccountPreferenceCache, readGuestPreferences, writeAccountPreferenceCache, writeGuestPreferences } from './preferenceStorage'
 import { getPreferences, savePreferences } from '../../services/preferencesApi'
+import { translate as translateUi } from './uiTranslations'
 
 const PreferenceContext = createContext(null)
 
@@ -79,6 +80,7 @@ export function applyPreferenceTokens(value) {
   document.documentElement.dataset.theme = theme
   document.documentElement.dataset.density = preferences.density
   document.documentElement.dataset.reducedMotion = String(reduced)
+  document.documentElement.dataset.language = preferences.language
 }
 
 export function PreferenceProvider({ children }) {
@@ -264,8 +266,10 @@ function PreferenceRootProvider({ children }) {
     }
   }
 
+  const translate = (key, fallback) => translateUi(preferences.language, key, fallback)
+
   return (
-    <PreferenceContext.Provider value={{ preferences, updatePreference, status, confirmedPreferences, retry, reducedMotion: systemReduced || preferences.reduceMotion === 'reduce' }}>
+    <PreferenceContext.Provider value={{ preferences, updatePreference, status, confirmedPreferences, retry, translate, reducedMotion: systemReduced || preferences.reduceMotion === 'reduce' }}>
       {children}
     </PreferenceContext.Provider>
   )

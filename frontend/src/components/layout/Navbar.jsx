@@ -2,17 +2,17 @@ import { ChevronDown, Menu, UserCircle, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from '../../features/auth/AuthProvider'
-import { PreferenceProvider, applyPreferenceTokens } from '../../features/preferences/PreferenceProvider'
+import { PreferenceProvider, applyPreferenceTokens, useOptionalPreferences } from '../../features/preferences/PreferenceProvider'
 import { DEFAULT_PREFERENCES } from '../../features/preferences/preferenceDefaults'
 import SettingsButton from '../settings/SettingsButton'
 import SettingsDrawer from '../settings/SettingsDrawer'
 import LumenLogo from './LumenLogo'
 
 const links = [
-  { label: 'Trang chủ', to: '/' },
-  { label: '4 kỹ năng', to: '/#skills' },
-  { label: 'Trợ giảng AI', to: '/#ai-tutor' },
-  { label: 'Tiến độ', to: '/#progress' },
+  { key: 'navHome', label: 'Trang chủ', to: '/' },
+  { key: 'navSkills', label: '4 kỹ năng', to: '/#skills' },
+  { key: 'navTutor', label: 'Trợ giảng AI', to: '/#ai-tutor' },
+  { key: 'navProgress', label: 'Tiến độ', to: '/#progress' },
 ]
 
 function isAnchorActive(link, location) {
@@ -28,6 +28,8 @@ function Navbar() {
   const [isScrolled, setIsScrolled] = useState(() => window.scrollY > 12)
   const settingsOpenerRef = useRef(null)
   const { isAuthenticated, logout } = useAuth()
+  const preferenceContext = useOptionalPreferences()
+  const translate = preferenceContext?.translate ?? ((_key, fallback) => fallback)
   const location = useLocation()
   const isSettingsOpen = settingsRoute === location.key
 
@@ -86,7 +88,7 @@ function Navbar() {
                 to={link.to}
                 onClick={closeMenu}
               >
-                {link.label}
+                {translate(link.key, link.label)}
               </Link>
             ))}
           </div>
@@ -104,7 +106,7 @@ function Navbar() {
                 onClick={() => setIsAccountOpen((open) => !open)}
               >
                 <UserCircle aria-hidden="true" />
-                <span>Tài khoản</span>
+                <span>{translate('account', 'Tài khoản')}</span>
                 <ChevronDown aria-hidden="true" className={isAccountOpen ? 'account-chevron-open' : ''} />
               </button>
               {isAccountOpen ? (
@@ -118,7 +120,7 @@ function Navbar() {
             </div>
           ) : (
             <NavLink className="signin-link" to="/login" onClick={closeMenu}>
-              Đăng nhập
+              {translate('signIn', 'Đăng nhập')}
             </NavLink>
           )}
         </div>

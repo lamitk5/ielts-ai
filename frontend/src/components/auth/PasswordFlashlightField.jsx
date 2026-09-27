@@ -1,7 +1,7 @@
 import { Eye, EyeOff } from 'lucide-react'
 import { useId, useState } from 'react'
 
-function PasswordFlashlightField({ id, label, value, onChange, autoComplete, minLength, visibilityLabel }) {
+function PasswordFlashlightField({ id, label, value, onChange, autoComplete, minLength, visibilityLabel, showLabel = 'Hiện', hideLabel = 'Ẩn' }) {
   const generatedId = useId()
   const inputId = id ?? generatedId
   const [isVisible, setIsVisible] = useState(false)
@@ -24,7 +24,7 @@ function PasswordFlashlightField({ id, label, value, onChange, autoComplete, min
         <button
           type="button"
           className="password-visibility-toggle"
-          aria-label={`${isVisible ? 'Ẩn' : 'Hiện'} ${toggleLabel}`}
+          aria-label={`${isVisible ? hideLabel : showLabel} ${toggleLabel}`}
           aria-pressed={isVisible}
           onClick={() => setIsVisible((visible) => !visible)}
         >

@@ -4600,5 +4600,37 @@ input:focus-visible {
   }
 
   .auth-full-bleed .auth-lamp-column { min-height: 17rem; }
-  .auth-full-bleed .auth-cinematic-card { width: min(100%, 31rem); justify-self: center; }
+.auth-full-bleed .auth-cinematic-card { width: min(100%, 31rem); justify-self: center; }
 }
+
+/* LUMEN Scholar SVG overrides */
+.ai-tutor-mascot { position: relative; width: 84%; height: 84%; overflow: visible; }
+.ai-tutor-mascot > .ai-tutor-mascot-aura,
+.ai-tutor-mascot .ai-tutor-mascot-face,
+.ai-tutor-mascot .ai-tutor-mascot-head,
+.ai-tutor-mascot .ai-tutor-mascot-collar,
+.ai-tutor-mascot .ai-tutor-mascot-book,
+.ai-tutor-mascot .ai-tutor-mascot-glasses,
+.ai-tutor-mascot .ai-tutor-mascot-eye,
+.ai-tutor-mascot .ai-tutor-mascot-pupil,
+.ai-tutor-mascot .ai-tutor-mascot-smile {
+  position: static;
+  display: inline;
+}
+.ai-tutor-mascot-face { transform-box: fill-box; transform-origin: center; transition: transform .22s ease; }
+.ai-tutor-mascot-pupil { transform-box: fill-box; transform-origin: center; transition: transform 180ms ease; }
+.ai-tutor-mascot-launcher[data-pointer-direction='left'] .ai-tutor-mascot-face { transform: translateX(-3%); }
+.ai-tutor-mascot-launcher[data-pointer-direction='right'] .ai-tutor-mascot-face { transform: translateX(3%); }
+.ai-tutor-mascot-launcher[data-pointer-direction='above'] .ai-tutor-mascot-face { transform: translateY(-3%); }
+.ai-tutor-mascot-launcher[data-pointer-direction='below'] .ai-tutor-mascot-face { transform: translateY(3%); }
+.ai-tutor-mascot-launcher[data-pointer-direction='left'] .ai-tutor-mascot-pupil { transform: translateX(-1.2px); }
+.ai-tutor-mascot-launcher[data-pointer-direction='right'] .ai-tutor-mascot-pupil { transform: translateX(1.2px); }
+.ai-tutor-mascot-launcher[data-pointer-direction='above'] .ai-tutor-mascot-pupil { transform: translateY(-1.2px); }
+.ai-tutor-mascot-launcher[data-pointer-direction='below'] .ai-tutor-mascot-pupil { transform: translateY(1.2px); }
+.ai-tutor-mascot-launcher-activating .ai-tutor-mascot-eye { animation: lumen-scholar-blink 260ms ease-out; transform-box: fill-box; transform-origin: center; }
+@keyframes lumen-scholar-blink { 0%, 100% { transform: scaleY(1); } 35%, 62% { transform: scaleY(.12); } }
+.ai-tutor-mascot-star { animation: lumen-scholar-star 3.2s ease-in-out infinite; transform-origin: center; }
+@keyframes lumen-scholar-star { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
+.settings-range-control { display: grid; grid-template-columns: 2rem 1fr 2rem; align-items: center; gap: .45rem; }
+.settings-range-control button { border: 1px solid var(--border-subtle); border-radius: .45rem; padding: .2rem; background: var(--surface-interactive); color: var(--text-primary); font-weight: 700; cursor: pointer; }
+.settings-range-control button:hover, .settings-range-control button:focus-visible { border-color: var(--accent); color: var(--accent); }

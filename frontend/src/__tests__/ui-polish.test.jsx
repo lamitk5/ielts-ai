@@ -14,13 +14,22 @@ function renderTutor() {
 }
 
 describe('AI Tutor mascot launcher', () => {
+  test('renders the premium LUMEN Scholar mascot identity', () => {
+    renderTutor()
+
+    const launcher = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
+    expect(launcher).toHaveAttribute('data-mascot', 'lumen-scholar')
+    expect(screen.getByTestId('lumen-scholar-mascot')).toBeInTheDocument()
+    expect(screen.getByText('LUMEN Scholar')).toHaveClass('ai-tutor-mascot-tooltip')
+  })
+
   test('replaces the legacy launcher with an accessible mascot button and tooltip', () => {
     renderTutor()
 
     const launcher = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
     expect(launcher).toHaveClass('ai-tutor-mascot-launcher')
     expect(launcher).toHaveAttribute('data-pointer-direction', 'center')
-    expect(screen.getByText('Trợ giảng AI')).toHaveClass('ai-tutor-mascot-tooltip')
+    expect(screen.getByText('LUMEN Scholar')).toHaveClass('ai-tutor-mascot-tooltip')
     expect(screen.queryByTestId('floating-tutor-button')).not.toBeInTheDocument()
   })
 
