@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS practice_catalog_publications (
 CREATE UNIQUE INDEX IF NOT EXISTS practice_catalog_publications_one_active_set
     ON practice_catalog_publications (published_set_id) WHERE active = TRUE;
 
-ALTER TABLE learning_attempts ADD COLUMN IF NOT EXISTS practice_version_id UUID;
+ALTER TABLE learning_attempts ADD COLUMN IF NOT EXISTS practice_version_id VARCHAR(120);
 ALTER TABLE learning_attempts ADD COLUMN IF NOT EXISTS attempt_status VARCHAR(24) NOT NULL DEFAULT 'SUBMITTED';
 ALTER TABLE learning_attempts ADD COLUMN IF NOT EXISTS answer_payload JSONB;
 ALTER TABLE learning_attempts ADD COLUMN IF NOT EXISTS submitted_at TIMESTAMPTZ;
