@@ -194,23 +194,46 @@ describe('AI Tutor mascot launcher', () => {
     expect(launcher.style.transform).toBe('')
   })
 
-  test('shows one reminder bubble on the long idle timer', () => {
+  test('shows one reminder bubble within the approved 9–12 second cadence', () => {
     vi.useFakeTimers()
     vi.spyOn(Math, 'random').mockReturnValue(0)
     writeGuestPreferences({ proactiveAiEnabled: true })
     renderTutor()
 
     expect(screen.queryByRole('button', { name: /Mở Én: / })).not.toBeInTheDocument()
-    act(() => vi.advanceTimersByTime(18000))
+    act(() => vi.advanceTimersByTime(9000))
 
     expect(screen.getByRole('button', { name: 'Mở Én: Học đi bạn ê 👀' })).toBeInTheDocument()
 
     act(() => vi.advanceTimersByTime(5000))
     expect(screen.queryByRole('button', { name: /Mở Én: / })).not.toBeInTheDocument()
 
-    act(() => vi.advanceTimersByTime(13001))
+    act(() => vi.advanceTimersByTime(4001))
     expect(screen.getByRole('button', { name: 'Mở Én: Học đi bạn ê 👀' })).toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: 'Mở Én: Học đi bạn ê 👀' })).toHaveLength(1)
+  })
+
+  test('keeps the Tutor panel compact and responsive by contract', () => {
+    vi.useFakeTimers()
+    renderTutor()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mở Én' }))
+    act(() => vi.advanceTimersByTime(260))
+
+    expect(screen.getByRole('dialog', { name: 'Én' })).toHaveClass('tutor-shell-compact-panel')
+  })
+
+  test('exposes premium interaction contracts for logo, settings, and functional buttons', () => {
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <App />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByRole('link', { name: 'LUMEN IELTS AI Tutor' })).toHaveClass('brand', 'brand-interactive')
+    expect(screen.getByRole('button', { name: 'Cài đặt' })).toHaveClass('settings-trigger-utility', 'settings-trigger-interactive')
+    expect(screen.getByRole('button', { name: 'Làm bài Test đánh giá năng lực' })).toHaveClass('button', 'button-interactive')
+    expect(screen.getByRole('button', { name: 'Tìm bài luyện' })).toHaveClass('button-interactive')
   })
 
   test('suppresses reminder bubbles when proactive AI is disabled but keeps manual Tutor opening', async () => {

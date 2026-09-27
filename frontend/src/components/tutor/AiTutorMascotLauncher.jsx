@@ -26,7 +26,7 @@ const REMINDER_LINES = [
   `${ASSISTANT_NAME} nhớ bạn rồi đấy.`,
   `Nhìn ${ASSISTANT_NAME} một chút đi.`,
   `Cần ${ASSISTANT_NAME} gợi ý bài tiếp theo không?`,
-  '20 giây rồi đấy… học tí nào.',
+  '10 giây rồi đấy… học tí nào.',
   `${ASSISTANT_NAME} vẫn đang nhìn đấy nhé 👀`,
 ]
 
@@ -95,7 +95,7 @@ function AiTutorMascotLauncher({ onClick, buttonRef, open = false, proactiveAiEn
     let disposed = false
 
     function scheduleReminder() {
-      const delay = 18000 + Math.round(Math.random() * 6000)
+      const delay = 9000 + Math.round(Math.random() * 3000)
       reminderTimerRef.current = window.setTimeout(() => {
         if (disposed) return
         const line = REMINDER_LINES[Math.floor(Math.random() * REMINDER_LINES.length)]

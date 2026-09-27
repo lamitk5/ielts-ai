@@ -60,7 +60,7 @@ function Navbar() {
   return (
     <header className={`site-header site-header-glass ${isScrolled ? 'site-header-scrolled' : ''}`.trim()}>
       <nav className="site-nav" aria-label="Primary navigation" data-menu-open={isMenuOpen ? 'true' : 'false'}>
-        <NavLink className="brand" to="/" aria-label="LUMEN IELTS AI Tutor" onClick={closeMenu}>
+        <NavLink className="brand brand-interactive" to="/" aria-label="LUMEN IELTS AI Tutor" onClick={closeMenu}>
           <LumenLogo />
         </NavLink>
 

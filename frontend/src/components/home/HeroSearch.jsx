@@ -84,7 +84,7 @@ function HeroSearch() {
             }}
             placeholder="IELTS Writing Task 1 Line Graph"
           />
-          <button className="hero-search-submit" type="submit">
+          <button className="hero-search-submit button-interactive" type="submit">
             <span>Tìm bài luyện</span>
             <Search aria-hidden="true" size={16} />
           </button>

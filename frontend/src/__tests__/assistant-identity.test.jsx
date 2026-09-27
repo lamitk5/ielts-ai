@@ -32,7 +32,7 @@ describe('Én assistant identity', () => {
     expect(screen.getByRole('button', { name: 'Mở Én' })).toBeInTheDocument()
     expect(screen.getByText('Én')).toHaveClass('ai-tutor-mascot-tooltip')
 
-    act(() => vi.advanceTimersByTime(17_999))
+    act(() => vi.advanceTimersByTime(8_999))
     expect(screen.queryByRole('button', { name: /Mở Én:/ })).not.toBeInTheDocument()
 
     act(() => vi.advanceTimersByTime(1))

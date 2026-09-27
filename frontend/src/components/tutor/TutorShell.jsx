@@ -76,6 +76,7 @@ export function TutorShell({
     'tutor-shell',
     'tutor-shell-editorial',
     'tutor-shell-viewport-safe',
+    'tutor-shell-compact-panel',
     isCompact ? 'tutor-shell-compact' : '',
     isExpanded ? 'tutor-shell-expanded' : '',
     isFullscreen ? 'tutor-shell-fullscreen' : '',
