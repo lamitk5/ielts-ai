@@ -2816,6 +2816,54 @@ input:focus-visible {
 }
 
 .practice-page-reading { width: min(100% - 2rem, 1260px); }
+
+.practice-catalog-page,
+.practice-detail-page,
+.practice-attempt-page,
+.practice-result-page {
+  width: min(100% - 2rem, 1180px);
+  margin: 0 auto;
+  padding: clamp(3rem, 7vw, 5rem) 0;
+}
+
+.practice-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.practice-catalog-card {
+  display: grid;
+  min-height: 15rem;
+  gap: .7rem;
+  align-content: start;
+  padding: clamp(1.25rem, 3vw, 2rem);
+}
+
+.practice-catalog-card h2 { margin: 0; font-size: clamp(1.7rem, 3vw, 2.4rem); }
+.practice-catalog-card p:not(.progress-card-kicker) { margin: 0; color: var(--text); font-weight: 600; }
+.practice-catalog-card span { min-height: 2.8rem; color: var(--text-secondary); line-height: 1.6; }
+.practice-catalog-card .button { width: fit-content; margin-top: auto; }
+.practice-detail-page > p:not(.eyebrow) { max-width: 48rem; color: var(--text-secondary); line-height: 1.7; }
+.practice-detail-page > .glass-card { display: grid; gap: .75rem; max-width: 38rem; margin-top: 2rem; padding: 1.5rem; }
+.practice-detail-page h1,
+.practice-attempt-page h1,
+.practice-result-page h1 { margin: .7rem 0 1rem; font-size: clamp(2.3rem, 6vw, 4.3rem); }
+.practice-attempt-form { display: grid; gap: 1rem; }
+.practice-attempt-form > .button { width: fit-content; }
+.practice-result-summary { display: grid; gap: .35rem; max-width: 24rem; margin: 2rem 0 1rem; padding: 1.5rem; }
+.practice-result-summary strong { color: var(--gold-light); font: 3rem 'Playfair Display', Georgia, serif; }
+.practice-result-summary span,
+.practice-result-summary small { color: var(--text-secondary); }
+.practice-result-status { color: var(--success); }
+.practice-error-state { display: grid; gap: .75rem; max-width: 36rem; margin: 2rem auto; padding: 1rem; border: 1px solid var(--border); border-radius: 1rem; color: var(--text-secondary); }
+
+@media (max-width: 680px) {
+  .practice-catalog-grid { grid-template-columns: 1fr; }
+  .practice-catalog-card { min-height: 0; }
+}
+
 .reading-passage,
 .reading-questions { min-width: 0; }
 .reading-passage-editorial { color: var(--text-primary, var(--text)); }
