@@ -91,8 +91,8 @@ describe('Settings drawer', () => {
     expect(accent).toHaveValue('emerald')
     expect(document.documentElement.style.getPropertyValue('--accent')).toBe('#216c56')
     expect(within(dialog).getByText(/Màu nhấn: Emerald/)).toBeInTheDocument()
-    await user.selectOptions(within(dialog).getByRole('combobox', { name: 'Tỷ lệ khung Reading' }), '60')
-    await user.click(within(dialog).getByRole('checkbox', { name: 'Gợi ý từ Trợ giảng AI' }))
+    await user.selectOptions(within(dialog).getByRole('combobox', { name: 'Tỷ lệ chia Reading' }), '50')
+    await user.click(within(dialog).getByRole('checkbox', { name: 'AI gợi ý chủ động' }))
     await user.click(within(dialog).getByRole('button', { name: 'Khôi phục mặc định' }))
     expect(within(dialog).getByRole('group', { name: 'Xác nhận khôi phục' })).toBeInTheDocument()
     expect(within(dialog).getByRole('button', { name: 'Hủy' })).toHaveFocus()
@@ -103,8 +103,8 @@ describe('Settings drawer', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Khôi phục mặc định' }))
     await user.click(within(dialog).getByRole('button', { name: 'Xác nhận khôi phục' }))
     expect(accent).toHaveValue('gold')
-    expect(within(dialog).getByRole('combobox', { name: 'Tỷ lệ khung Reading' })).toHaveValue('40')
-    expect(within(dialog).getByRole('checkbox', { name: 'Gợi ý từ Trợ giảng AI' })).not.toBeChecked()
+    expect(within(dialog).getByRole('combobox', { name: 'Tỷ lệ chia Reading' })).toHaveValue('40')
+    expect(within(dialog).getByRole('checkbox', { name: 'AI gợi ý chủ động' })).not.toBeChecked()
   })
 
   test('live preview includes theme and motion selections', async () => {
@@ -123,7 +123,7 @@ describe('Settings drawer', () => {
     renderNavbar()
     await user.click(screen.getByRole('button', { name: 'Cài đặt' }))
     const dialog = screen.getByRole('dialog', { name: 'Cài đặt' })
-    for (const label of ['Giao diện', 'Ngôn ngữ', 'Phông chữ', 'Mật độ', 'Chuyển động', 'Trợ giảng AI', 'Quyền riêng tư', 'Đặt lại']) {
+    for (const label of ['Giao diện', 'Ngôn ngữ', 'Phông chữ', 'Mật độ hiển thị', 'Chuyển động', 'Trợ giảng AI', 'Quyền riêng tư', 'Đặt lại']) {
       expect(within(dialog).getByText(label, { selector: 'legend, h3' })).toBeInTheDocument()
     }
     for (const label of ['Theo hệ thống', 'Sáng', 'Tối', 'Gold', 'Sapphire', 'Emerald', 'Burgundy', 'Violet', 'Slate']) {

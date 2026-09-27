@@ -56,12 +56,14 @@ function AiTutorMascotLauncher({ onClick, buttonRef, open = false }) {
   return (
     <button
       ref={buttonRef}
-      className={`ai-tutor-mascot-launcher ${isActivating ? 'ai-tutor-mascot-launcher-activating' : ''}`.trim()}
+      className={`ai-tutor-mascot-launcher ${isActivating ? 'ai-tutor-mascot-launcher-activating' : ''} ${open && isActivating ? 'ai-tutor-mascot-launcher-open-reaction' : ''}`.trim()}
       type="button"
       aria-label="Mở Trợ giảng AI"
       aria-expanded={open}
       aria-controls="tutor-dialog"
-      hidden={open}
+      aria-hidden={open ? 'true' : undefined}
+      tabIndex={open ? -1 : undefined}
+      hidden={open && !isActivating}
       data-pointer-direction={POINTER_DIRECTIONS.includes(pointerDirection) ? pointerDirection : 'center'}
       onClick={handleClick}
       onPointerMove={handlePointerMove}
@@ -77,8 +79,12 @@ function AiTutorMascotLauncher({ onClick, buttonRef, open = false }) {
             <span className="ai-tutor-mascot-glasses ai-tutor-mascot-glasses-left" />
             <span className="ai-tutor-mascot-glasses ai-tutor-mascot-glasses-right" />
             <span className="ai-tutor-mascot-bridge" />
-            <span className="ai-tutor-mascot-eye ai-tutor-mascot-eye-left" />
-            <span className="ai-tutor-mascot-eye ai-tutor-mascot-eye-right" />
+            <span className="ai-tutor-mascot-eye ai-tutor-mascot-eye-left">
+              <span className="ai-tutor-mascot-pupil" data-testid="mascot-pupil-left" />
+            </span>
+            <span className="ai-tutor-mascot-eye ai-tutor-mascot-eye-right">
+              <span className="ai-tutor-mascot-pupil" data-testid="mascot-pupil-right" />
+            </span>
             <span className="ai-tutor-mascot-smile" />
           </span>
         </span>

@@ -76,6 +76,7 @@ export function applyPreferenceTokens(value) {
   }
   for (const [name, value] of Object.entries(tokens)) document.documentElement.style.setProperty(name, value)
   document.documentElement.style.colorScheme = theme
+  document.documentElement.dataset.density = preferences.density
   document.documentElement.dataset.reducedMotion = String(reduced)
 }
 
@@ -273,6 +274,10 @@ export function usePreferences() {
   const context = useContext(PreferenceContext)
   if (!context) throw new Error('usePreferences must be used inside PreferenceProvider')
   return context
+}
+
+export function useOptionalPreferences() {
+  return useContext(PreferenceContext)
 }
 
 export function useEffectiveReducedMotion() {

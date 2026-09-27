@@ -6,6 +6,7 @@ import TutorPanel from './TutorPanel'
 import { SHELL_STATES } from './TutorShell'
 import AuthGate from '../auth/AuthGate'
 import { useOptionalAuth } from '../../features/auth/AuthProvider'
+import { useOptionalPreferences } from '../../features/preferences/PreferenceProvider'
 import { MAX_HISTORY_MESSAGES, sendTutorMessage } from '../../services/aiTutorApi'
 import { uploadAttachment } from '../../services/tutorAttachmentsApi'
 
@@ -24,8 +25,10 @@ const DEFAULT_CONTEXT = Object.freeze({ skill: 'GENERAL' })
 
 function FloatingTutor({ context = DEFAULT_CONTEXT }) {
   const auth = useOptionalAuth()
+  const preferenceContext = useOptionalPreferences()
   const location = useSafeLocation()
   const [open, setOpen] = useState(false)
+  const [isLaunching, setIsLaunching] = useState(false)
   const [shellState, setShellState] = useState(SHELL_STATES.STANDARD)
   const [messages, setMessages] = useState([welcomeMessage])
   const [loading, setLoading] = useState(false)
@@ -38,8 +41,10 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
   const openedRef = useRef(false)
   const mountedRef = useRef(true)
   const abortControllerRef = useRef(null)
+  const launchTimerRef = useRef(null)
   const initialPathRef = useRef(location?.pathname ?? '/')
   const accountKey = auth?.isAuthenticated ? auth.session?.user?.id ?? 'member' : 'guest'
+  const proactiveSuggestionsEnabled = preferenceContext?.preferences.proactiveAiEnabled ?? true
 
   useEffect(() => {
     setMessages([welcomeMessage])
@@ -96,6 +101,7 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
     mountedRef.current = true
     return () => {
       mountedRef.current = false
+      if (launchTimerRef.current) window.clearTimeout(launchTimerRef.current)
       if (abortControllerRef.current) {
         abortControllerRef.current.abort()
       }
@@ -178,6 +184,16 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
     }
   }
 
+  function handleOpenTutor() {
+    if (launchTimerRef.current) window.clearTimeout(launchTimerRef.current)
+    setIsLaunching(true)
+    setOpen(true)
+    launchTimerRef.current = window.setTimeout(() => {
+      launchTimerRef.current = null
+      setIsLaunching(false)
+    }, 180)
+  }
+
   async function sendMessage(content, options = {}) {
     if (loading) return
     const history = messages.slice(-MAX_HISTORY_MESSAGES).map((message) => ({
@@ -255,7 +271,7 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
   return (
     <>
       {open ? (
-        <div className="tutor-panel-layer">
+        <div className={`tutor-panel-layer ${isLaunching ? 'tutor-panel-layer-launching' : ''}`.trim()}>
           <button
             className="tutor-backdrop"
             type="button"
@@ -307,11 +323,12 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
               onAttachmentError={handleAttachmentError}
               onRemoveAttachment={handleRemoveAttachment}
               onRetryAttachment={handleRetryAttachment}
+              suggestions={proactiveSuggestionsEnabled ? undefined : []}
             />
           )}
         </div>
       ) : null}
-      <AiTutorMascotLauncher buttonRef={buttonRef} open={open} onClick={() => setOpen(true)} />
+      <AiTutorMascotLauncher buttonRef={buttonRef} open={open} onClick={handleOpenTutor} />
     </>
   )
 }

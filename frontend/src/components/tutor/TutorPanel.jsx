@@ -17,6 +17,7 @@ function TutorPanel({
   onAttachmentError,
   onRemoveAttachment,
   onRetryAttachment,
+  suggestions,
 }) {
   return (
     <TutorShell
@@ -36,6 +37,7 @@ function TutorPanel({
       onAttachmentError={onAttachmentError}
       onRemoveAttachment={onRemoveAttachment}
       onRetryAttachment={onRetryAttachment}
+      suggestions={suggestions}
     />
   )
 }

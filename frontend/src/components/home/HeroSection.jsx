@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import AnimatedSection from '../common/AnimatedSection'
 import Button from '../common/Button'
 import HeroSearch, { HeroSuggestions } from './HeroSearch'
+import HeroBackground from './HeroBackground'
 import HeroVisual from './HeroVisual'
 
 function HeroSection() {
@@ -10,6 +11,7 @@ function HeroSection() {
 
   return (
     <AnimatedSection className="hero-section hero-editorial" aria-labelledby="hero-title">
+      <HeroBackground />
       <div className="hero-ambient" aria-hidden="true">
         <span className="hero-ambient-grid" />
         <span className="hero-ambient-vignette" />

@@ -15,7 +15,7 @@ const accents = [
 
 const selectOptions = {
   fontScale: [['small', 'Nhỏ'], ['default', 'Mặc định'], ['large', 'Lớn']],
-  density: [['spacious', 'Thoáng'], ['default', 'Mặc định'], ['compact', 'Gọn']],
+  density: [['spacious', 'Thoáng'], ['default', 'Tiêu chuẩn'], ['compact', 'Gọn']],
   reduceMotion: [['system', 'Theo hệ thống'], ['reduce', 'Giảm chuyển động'], ['allow', 'Cho phép chuyển động']],
 }
 
@@ -35,7 +35,7 @@ function PreferenceControlGroup({ preferences, updatePreference }) {
     ['Giao diện', themes.find(([value]) => value === preferences.themeMode)?.[1]],
     ['Màu nhấn', accents.find(([value]) => value === preferences.accentPreset)?.[1]],
     ['Cỡ chữ', selectOptions.fontScale.find(([value]) => value === preferences.fontScale)?.[1]],
-    ['Mật độ', selectOptions.density.find(([value]) => value === preferences.density)?.[1]],
+    ['Mật độ hiển thị', selectOptions.density.find(([value]) => value === preferences.density)?.[1]],
     ['Chuyển động', selectOptions.reduceMotion.find(([value]) => value === preferences.reduceMotion)?.[1]],
   ].map(([label, value]) => `${label}: ${value}`).join(' · ')
 
@@ -78,8 +78,8 @@ function PreferenceControlGroup({ preferences, updatePreference }) {
       </fieldset>
 
       <fieldset className="settings-group">
-        <legend>Mật độ</legend>
-        <SelectField label="Mật độ nội dung" value={preferences.density} options={selectOptions.density} onChange={(value) => updatePreference('density', value)} />
+        <legend>Mật độ hiển thị</legend>
+        <SelectField label="Mật độ hiển thị" value={preferences.density} options={selectOptions.density} onChange={(value) => updatePreference('density', value)} />
       </fieldset>
 
       <fieldset className="settings-group">
@@ -90,8 +90,8 @@ function PreferenceControlGroup({ preferences, updatePreference }) {
       <fieldset className="settings-group">
         <legend>Trợ giảng AI</legend>
         <label className="settings-switch">
-          <span>Gợi ý từ Trợ giảng AI</span>
-          <input type="checkbox" checked={preferences.proactiveAiEnabled} onChange={(event) => updatePreference('proactiveAiEnabled', event.target.checked)} />
+          <span>AI gợi ý chủ động</span>
+          <input aria-label="AI gợi ý chủ động" type="checkbox" checked={preferences.proactiveAiEnabled} onChange={(event) => updatePreference('proactiveAiEnabled', event.target.checked)} />
         </label>
       </fieldset>
 
@@ -110,8 +110,8 @@ function PreferenceControlGroup({ preferences, updatePreference }) {
           <span>Hiện đồng hồ luyện tập</span>
           <input type="checkbox" checked={preferences.timerDefaultEnabled} onChange={(event) => updatePreference('timerDefaultEnabled', event.target.checked)} />
         </label>
-        <SelectField label="Tỷ lệ khung Reading" value={preferences.readingSplitRatio} options={[[40, '40%'], [50, '50%'], [60, '60%']]} numeric onChange={(value) => updatePreference('readingSplitRatio', value)} />
-        <SelectField label="Tỷ lệ khung Writing" value={preferences.writingSplitRatio} options={[[40, '40%'], [50, '50%'], [60, '60%']]} numeric onChange={(value) => updatePreference('writingSplitRatio', value)} />
+        <SelectField label="Tỷ lệ chia Reading" value={preferences.readingSplitRatio} options={[[40, '40 / 60'], [50, '50 / 50']]} numeric onChange={(value) => updatePreference('readingSplitRatio', value)} />
+        <SelectField label="Tỷ lệ chia Writing" value={preferences.writingSplitRatio} options={[[40, '40 / 60'], [50, '50 / 50']]} numeric onChange={(value) => updatePreference('writingSplitRatio', value)} />
       </fieldset>
     </>
   )
