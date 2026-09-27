@@ -50,7 +50,7 @@ function AuthCinematicShell({ children, labelledBy }) {
   }
 
   return (
-    <section className={`auth-page auth-cinematic ${isLampOn ? 'auth-lamp-on' : 'auth-lamp-off'}`.trim()} aria-labelledby={labelledBy}>
+    <section className={`auth-page auth-cinematic auth-full-bleed ${isLampOn ? 'auth-lamp-on' : 'auth-lamp-off'}`.trim()} aria-labelledby={labelledBy}>
       <div className="auth-lamp-column">
         <div className="auth-lamp-scene">
           <span className="auth-light-cone" data-testid="auth-light-cone" aria-hidden="true" />

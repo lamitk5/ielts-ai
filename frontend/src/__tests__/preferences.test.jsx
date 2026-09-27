@@ -67,6 +67,7 @@ describe('preference foundation', () => {
       fontScale: 'default',
       density: 'default',
       reduceMotion: 'system',
+      language: 'vi',
       proactiveAiEnabled: false,
       crossHighlightEnabled: true,
       timerDefaultEnabled: false,
@@ -104,6 +105,7 @@ describe('preference foundation', () => {
       fontScale: ['small', 'default', 'large'],
       density: ['spacious', 'default', 'compact'],
       reduceMotion: ['system', 'reduce', 'allow'],
+      language: ['vi', 'en'],
       readingSplitRatio: [40, 50, 60],
       writingSplitRatio: [40, 50, 60],
     }

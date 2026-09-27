@@ -10,6 +10,7 @@ export function WritingEditorPane({
   wordCount = 0,
   minWords = 150,
   saveStatus = 'idle',
+  showTimer = false,
   timerEnabled = false,
   timerSeconds = 0,
   onToggleTimer,
@@ -55,19 +56,21 @@ export function WritingEditorPane({
           <DraftSaveStatus status={saveStatus} />
         </div>
 
-        <div className="writing-editor-tools">
-          <button
-            type="button"
-            className={`writing-timer-toggle ${timerEnabled ? 'is-active' : ''}`}
-            onClick={onToggleTimer}
-            aria-label={timerEnabled ? 'Tạm dừng đồng hồ bấm giờ' : 'Bắt đầu đếm giờ luyện tập'}
-          >
-            <span className="writing-timer-icon" aria-hidden="true">⏱</span>
-            <span className="writing-timer-label">
-              {timerEnabled ? formatTimer(timerSeconds) : 'Đồng hồ bấm giờ'}
-            </span>
-          </button>
-        </div>
+        {showTimer ? (
+          <div className="writing-editor-tools">
+            <button
+              type="button"
+              className={`writing-timer-toggle ${timerEnabled ? 'is-active' : ''}`}
+              onClick={onToggleTimer}
+              aria-label={timerEnabled ? 'Tạm dừng đồng hồ bấm giờ' : 'Bắt đầu đếm giờ luyện tập'}
+            >
+              <span className="writing-timer-icon" aria-hidden="true">⏱</span>
+              <span className="writing-timer-label">
+                {timerEnabled ? formatTimer(timerSeconds) : 'Đồng hồ bấm giờ'}
+              </span>
+            </button>
+          </div>
+        ) : null}
       </div>
 
       <div className="writing-textarea-wrapper">

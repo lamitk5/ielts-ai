@@ -8,6 +8,7 @@ const allowed = {
   fontScale: ['small', 'default', 'large'],
   density: ['spacious', 'default', 'compact'],
   reduceMotion: ['system', 'reduce', 'allow'],
+  language: ['vi', 'en'],
   readingSplitRatio: WORKSPACE_RATIO_PRESETS,
   writingSplitRatio: WORKSPACE_RATIO_PRESETS,
 }
@@ -16,7 +17,7 @@ const booleanPreferences = ['proactiveAiEnabled', 'crossHighlightEnabled', 'time
 
 export function isCompletePreferences(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false
-  return Object.entries(allowed).every(([key, choices]) => choices.includes(value[key])) &&
+  return Object.entries(allowed).filter(([key]) => key !== 'language').every(([key, choices]) => choices.includes(value[key])) &&
     booleanPreferences.every((key) => typeof value[key] === 'boolean')
 }
 

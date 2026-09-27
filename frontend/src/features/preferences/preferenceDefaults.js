@@ -4,6 +4,7 @@ export const DEFAULT_PREFERENCES = Object.freeze({
   fontScale: 'default',
   density: 'default',
   reduceMotion: 'system',
+  language: 'vi',
   proactiveAiEnabled: false,
   crossHighlightEnabled: true,
   timerDefaultEnabled: false,

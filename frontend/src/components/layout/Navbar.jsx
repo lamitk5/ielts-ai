@@ -73,10 +73,6 @@ function Navbar() {
           {isMenuOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
         </button>
 
-        <div className="nav-settings">
-          <SettingsButton openerRef={settingsOpenerRef} expanded={isSettingsOpen} onClick={() => { setIsMenuOpen(false); setSettingsRoute(location.key) }} />
-        </div>
-
         <div
           id="primary-navigation"
           className={`nav-content ${isMenuOpen ? 'nav-content-open' : ''}`.trim()}
@@ -93,6 +89,9 @@ function Navbar() {
                 {link.label}
               </Link>
             ))}
+          </div>
+          <div className="nav-settings">
+            <SettingsButton openerRef={settingsOpenerRef} expanded={isSettingsOpen} onClick={() => { setIsMenuOpen(false); setSettingsRoute(location.key) }} />
           </div>
           {isAuthenticated ? (
             <div className="account-menu">

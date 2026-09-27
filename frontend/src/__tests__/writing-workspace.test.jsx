@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, test, vi } from 'vitest'
 import App from '../App'
+import { DEFAULT_PREFERENCES } from '../features/preferences/preferenceDefaults'
 
 const renderWriting = () => render(
   <MemoryRouter initialEntries={['/practice/writing']}>
@@ -64,6 +65,10 @@ describe('Writing learning workspace', () => {
 
   test('provides an optional practice timer aid without official exam timer claims', async () => {
     const user = userEvent.setup()
+    localStorage.setItem('ielts-ai-tutor.preferences.v1', JSON.stringify({
+      version: 1,
+      preferences: { ...DEFAULT_PREFERENCES, timerDefaultEnabled: true },
+    }))
     renderWriting()
 
     const editorRegion = screen.getByRole('region', { name: 'Bài viết' })

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import GlassCard from '../components/common/GlassCard'
 import { useAuth } from '../features/auth/AuthProvider'
+import { usePreferences } from '../features/preferences/PreferenceProvider'
 import { getWritingSubmissions, submitWriting } from '../features/writing/writingApi'
 import { getCurrentDraft, saveDraft, deleteDraft } from '../services/learningDraftsApi'
 import FloatingTutor from '../components/tutor/FloatingTutor'
@@ -17,6 +18,7 @@ const tasks = [
 
 function WritingPage() {
   const { user, isAuthenticated } = useAuth()
+  const { preferences } = usePreferences()
   const [taskId, setTaskId] = useState(() => {
     if (user?.id) {
       const loaded = loadSessionSnapshot(user.id)
@@ -50,6 +52,10 @@ function WritingPage() {
   const [timerEnabled, setTimerEnabled] = useState(false)
   const [timerSeconds, setTimerSeconds] = useState(0)
   const timerRef = useRef(null)
+
+  useEffect(() => {
+    setTimerEnabled(false)
+  }, [preferences.timerDefaultEnabled])
 
   const selectedTask = tasks.find((task) => task.id === taskId) ?? tasks[0]
   const wordCount = responseText.trim() ? responseText.trim().split(/\s+/).length : 0
@@ -238,6 +244,7 @@ function WritingPage() {
               wordCount={wordCount}
               minWords={selectedTask.minimumWords}
               saveStatus={saveStatus}
+              showTimer={preferences.timerDefaultEnabled}
               timerEnabled={timerEnabled}
               timerSeconds={timerSeconds}
               onToggleTimer={() => setTimerEnabled((prev) => !prev)}

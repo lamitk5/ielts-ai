@@ -126,7 +126,7 @@ function PreferenceRootProvider({ children }) {
       try {
         const record = await getPreferences()
         if (!current()) return
-        const normalized = normalizePreferences(record)
+        const normalized = normalizePreferences({ ...record, language: preferencesRef.current.language })
         confirmedRef.current = record
         setConfirmedPreferences(normalized)
         writeAccountPreferenceCache(userId, normalized, record.version)
@@ -179,7 +179,7 @@ function PreferenceRootProvider({ children }) {
       const record = await savePreferences(snapshot, confirmed.version)
       if (epochRef.current !== epoch || identityRef.current !== userId || !mountedRef.current) return
       confirmedRef.current = record
-      const normalized = normalizePreferences(record)
+      const normalized = normalizePreferences({ ...record, language: preferencesRef.current.language })
       setConfirmedPreferences(normalized)
       writeAccountPreferenceCache(userId, normalized, record.version)
       if (editRef.current === edit) {
@@ -197,7 +197,7 @@ function PreferenceRootProvider({ children }) {
         try {
           const record = await getPreferences()
           if (epochRef.current !== epoch || identityRef.current !== userId || !mountedRef.current) return
-          const normalized = normalizePreferences(record)
+          const normalized = normalizePreferences({ ...record, language: preferencesRef.current.language })
           confirmedRef.current = record
           setConfirmedPreferences(normalized)
           writeAccountPreferenceCache(userId, normalized, record.version)
@@ -248,7 +248,7 @@ function PreferenceRootProvider({ children }) {
       setStatus('loading')
       getPreferences().then((record) => {
         if (!isCurrent()) return
-        const normalized = normalizePreferences(record)
+        const normalized = normalizePreferences({ ...record, language: preferencesRef.current.language })
         confirmedRef.current = record
         setConfirmedPreferences(normalized)
         writeAccountPreferenceCache(userId, normalized, record.version)

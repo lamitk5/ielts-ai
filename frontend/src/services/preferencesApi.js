@@ -10,7 +10,9 @@ const wireEnums = {
 
 function toWire(preferences) {
   const normalized = normalizePreferences(preferences)
-  return Object.fromEntries(Object.entries(normalized).map(([key, value]) => [key, wireEnums[key]?.[value] ?? value]))
+  return Object.fromEntries(Object.entries(normalized)
+    .filter(([key]) => key !== 'language')
+    .map(([key, value]) => [key, wireEnums[key]?.[value] ?? value]))
 }
 
 function fromWire(record) {

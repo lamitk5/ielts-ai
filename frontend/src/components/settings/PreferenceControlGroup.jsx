@@ -1,7 +1,7 @@
 const themes = [
-  ['system', 'Theo hệ thống'],
-  ['light', 'Sáng'],
   ['dark', 'Tối'],
+  ['light', 'Sáng'],
+  ['system', 'Theo hệ thống'],
 ]
 
 const accents = [
@@ -16,7 +16,6 @@ const accents = [
 const selectOptions = {
   fontScale: [['small', 'Nhỏ'], ['default', 'Mặc định'], ['large', 'Lớn']],
   density: [['spacious', 'Thoáng'], ['default', 'Tiêu chuẩn'], ['compact', 'Gọn']],
-  reduceMotion: [['system', 'Theo hệ thống'], ['reduce', 'Giảm chuyển động'], ['allow', 'Cho phép chuyển động']],
 }
 
 function SelectField({ label, value, options, onChange, numeric = false }) {
@@ -36,15 +35,16 @@ function PreferenceControlGroup({ preferences, updatePreference }) {
     ['Màu nhấn', accents.find(([value]) => value === preferences.accentPreset)?.[1]],
     ['Cỡ chữ', selectOptions.fontScale.find(([value]) => value === preferences.fontScale)?.[1]],
     ['Mật độ hiển thị', selectOptions.density.find(([value]) => value === preferences.density)?.[1]],
-    ['Chuyển động', selectOptions.reduceMotion.find(([value]) => value === preferences.reduceMotion)?.[1]],
   ].map(([label, value]) => `${label}: ${value}`).join(' · ')
+
+  const fontScaleValue = { small: 0, default: 1, large: 2 }[preferences.fontScale]
 
   return (
     <>
       <p className="settings-preview" aria-live="polite">Xem trước: {preview}</p>
 
-      <fieldset className="settings-group">
-        <legend>Giao diện</legend>
+      <fieldset className="settings-group settings-section">
+        <legend><span role="heading" aria-level="3">Giao diện &amp; Hiển thị</span></legend>
         <div className="settings-theme-previews" aria-label="Xem trước giao diện">
           {themes.map(([value, label]) => (
             <button type="button" key={value} className={`settings-theme-preview ${preferences.themeMode === value ? 'settings-theme-preview-active' : ''}`.trim()} aria-pressed={preferences.themeMode === value} onClick={() => updatePreference('themeMode', value)}>
@@ -62,56 +62,44 @@ function PreferenceControlGroup({ preferences, updatePreference }) {
             </button>
           ))}
         </div>
-      </fieldset>
-
-      <fieldset className="settings-group">
-        <legend>Ngôn ngữ</legend>
-        <label className="settings-field">
-          <span>Ngôn ngữ giao diện</span>
-          <select aria-label="Ngôn ngữ" value="vi" disabled onChange={() => {}}><option value="vi">Tiếng Việt</option></select>
-        </label>
-      </fieldset>
-
-      <fieldset className="settings-group">
-        <legend>Phông chữ</legend>
-        <SelectField label="Cỡ chữ" value={preferences.fontScale} options={selectOptions.fontScale} onChange={(value) => updatePreference('fontScale', value)} />
-      </fieldset>
-
-      <fieldset className="settings-group">
-        <legend>Mật độ hiển thị</legend>
         <SelectField label="Mật độ hiển thị" value={preferences.density} options={selectOptions.density} onChange={(value) => updatePreference('density', value)} />
       </fieldset>
 
-      <fieldset className="settings-group">
-        <legend>Chuyển động</legend>
-        <SelectField label="Chuyển động" value={preferences.reduceMotion} options={selectOptions.reduceMotion} onChange={(value) => updatePreference('reduceMotion', value)} />
+      <fieldset className="settings-group settings-section">
+        <legend><span role="heading" aria-level="3">Chuyển động &amp; Trợ năng</span></legend>
+        <label className="settings-switch">
+          <span>Cho phép hiệu ứng giao diện (Animation)</span>
+          <input aria-label="Cho phép hiệu ứng giao diện (Animation)" type="checkbox" checked={preferences.reduceMotion !== 'reduce'} onChange={(event) => updatePreference('reduceMotion', event.target.checked ? 'allow' : 'reduce')} />
+        </label>
+        <label className="settings-field settings-range-field">
+          <span>Cỡ chữ</span>
+          <input aria-label="Cỡ chữ" type="range" min="0" max="2" step="1" value={fontScaleValue} onChange={(event) => updatePreference('fontScale', ['small', 'default', 'large'][Number(event.target.value)])} />
+        </label>
+        <label className="settings-field">
+          <span>Ngôn ngữ</span>
+          <select aria-label="Ngôn ngữ" value={preferences.language} onChange={(event) => updatePreference('language', event.target.value)}>
+            <option value="vi">Tiếng Việt</option>
+            <option value="en">English</option>
+          </select>
+        </label>
       </fieldset>
 
-      <fieldset className="settings-group">
-        <legend>Trợ giảng AI</legend>
+      <fieldset className="settings-group settings-section">
+        <legend><span role="heading" aria-level="3">Không gian học tập &amp; AI Tutor</span></legend>
         <label className="settings-switch">
           <span>AI gợi ý chủ động</span>
           <input aria-label="AI gợi ý chủ động" type="checkbox" checked={preferences.proactiveAiEnabled} onChange={(event) => updatePreference('proactiveAiEnabled', event.target.checked)} />
         </label>
-      </fieldset>
-
-      <fieldset className="settings-group">
-        <legend>Quyền riêng tư</legend>
-        <p className="settings-group-copy">Bạn luôn kiểm soát những tín hiệu học tập được hiển thị trong phiên luyện tập.</p>
         <label className="settings-switch">
-          <span>Đánh dấu liên kết</span>
-          <input type="checkbox" checked={preferences.crossHighlightEnabled} onChange={(event) => updatePreference('crossHighlightEnabled', event.target.checked)} />
+          <span>Bật hiệu ứng sáng vùng lỗi sai (Cross-highlighting)</span>
+          <input aria-label="Bật hiệu ứng sáng vùng lỗi sai (Cross-highlighting)" type="checkbox" checked={preferences.crossHighlightEnabled} onChange={(event) => updatePreference('crossHighlightEnabled', event.target.checked)} />
         </label>
-      </fieldset>
-
-      <fieldset className="settings-group">
-        <legend>Luyện tập</legend>
         <label className="settings-switch">
-          <span>Hiện đồng hồ luyện tập</span>
-          <input type="checkbox" checked={preferences.timerDefaultEnabled} onChange={(event) => updatePreference('timerDefaultEnabled', event.target.checked)} />
+          <span>Hiển thị đồng hồ đếm ngược</span>
+          <input aria-label="Hiển thị đồng hồ đếm ngược" type="checkbox" checked={preferences.timerDefaultEnabled} onChange={(event) => updatePreference('timerDefaultEnabled', event.target.checked)} />
         </label>
-        <SelectField label="Tỷ lệ chia Reading" value={preferences.readingSplitRatio} options={[[40, '40 / 60'], [50, '50 / 50']]} numeric onChange={(value) => updatePreference('readingSplitRatio', value)} />
-        <SelectField label="Tỷ lệ chia Writing" value={preferences.writingSplitRatio} options={[[40, '40 / 60'], [50, '50 / 50']]} numeric onChange={(value) => updatePreference('writingSplitRatio', value)} />
+        <SelectField label="Tỷ lệ chia Reading" value={preferences.readingSplitRatio} options={[[40, '40 / 60'], [50, '50 / 50'], [60, '60 / 40']]} numeric onChange={(value) => updatePreference('readingSplitRatio', value)} />
+        <SelectField label="Tỷ lệ chia Writing" value={preferences.writingSplitRatio} options={[[40, '40 / 60'], [50, '50 / 50'], [60, '60 / 40']]} numeric onChange={(value) => updatePreference('writingSplitRatio', value)} />
       </fieldset>
     </>
   )

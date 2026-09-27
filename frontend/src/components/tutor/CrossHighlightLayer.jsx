@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { TutorReferenceResolver } from '../../features/tutor/TutorReferenceResolver'
 import { defaultTutorReferenceRegistry } from '../../features/tutor/TutorReferenceRegistry'
 import { CrossHighlightContext, useCrossHighlight } from '../../features/tutor/CrossHighlightContext'
+import { useOptionalPreferences } from '../../features/preferences/PreferenceProvider'
 
 export { CrossHighlightContext, useCrossHighlight }
 
@@ -15,6 +16,8 @@ export function CrossHighlightLayer({
   const [previewTargetId, setPreviewTargetId] = useState(null)
   const currentActiveElRef = useRef(null)
   const currentPreviewElRef = useRef(null)
+  const preferenceContext = useOptionalPreferences()
+  const crossHighlightEnabled = preferenceContext?.preferences?.crossHighlightEnabled ?? true
 
   const clearHighlightAttrs = useCallback(() => {
     if (currentPreviewElRef.current && currentPreviewElRef.current !== currentActiveElRef.current) {
@@ -29,6 +32,7 @@ export function CrossHighlightLayer({
   }, [])
 
   const handlePreview = useCallback((reference) => {
+    if (!crossHighlightEnabled) return
     const resolution = TutorReferenceResolver.resolve(reference, registry, workspaceState)
     if (resolution.status !== 'ACTIVE' || !resolution.target?.element) return
 
@@ -38,7 +42,7 @@ export function CrossHighlightLayer({
       currentPreviewElRef.current = el
       setPreviewTargetId(reference.targetId)
     }
-  }, [registry, workspaceState])
+  }, [crossHighlightEnabled, registry, workspaceState])
 
   const handleClearPreview = useCallback(() => {
     if (currentPreviewElRef.current && currentPreviewElRef.current !== currentActiveElRef.current) {
@@ -49,6 +53,7 @@ export function CrossHighlightLayer({
   }, [])
 
   const handleActivate = useCallback((reference) => {
+    if (!crossHighlightEnabled) return
     const resolution = TutorReferenceResolver.resolve(reference, registry, workspaceState)
     if (resolution.status !== 'ACTIVE' || !resolution.target?.element) return
 
@@ -68,7 +73,7 @@ export function CrossHighlightLayer({
     if (typeof el.focus === 'function' && el.tabIndex >= 0) {
       el.focus()
     }
-  }, [registry, workspaceState])
+  }, [crossHighlightEnabled, registry, workspaceState])
 
   useEffect(() => {
     const handleKeyDown = (e) => {

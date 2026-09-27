@@ -107,15 +107,15 @@ describe('Settings drawer', () => {
     expect(within(dialog).getByRole('checkbox', { name: 'AI gợi ý chủ động' })).not.toBeChecked()
   })
 
-  test('live preview includes theme and motion selections', async () => {
+  test('live preview includes theme selection and animation preference', async () => {
     const user = userEvent.setup()
     renderNavbar()
     await user.click(screen.getByRole('button', { name: 'Cài đặt' }))
     const dialog = screen.getByRole('dialog', { name: 'Cài đặt' })
     await user.selectOptions(within(dialog).getByRole('combobox', { name: 'Giao diện' }), 'dark')
-    await user.selectOptions(within(dialog).getByRole('combobox', { name: 'Chuyển động' }), 'reduce')
+    await user.click(within(dialog).getByRole('checkbox', { name: 'Cho phép hiệu ứng giao diện (Animation)' }))
     expect(within(dialog).getByText(/Giao diện: Tối/)).toBeInTheDocument()
-    expect(within(dialog).getByText(/Chuyển động: Giảm chuyển động/)).toBeInTheDocument()
+    expect(document.documentElement).toHaveAttribute('data-reduced-motion', 'true')
   })
 
   test('presents settings as labeled premium personalization groups', async () => {
@@ -123,8 +123,8 @@ describe('Settings drawer', () => {
     renderNavbar()
     await user.click(screen.getByRole('button', { name: 'Cài đặt' }))
     const dialog = screen.getByRole('dialog', { name: 'Cài đặt' })
-    for (const label of ['Giao diện', 'Ngôn ngữ', 'Phông chữ', 'Mật độ hiển thị', 'Chuyển động', 'Trợ giảng AI', 'Quyền riêng tư', 'Đặt lại']) {
-      expect(within(dialog).getByText(label, { selector: 'legend, h3' })).toBeInTheDocument()
+    for (const label of ['Giao diện & Hiển thị', 'Chuyển động & Trợ năng', 'Không gian học tập & AI Tutor', 'Đặt lại']) {
+      expect(within(dialog).getByText(label, { selector: 'legend, h3, [role="heading"]' })).toBeInTheDocument()
     }
     for (const label of ['Theo hệ thống', 'Sáng', 'Tối', 'Gold', 'Sapphire', 'Emerald', 'Burgundy', 'Violet', 'Slate']) {
       expect(within(dialog).getAllByText(label).length).toBeGreaterThan(0)
