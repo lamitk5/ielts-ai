@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, test, vi } from 'vitest'
 import App from '../App'
+import HeroVisual from '../components/home/HeroVisual'
 import FloatingTutor from '../components/tutor/FloatingTutor'
 import { PreferenceProvider } from '../features/preferences/PreferenceProvider'
 import { writeGuestPreferences } from '../features/preferences/preferenceStorage'
@@ -26,7 +27,7 @@ describe('AI Tutor mascot launcher', () => {
     expect(screen.getByTestId('lumen-scholar-mascot')).toBeInTheDocument()
     expect(screen.getByTestId('lumen-scholar-mascot')).toHaveClass('ai-tutor-mascot', 'ai-tutor-pixel-owl-scholar')
     expect(screen.getByTestId('lumen-scholar-mascot')).toHaveAttribute('shape-rendering', 'crispEdges')
-    expect(screen.getByTestId('lumen-scholar-mascot')).toHaveAttribute('aria-label', 'LUMEN Pixel Owl')
+    expect(screen.getByTestId('lumen-scholar-mascot')).toHaveAttribute('aria-label', 'Én')
     expect(screen.getByTestId('lumen-scholar-mascot')).toHaveAttribute('data-character', 'pixel-owl-scholar')
     expect(screen.getByTestId('lumen-scholar-mascot')).toHaveAttribute('data-size', 'bounded')
     expect(screen.getByTestId('lumen-scholar-mascot')).toHaveAttribute('data-blink', 'open')
@@ -203,6 +204,13 @@ describe('AI Tutor mascot launcher', () => {
     act(() => vi.advanceTimersByTime(18000))
 
     expect(screen.getByRole('button', { name: 'Mở Én: Học đi bạn ê 👀' })).toBeInTheDocument()
+
+    act(() => vi.advanceTimersByTime(5000))
+    expect(screen.queryByRole('button', { name: /Mở Én: / })).not.toBeInTheDocument()
+
+    act(() => vi.advanceTimersByTime(13001))
+    expect(screen.getByRole('button', { name: 'Mở Én: Học đi bạn ê 👀' })).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Mở Én: Học đi bạn ê 👀' })).toHaveLength(1)
   })
 
   test('suppresses reminder bubbles when proactive AI is disabled but keeps manual Tutor opening', async () => {
@@ -233,6 +241,13 @@ describe('AI Tutor mascot launcher', () => {
 })
 
 describe('premium UI polish', () => {
+  test('uses Én for visible assistant identity in the hero visual', () => {
+    render(<HeroVisual />)
+
+    expect(screen.getByText('Én')).toBeInTheDocument()
+    expect(screen.queryByText('IELTS AI Tutor')).not.toBeInTheDocument()
+  })
+
   test('keeps hero content and marks the visual as enlarged without replacing its visual concept', () => {
     render(
       <MemoryRouter initialEntries={['/']}>

@@ -44,7 +44,7 @@ function HeroVisual() {
           ))}
         </div>
         <div className="hero-intelligence-footer">
-          <span>IELTS AI Tutor</span>
+          <span>Én</span>
           <span className="hero-intelligence-status">Context ready</span>
         </div>
       </GlassCard>

@@ -136,7 +136,7 @@ export default function LumenScholarMascot({ prefersReducedMotion, isBlinking = 
       viewBox="0 0 128 128"
       shapeRendering="crispEdges"
       role="img"
-      aria-label="LUMEN Pixel Owl"
+      aria-label="Én"
       focusable="false"
     >
       <rect className="ai-tutor-mascot-aura" x="9" y="9" width="110" height="110" />
