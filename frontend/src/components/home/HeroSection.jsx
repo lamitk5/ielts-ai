@@ -10,7 +10,7 @@ function HeroSection() {
   const navigate = useNavigate()
 
   return (
-    <AnimatedSection className="hero-section hero-editorial" aria-labelledby="hero-title">
+    <AnimatedSection className="hero-section hero-section-full-bleed hero-editorial" aria-labelledby="hero-title">
       <HeroBackground />
       <div className="hero-ambient" aria-hidden="true">
         <span className="hero-ambient-grid" />

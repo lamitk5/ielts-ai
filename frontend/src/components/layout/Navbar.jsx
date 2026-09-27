@@ -1,11 +1,12 @@
 import { ChevronDown, Menu, UserCircle, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { NavLink, useLocation } from 'react-router-dom'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from '../../features/auth/AuthProvider'
 import { PreferenceProvider, applyPreferenceTokens } from '../../features/preferences/PreferenceProvider'
 import { DEFAULT_PREFERENCES } from '../../features/preferences/preferenceDefaults'
 import SettingsButton from '../settings/SettingsButton'
 import SettingsDrawer from '../settings/SettingsDrawer'
+import LumenLogo from './LumenLogo'
 
 const links = [
   { label: 'Trang chủ', to: '/' },
@@ -13,6 +14,12 @@ const links = [
   { label: 'Trợ giảng AI', to: '/#ai-tutor' },
   { label: 'Tiến độ', to: '/#progress' },
 ]
+
+function isAnchorActive(link, location) {
+  const [path, hash] = link.to.split('#')
+  if (hash) return location.pathname === path && location.hash === `#${hash}`
+  return location.pathname === path && !location.hash
+}
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -33,6 +40,15 @@ function Navbar() {
 
   const closeMenu = () => setIsMenuOpen(false)
 
+  useEffect(() => {
+    if (!isMenuOpen) return undefined
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') closeMenu()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isMenuOpen])
+
   const handleLogout = async () => {
     closeMenu()
     setIsAccountOpen(false)
@@ -41,9 +57,9 @@ function Navbar() {
 
   return (
     <header className={`site-header site-header-glass ${isScrolled ? 'site-header-scrolled' : ''}`.trim()}>
-      <nav className="site-nav" aria-label="Primary navigation">
-        <NavLink className="brand" to="/" onClick={closeMenu}>
-          IELTS AI Tutor
+      <nav className="site-nav" aria-label="Primary navigation" data-menu-open={isMenuOpen ? 'true' : 'false'}>
+        <NavLink className="brand" to="/" aria-label="LUMEN IELTS AI Tutor" onClick={closeMenu}>
+          <LumenLogo />
         </NavLink>
 
         <button
@@ -67,16 +83,15 @@ function Navbar() {
           >
           <div className="nav-links">
             {links.map((link) => (
-              <NavLink
+              <Link
                 key={link.label}
-                className={({ isActive }) =>
-                  `nav-link ${isActive ? 'nav-link-active' : ''}`.trim()
-                }
+                className={`nav-link ${isAnchorActive(link, location) ? 'nav-link-active' : ''}`.trim()}
+                aria-current={isAnchorActive(link, location) ? 'page' : undefined}
                 to={link.to}
                 onClick={closeMenu}
               >
                 {link.label}
-              </NavLink>
+              </Link>
             ))}
           </div>
           {isAuthenticated ? (

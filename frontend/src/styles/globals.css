@@ -359,6 +359,272 @@ input:focus-visible {
 @media (prefers-reduced-motion: reduce) { .settings-drawer { animation: none; } }
 :root[data-reduced-motion='true'] .settings-drawer { animation: none; }
 
+/* Final Academic Luxury hero and LUMEN header polish */
+.hero-section-full-bleed {
+  width: 100%;
+  min-height: max(38rem, calc(100svh - 4.5rem));
+}
+
+.hero-bookshelf-background {
+  right: auto;
+  left: 50%;
+  width: 100vw;
+  transform: translateX(-50%);
+  background-position: center 42%;
+  filter: saturate(0.78) contrast(1.02) brightness(0.66);
+  opacity: 0.68;
+}
+
+.hero-bookshelf-background::after {
+  background:
+    linear-gradient(90deg, rgba(6, 11, 22, 0.86) 0%, rgba(6, 11, 22, 0.58) 42%, rgba(6, 11, 22, 0.68) 100%),
+    linear-gradient(180deg, rgba(6, 11, 22, 0.22), rgba(6, 11, 22, 0.78));
+}
+
+[data-theme='light'] .hero-bookshelf-background {
+  filter: saturate(0.72) contrast(0.94) brightness(1.04);
+  opacity: 0.56;
+}
+
+[data-theme='light'] .hero-bookshelf-background::after {
+  background:
+    linear-gradient(90deg, rgba(250, 246, 235, 0.92) 0%, rgba(250, 246, 235, 0.72) 46%, rgba(246, 239, 221, 0.54) 100%),
+    linear-gradient(180deg, rgba(255, 252, 245, 0.42), rgba(236, 224, 197, 0.6));
+}
+
+[data-theme='light'] .hero-title {
+  color: #132744;
+  text-shadow: 0 1px 1.2rem rgba(255, 255, 255, 0.42);
+}
+
+[data-theme='light'] .hero-description,
+[data-theme='light'] .hero-secondary-action {
+  color: #243a55;
+}
+
+[data-theme='light'] .hero-eyebrow,
+[data-theme='light'] .hero-search-control,
+[data-theme='light'] .hero-intelligence-card {
+  border-color: rgba(7, 20, 38, 0.24);
+  background: rgba(255, 252, 245, 0.86);
+  color: #132744;
+  box-shadow: 0 1.25rem 3rem rgba(65, 48, 20, 0.14);
+}
+
+[data-theme='light'] .hero-eyebrow,
+[data-theme='light'] .hero-search-control input,
+[data-theme='light'] .hero-intelligence-card,
+[data-theme='light'] .hero-intelligence-header,
+[data-theme='light'] .hero-intelligence-footer {
+  color: #132744;
+}
+
+[data-theme='light'] .hero-search-control input::placeholder,
+[data-theme='light'] .hero-suggestions-label,
+[data-theme='light'] .hero-trust-row,
+[data-theme='light'] .hero-secondary-action {
+  color: #40536c;
+}
+
+[data-theme='light'] .hero-suggestion-chip {
+  border-color: rgba(7, 20, 38, 0.24);
+  background: rgba(255, 252, 245, 0.72);
+  color: #243a55;
+}
+
+[data-theme='light'] .hero-suggestion-chip:hover {
+  background: rgba(255, 252, 245, 0.96);
+  color: #132744;
+}
+
+.site-header.site-header-glass {
+  background: color-mix(in srgb, var(--surface) 34%, transparent);
+  border-color: color-mix(in srgb, var(--border) 78%, transparent);
+  box-shadow: 0 0.5rem 2rem rgba(7, 20, 38, 0.08);
+}
+
+.site-header.site-header-scrolled {
+  background: color-mix(in srgb, var(--glass-bg) 92%, transparent);
+  border-color: var(--border-strong);
+  box-shadow: 0 0.8rem 2.4rem rgba(7, 20, 38, 0.16);
+}
+
+.brand {
+  display: inline-flex;
+  min-height: 3rem;
+  align-items: center;
+  transition: transform 220ms ease, filter 220ms ease;
+}
+
+.lumen-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.lumen-logo-mark {
+  width: 2.35rem;
+  height: 2.35rem;
+  overflow: visible;
+}
+
+.lumen-logo-path {
+  fill: none;
+  stroke: var(--gold-light);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.2;
+}
+
+.lumen-logo-book { stroke: var(--gold); stroke-width: 1.65; }
+.lumen-logo-ray { stroke-width: 1.6; }
+
+.lumen-logo-copy {
+  display: grid;
+  gap: 0.05rem;
+  line-height: 1;
+}
+
+.lumen-logo-name {
+  color: var(--gold-light);
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.03rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+}
+
+.lumen-logo-subtitle {
+  color: var(--text-muted);
+  font-size: 0.63rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.nav-link,
+.signin-link,
+.account-trigger,
+.settings-trigger-utility {
+  transition: color 220ms ease, border-color 220ms ease, background-color 220ms ease, transform 220ms ease, box-shadow 220ms ease, text-shadow 220ms ease;
+}
+
+.nav-link {
+  position: relative;
+}
+
+.nav-link-active {
+  color: var(--gold-light);
+  font-weight: 600;
+}
+
+.nav-link-active::after {
+  position: absolute;
+  right: 0.25rem;
+  bottom: -0.38rem;
+  left: 0.25rem;
+  height: 1px;
+  background: var(--gold);
+  content: '';
+  opacity: 0.82;
+  transform: scaleX(1);
+  transform-origin: center;
+}
+
+.settings-trigger-utility {
+  min-height: 2.35rem;
+  border-color: color-mix(in srgb, var(--border) 88%, transparent);
+  border-radius: 0.7rem;
+  padding: 0.38rem 0.65rem;
+  background: color-mix(in srgb, var(--surface) 32%, transparent);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.settings-trigger-utility svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.account-trigger,
+.signin-link {
+  border-color: color-mix(in srgb, var(--border) 88%, transparent);
+  background: color-mix(in srgb, var(--surface) 30%, transparent);
+}
+
+.account-trigger { min-height: 2.35rem; padding: 0.38rem 0.68rem; }
+.signin-link { padding: 0.46rem 0.78rem; }
+
+@media (hover: hover) and (pointer: fine) {
+  .brand:hover,
+  .brand:focus-visible {
+    transform: translateY(-1px) scale(1.025);
+    filter: drop-shadow(0 0 0.85rem rgba(229, 201, 130, 0.25));
+  }
+
+  .nav-link:hover,
+  .nav-link:focus-visible {
+    color: var(--gold-light);
+    text-shadow: 0 0 1rem rgba(229, 201, 130, 0.32);
+    transform: translateY(-1px) scale(1.04);
+  }
+
+  .settings-trigger-utility:hover,
+  .settings-trigger-utility:focus-visible,
+  .account-trigger:hover,
+  .account-trigger:focus-visible,
+  .signin-link:hover,
+  .signin-link:focus-visible {
+    border-color: var(--accent);
+    color: var(--gold-light);
+    box-shadow: 0 0 1rem rgba(229, 201, 130, 0.14);
+    transform: translateY(-1px) scale(1.035);
+  }
+}
+
+.settings-trigger-utility:active,
+.account-trigger:active,
+.signin-link:active {
+  transform: scale(0.98);
+}
+
+@media (max-width: 760px) {
+  .lumen-logo-name { font-size: 0.9rem; }
+  .lumen-logo-subtitle { font-size: 0.55rem; }
+  .hero-section-full-bleed { min-height: auto; }
+  .hero-bookshelf-background { background-position: 58% center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand,
+  .nav-link,
+  .settings-trigger-utility,
+  .account-trigger,
+  .signin-link {
+    transition: color 0.01ms linear, border-color 0.01ms linear, background-color 0.01ms linear, box-shadow 0.01ms linear;
+  }
+
+  .brand:hover,
+  .brand:focus-visible,
+  .nav-link:hover,
+  .nav-link:focus-visible,
+  .settings-trigger-utility:hover,
+  .settings-trigger-utility:focus-visible,
+  .account-trigger:hover,
+  .account-trigger:focus-visible,
+  .signin-link:hover,
+  .signin-link:focus-visible {
+    transform: none;
+  }
+}
+
+:root[data-reduced-motion='true'] .brand,
+:root[data-reduced-motion='true'] .nav-link,
+:root[data-reduced-motion='true'] .settings-trigger-utility,
+:root[data-reduced-motion='true'] .account-trigger,
+:root[data-reduced-motion='true'] .signin-link {
+  transition: color 0.01ms linear, border-color 0.01ms linear, background-color 0.01ms linear, box-shadow 0.01ms linear;
+}
+
 .page-main {
   min-height: calc(100vh - 13rem);
   padding: 0;
@@ -3496,6 +3762,20 @@ input:focus-visible {
     text-align: center;
     gap: 1.25rem;
   }
+}
+
+/* Keep the hero atmosphere viewport-wide even inside the centered page main. */
+.page-main > .hero-section-full-bleed {
+  width: 100vw;
+  max-width: none;
+  margin-left: calc(50% - 50vw);
+}
+
+.page-main > .hero-section-full-bleed .hero-bookshelf-background {
+  right: 0;
+  left: 0;
+  width: auto;
+  transform: none;
 }
 
 /* Final Academic Luxury auth restore */

@@ -76,6 +76,7 @@ export function applyPreferenceTokens(value) {
   }
   for (const [name, value] of Object.entries(tokens)) document.documentElement.style.setProperty(name, value)
   document.documentElement.style.colorScheme = theme
+  document.documentElement.dataset.theme = theme
   document.documentElement.dataset.density = preferences.density
   document.documentElement.dataset.reducedMotion = String(reduced)
 }
