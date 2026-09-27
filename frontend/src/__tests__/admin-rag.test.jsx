@@ -5,7 +5,8 @@ import { beforeEach, describe, expect, test, vi } from 'vitest'
 import App from '../App'
 import { createRagAdminApi, readAdminToken, writeAdminToken } from '../services/ragAdminApi'
 
-function renderApp(initialEntry = '/admin/rag') {
+function renderApp(initialEntry = '/admin/rag', session) {
+  if (session) window.localStorage.setItem('ielts-ai-tutor.session', JSON.stringify(session))
   return render(<MemoryRouter initialEntries={[initialEntry]}><App /></MemoryRouter>)
 }
 
@@ -16,9 +17,10 @@ beforeEach(() => {
 })
 
 describe('temporary RAG admin CMS', () => {
-  test('renders unlock without token', () => {
-    renderApp()
-    expect(screen.getByRole('heading', { name: /mở khóa quản trị học liệu/i })).toBeInTheDocument()
+  test('redirects guests to login without rendering the admin shell', () => {
+    renderApp('/admin/rag', null)
+    expect(screen.getByRole('heading', { name: 'Đăng nhập' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /quản trị học liệu IELTS/i })).not.toBeInTheDocument()
   })
 
   test('uses the authenticated ADMIN session without exposing a token unlock form', async () => {
@@ -116,8 +118,8 @@ describe('temporary RAG admin CMS', () => {
 
   test('keeps unlock controls keyboard reachable', async () => {
     const user = userEvent.setup()
-    renderApp()
-    for (let index = 0; index < 12 && !screen.getByLabelText(/admin token/i).matches(':focus'); index += 1) await user.tab()
-    expect(screen.getByLabelText(/admin token/i)).toHaveFocus()
+    renderApp('/admin/rag', null)
+    for (let index = 0; index < 12 && !screen.getByRole('textbox', { name: 'Email' }).matches(':focus'); index += 1) await user.tab()
+    expect(screen.getByRole('textbox', { name: 'Email' })).toHaveFocus()
   })
 })

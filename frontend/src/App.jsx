@@ -14,6 +14,8 @@ import SpeakingPage from './pages/SpeakingPage'
 import SearchPage from './pages/SearchPage'
 import AssessmentPage from './pages/AssessmentPage'
 import RegisterPage from './pages/RegisterPage'
+import RequireAdminRoute from './features/auth/RequireAdminRoute'
+import { readAdminToken } from './services/ragAdminApi'
 
 function App() {
   return (
@@ -22,9 +24,9 @@ function App() {
         <Routes>
           <Route element={<AppLayout />}>
           <Route index element={<HomePage />} />
-          <Route path="admin/rag" element={<AdminRagPage />} />
-          <Route path="admin/practice-generator" element={<AdminPracticeGeneratorPage />} />
-          <Route path="admin/practice-generator/sets/:setId" element={<AdminPracticeReviewPage />} />
+          <Route path="admin/rag" element={<RequireAdminRoute allowLegacyToken={Boolean(readAdminToken())}><AdminRagPage /></RequireAdminRoute>} />
+          <Route path="admin/practice-generator" element={<RequireAdminRoute><AdminPracticeGeneratorPage /></RequireAdminRoute>} />
+          <Route path="admin/practice-generator/sets/:setId" element={<RequireAdminRoute><AdminPracticeReviewPage /></RequireAdminRoute>} />
           <Route path="assessment" element={<AssessmentPage />} />
           <Route path="practice/search" element={<SearchPage />} />
           <Route path="practice/writing" element={<WritingPage />} />
