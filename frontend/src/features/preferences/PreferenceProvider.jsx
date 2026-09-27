@@ -77,7 +77,7 @@ export function applyPreferenceTokens(value) {
     '--navy': themes[theme]['--navy'], '--navy-light': themes[theme]['--navy-light'],
     '--gold': themes[theme]['--gold'], '--gold-light': themes[theme]['--gold-light'],
     '--accent': strong, '--accent-strong': strong, '--accent-soft': soft,
-    '--accent-hover': theme === 'light' ? darkStrong : lightStrong,
+    '--accent-hover': lightStrong,
     '--focus': strong, '--focus-ring': strong, '--link': strong, '--selected': strong, '--selected-soft': soft,
     '--border-strong': strong, '--selected-border': strong,
     '--primary-action': theme === 'light' ? lightAction : strong,

@@ -9,6 +9,17 @@ function token(name) {
   return document.documentElement.style.getPropertyValue(name)
 }
 
+function luminance(hex) {
+  const rgb = hex.match(/[a-f\d]{2}/gi).map((part) => parseInt(part, 16) / 255)
+  const linear = rgb.map((channel) => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4)
+  return linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722
+}
+
+function contrast(first, second) {
+  const values = [luminance(first), luminance(second)].sort((a, b) => b - a)
+  return (values[0] + 0.05) / (values[1] + 0.05)
+}
+
 afterEach(() => {
   document.documentElement.removeAttribute('data-theme')
   document.documentElement.removeAttribute('data-density')
@@ -61,5 +72,12 @@ describe('Academic Luxury light mode polish', () => {
     expect(token('--primary-action')).toBe('#4679ad')
     expect(token('--primary-action-text')).toBe('#ffffff')
     expect(token('--selected-border')).toBe('#255b91')
+  })
+
+  test('keeps accent hover controls readable on the light surface', () => {
+    for (const accentPreset of ['gold', 'sapphire', 'emerald', 'burgundy', 'violet', 'slate']) {
+      applyPreferenceTokens({ themeMode: 'light', accentPreset })
+      expect(contrast(token('--accent-hover'), token('--surface')), `${accentPreset}/accent hover`).toBeGreaterThanOrEqual(4.5)
+    }
   })
 })
