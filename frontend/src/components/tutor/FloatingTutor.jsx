@@ -338,7 +338,7 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
           )}
         </div>
       ) : null}
-      <AiTutorMascotLauncher buttonRef={buttonRef} open={open} onClick={handleOpenTutor} />
+      <AiTutorMascotLauncher buttonRef={buttonRef} open={open} onClick={handleOpenTutor} proactiveAiEnabled={proactiveSuggestionsEnabled} />
     </>
   )
 }

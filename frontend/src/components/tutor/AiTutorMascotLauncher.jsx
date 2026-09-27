@@ -15,6 +15,17 @@ const PUPIL_TRAVEL = 4
 const HEAD_TRAVEL = 1.5
 const HEAD_ROTATION = 2.5
 const TRACKING_DISTANCE = 180
+const REMINDER_LINES = [
+  'Học đi bạn ê 👀',
+  'Biết là bận rồi… nhưng chú ý tao một chút.',
+  'Hmmm…',
+  'Làm thêm 1 bài nữa thôi.',
+  'Ê, Reading đang đợi kìa.',
+  'Đừng bỏ tao ở góc này chứ 🥲',
+  'Tao nhớ mày rồi đấy.',
+  'Nhìn tao một chút đi.',
+  'Cần tao gợi ý bài tiếp theo không?',
+]
 
 function getTrackingVector(rect, clientX, clientY) {
   const dx = clientX - (rect.left + rect.width / 2)
@@ -26,12 +37,15 @@ function getTrackingVector(rect, clientX, clientY) {
   return { x: (dx / distance) * intensity, y: (dy / distance) * intensity, intensity }
 }
 
-function AiTutorMascotLauncher({ onClick, buttonRef, open = false }) {
+function AiTutorMascotLauncher({ onClick, buttonRef, open = false, proactiveAiEnabled = true }) {
   const prefersReducedMotion = useEffectiveReducedMotion()
   const [isActivating, setIsActivating] = useState(false)
+  const [reminder, setReminder] = useState(null)
   const frameRef = useRef(null)
   const pendingPointerRef = useRef(null)
   const activationTimerRef = useRef(null)
+  const reminderTimerRef = useRef(null)
+  const reminderHideTimerRef = useRef(null)
 
   useEffect(() => {
     function handleGlobalPointerMove(event) {
@@ -70,7 +84,34 @@ function AiTutorMascotLauncher({ onClick, buttonRef, open = false }) {
     if (activationTimerRef.current) window.clearTimeout(activationTimerRef.current)
   }, [])
 
+  useEffect(() => {
+    if (reminderTimerRef.current) window.clearTimeout(reminderTimerRef.current)
+    if (reminderHideTimerRef.current) window.clearTimeout(reminderHideTimerRef.current)
+    if (!proactiveAiEnabled || open) return undefined
+
+    let disposed = false
+
+    function scheduleReminder() {
+      const delay = 90000 + Math.round(Math.random() * 90000)
+      reminderTimerRef.current = window.setTimeout(() => {
+        if (disposed) return
+        const line = REMINDER_LINES[Math.floor(Math.random() * REMINDER_LINES.length)]
+        setReminder(line)
+        reminderHideTimerRef.current = window.setTimeout(() => setReminder(null), 5000)
+        scheduleReminder()
+      }, delay)
+    }
+
+    scheduleReminder()
+    return () => {
+      disposed = true
+      if (reminderTimerRef.current) window.clearTimeout(reminderTimerRef.current)
+      if (reminderHideTimerRef.current) window.clearTimeout(reminderHideTimerRef.current)
+    }
+  }, [open, proactiveAiEnabled])
+
   function handleClick() {
+    setReminder(null)
     if (prefersReducedMotion) {
       onClick?.()
       return
@@ -84,24 +125,39 @@ function AiTutorMascotLauncher({ onClick, buttonRef, open = false }) {
     }, 260)
   }
 
+  const visibleReminder = open || !proactiveAiEnabled ? null : reminder
+
   return (
-    <button
-      ref={buttonRef}
-      className={`ai-tutor-mascot-launcher ${isActivating ? 'ai-tutor-mascot-launcher-activating' : ''} ${open && isActivating ? 'ai-tutor-mascot-launcher-open-reaction' : ''}`.trim()}
-      type="button"
-      aria-label="Mở Trợ giảng AI"
-      aria-expanded={open}
-      aria-controls="tutor-dialog"
-      aria-hidden={open ? 'true' : undefined}
-      tabIndex={open ? -1 : undefined}
-      hidden={open && !isActivating}
-      data-mascot="lumen-pixel-owl"
-      data-pointer-direction="center"
-      onClick={handleClick}
-    >
-      <LumenScholarMascot prefersReducedMotion={prefersReducedMotion} isBlinking={isActivating} />
-      <span className="ai-tutor-mascot-tooltip" role="tooltip">Trợ giảng AI</span>
-    </button>
+    <>
+      {visibleReminder ? (
+        <button
+          className="ai-tutor-mascot-reminder"
+          type="button"
+          aria-label={`Mở Trợ giảng AI: ${reminder}`}
+          aria-live="polite"
+          onClick={handleClick}
+        >
+          {reminder}
+        </button>
+      ) : null}
+      <button
+        ref={buttonRef}
+        className={`ai-tutor-mascot-launcher ${isActivating ? 'ai-tutor-mascot-launcher-activating' : ''} ${open && isActivating ? 'ai-tutor-mascot-launcher-open-reaction' : ''}`.trim()}
+        type="button"
+        aria-label="Mở Trợ giảng AI"
+        aria-expanded={open}
+        aria-controls="tutor-dialog"
+        aria-hidden={open ? 'true' : undefined}
+        tabIndex={open ? -1 : undefined}
+        hidden={open && !isActivating}
+        data-mascot="lumen-pixel-owl"
+        data-pointer-direction="center"
+        onClick={handleClick}
+      >
+        <LumenScholarMascot prefersReducedMotion={prefersReducedMotion} isBlinking={isActivating} />
+        <span className="ai-tutor-mascot-tooltip" role="tooltip">Trợ giảng AI</span>
+      </button>
+    </>
   )
 }
 

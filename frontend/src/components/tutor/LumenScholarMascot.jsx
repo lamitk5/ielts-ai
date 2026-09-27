@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
 
+const idleExpressions = ['thinking', 'sleepy', 'excited', 'pout', 'cry']
+
 function useIdleLife(prefersReducedMotion) {
   const [isBlinking, setIsBlinking] = useState(false)
   const [idleTilt, setIdleTilt] = useState('center')
+  const [expression, setExpression] = useState('neutral')
 
   useEffect(() => {
     let blinkTimer
@@ -63,7 +66,33 @@ function useIdleLife(prefersReducedMotion) {
     }
   }, [prefersReducedMotion])
 
-  return { isBlinking, idleTilt }
+  useEffect(() => {
+    if (prefersReducedMotion) return undefined
+
+    let expressionTimer
+    let resetTimer
+    let disposed = false
+    let expressionIndex = 0
+
+    function triggerExpression() {
+      if (disposed) return
+      setExpression(idleExpressions[expressionIndex % idleExpressions.length])
+      expressionIndex += 1
+      resetTimer = window.setTimeout(() => {
+        if (!disposed) setExpression('neutral')
+      }, 4200)
+      expressionTimer = window.setTimeout(triggerExpression, 18000)
+    }
+
+    expressionTimer = window.setTimeout(triggerExpression, 18000)
+    return () => {
+      disposed = true
+      window.clearTimeout(expressionTimer)
+      window.clearTimeout(resetTimer)
+    }
+  }, [prefersReducedMotion])
+
+  return { isBlinking, idleTilt, expression }
 }
 
 function PixelEye({ side, blinking }) {
@@ -84,12 +113,13 @@ function PixelEye({ side, blinking }) {
       />
       <rect className="pixel-owl-eye-glint" x={cx - 4} y="61" width="4" height="4" />
       <rect className="pixel-owl-eye-lid" x={cx - 14} y="65" width="28" height="5" />
+      <rect className="pixel-owl-tear" x={cx + 10} y="78" width="3" height="5" />
     </g>
   )
 }
 
 export default function LumenScholarMascot({ prefersReducedMotion, isBlinking = false }) {
-  const { isBlinking: isIdleBlinking, idleTilt } = useIdleLife(prefersReducedMotion)
+  const { isBlinking: isIdleBlinking, idleTilt, expression } = useIdleLife(prefersReducedMotion)
   const blinking = isBlinking || isIdleBlinking
 
   return (
@@ -97,10 +127,12 @@ export default function LumenScholarMascot({ prefersReducedMotion, isBlinking = 
       className="ai-tutor-mascot ai-tutor-pixel-owl-scholar"
       data-testid="lumen-scholar-mascot"
       data-character="pixel-owl-scholar"
+      data-size="bounded"
       data-idle-motion={prefersReducedMotion ? 'disabled' : 'enabled'}
       data-idle-blink={isIdleBlinking ? 'closed' : 'open'}
       data-blink={blinking ? 'closed' : 'open'}
       data-idle-tilt={prefersReducedMotion ? 'center' : idleTilt}
+      data-expression={prefersReducedMotion ? 'neutral' : expression}
       viewBox="0 0 128 128"
       shapeRendering="crispEdges"
       role="img"
@@ -136,6 +168,7 @@ export default function LumenScholarMascot({ prefersReducedMotion, isBlinking = 
           <path className="pixel-owl-tie" d="m60 94 4 3 4-3 3 14H57Z" />
           <rect className="pixel-owl-medallion" x="60" y="105" width="8" height="8" />
           <path className="pixel-owl-medallion-star" d="m64 106 2 3 2 1-2 1-2 3-2-3-2-1 2-1Z" />
+          <path className="pixel-owl-thought" d="M91 39h4v4h-4Zm7-6h3v3h-3Z" />
         </g>
       </g>
     </svg>

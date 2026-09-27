@@ -1963,6 +1963,51 @@ input:focus-visible {
   pointer-events: none;
 }
 
+.ai-tutor-mascot-reminder {
+  position: fixed;
+  z-index: 31;
+  right: 1.25rem;
+  bottom: calc(1.25rem + env(safe-area-inset-bottom) + clamp(3.25rem, 5.5vw, 5rem) + 0.8rem);
+  max-width: min(18rem, calc(100vw - 2rem));
+  border: 1px solid var(--border-strong);
+  border-radius: 0.85rem 0.85rem 0.25rem 0.85rem;
+  padding: 0.65rem 0.8rem;
+  background: color-mix(in srgb, var(--surface-elevated) 92%, transparent);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2), 0 0 20px var(--accent-soft);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  animation: mascot-reminder-in 260ms ease-out both;
+}
+.ai-tutor-mascot-reminder::after {
+  position: absolute;
+  right: 1rem;
+  bottom: -0.38rem;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-right: 1px solid var(--border-strong);
+  border-bottom: 1px solid var(--border-strong);
+  background: var(--surface-elevated);
+  content: '';
+  transform: rotate(45deg);
+}
+.ai-tutor-mascot-reminder:hover,
+.ai-tutor-mascot-reminder:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+  outline: none;
+  transform: translateY(-2px);
+}
+:root[data-reduced-motion='true'] .ai-tutor-mascot-reminder { animation: none; }
+@keyframes mascot-reminder-in {
+  from { opacity: 0; transform: translateY(0.45rem) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 @keyframes mascot-activate {
   0%, 100% { transform: scale(1); }
   35% { transform: scale(0.92) rotate(-3deg); }
@@ -4657,6 +4702,12 @@ input:focus-visible {
 }
 
 @media (max-width: 760px) {
+  .ai-tutor-mascot-reminder {
+    right: 0.75rem;
+    bottom: calc(0.75rem + env(safe-area-inset-bottom) + 3.25rem + 0.7rem);
+    max-width: min(16rem, calc(100vw - 1.5rem));
+  }
+
   .page-main > .auth-full-bleed {
     width: 100vw;
     margin-left: calc(50% - 50vw);
@@ -4701,6 +4752,12 @@ input:focus-visible {
   shape-rendering: crispEdges;
   image-rendering: pixelated;
   overflow: visible;
+  width: min(84%, 4rem);
+  height: min(84%, 4rem);
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 1;
+  flex: 0 1 auto;
   filter: drop-shadow(0 0 0.55rem var(--accent-soft));
   animation: pixel-owl-breathe 4.8s ease-in-out infinite;
 }
@@ -4728,8 +4785,15 @@ input:focus-visible {
 .pixel-owl-pupil { fill: var(--navy); stroke: #1d2c48; stroke-width: 1.5; transition: transform 180ms steps(4, end); }
 .pixel-owl-eye-glint { fill: #fffaf0; pointer-events: none; }
 .pixel-owl-eye-lid { fill: var(--navy); opacity: 0; }
+.pixel-owl-tear,
+.pixel-owl-thought { fill: #8db5d7; opacity: 0; }
 .ai-tutor-pixel-owl-scholar[data-blink='closed'] .pixel-owl-eye-lid { opacity: 1; }
 .ai-tutor-pixel-owl-scholar[data-blink='closed'] .pixel-owl-eye-glint { opacity: 0; }
+.ai-tutor-pixel-owl-scholar[data-expression='thinking'] .pixel-owl-thought,
+.ai-tutor-pixel-owl-scholar[data-expression='cry'] .pixel-owl-tear { opacity: 1; }
+.ai-tutor-pixel-owl-scholar[data-expression='sleepy'] .pixel-owl-eye-lid { opacity: .45; }
+.ai-tutor-pixel-owl-scholar[data-expression='excited'] { filter: drop-shadow(0 0 .8rem var(--accent-soft)); }
+.ai-tutor-pixel-owl-scholar[data-expression='pout'] .pixel-owl-beak { transform: translateY(1px); }
 .pixel-owl-beak { fill: var(--gold); stroke: #8b5d25; stroke-width: 1; }
 .pixel-owl-collar { fill: #fffaf0; stroke: var(--gold); stroke-width: 1; }
 .pixel-owl-tie { fill: var(--navy-light); stroke: var(--gold); stroke-width: 1; }

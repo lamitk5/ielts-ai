@@ -15,7 +15,7 @@ function renderTutor() {
   )
 }
 
-afterEach(() => { vi.useRealTimers(); localStorage.clear() })
+afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); localStorage.clear() })
 
 describe('AI Tutor mascot launcher', () => {
   test('renders the premium LUMEN Pixel Owl identity', () => {
@@ -28,6 +28,7 @@ describe('AI Tutor mascot launcher', () => {
     expect(screen.getByTestId('lumen-scholar-mascot')).toHaveAttribute('shape-rendering', 'crispEdges')
     expect(screen.getByTestId('lumen-scholar-mascot')).toHaveAttribute('aria-label', 'LUMEN Pixel Owl')
     expect(screen.getByTestId('lumen-scholar-mascot')).toHaveAttribute('data-character', 'pixel-owl-scholar')
+    expect(screen.getByTestId('lumen-scholar-mascot')).toHaveAttribute('data-size', 'bounded')
     expect(screen.getByTestId('lumen-scholar-mascot')).toHaveAttribute('data-blink', 'open')
     expect(screen.getByTestId('lumen-scholar-mascot').querySelector('.ai-tutor-mascot-cap')).toBeInTheDocument()
     expect(screen.getByTestId('lumen-scholar-mascot').querySelector('.ai-tutor-mascot-eye-left')).toBeInTheDocument()
@@ -39,6 +40,8 @@ describe('AI Tutor mascot launcher', () => {
     expect(screen.getByTestId('lumen-scholar-mascot').querySelector('.pixel-owl-book')).toBeInTheDocument()
     expect(screen.getByTestId('lumen-scholar-mascot').querySelector('.pixel-owl-wing')).toBeInTheDocument()
     expect(screen.getByTestId('lumen-scholar-mascot').querySelector('.pixel-owl-medallion')).toBeInTheDocument()
+    expect(screen.getByTestId('lumen-scholar-mascot').querySelector('.pixel-owl-tear')).toBeInTheDocument()
+    expect(screen.getByTestId('lumen-scholar-mascot').querySelector('.pixel-owl-thought')).toBeInTheDocument()
     expect(screen.getByText('Trợ giảng AI')).toHaveClass('ai-tutor-mascot-tooltip')
   })
 
@@ -174,6 +177,58 @@ describe('AI Tutor mascot launcher', () => {
 
     expect(mascot).toHaveAttribute('data-idle-blink', 'closed')
     expect(launcher.style.transform).toBe('')
+  })
+
+  test('rotates through a quiet idle expression without changing the launcher anchor', () => {
+    vi.useFakeTimers()
+    renderTutor()
+
+    const launcher = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
+    const mascot = screen.getByTestId('lumen-scholar-mascot')
+    expect(mascot).toHaveAttribute('data-expression', 'neutral')
+
+    act(() => vi.advanceTimersByTime(18000))
+
+    expect(mascot).not.toHaveAttribute('data-expression', 'neutral')
+    expect(launcher.style.transform).toBe('')
+  })
+
+  test('shows one reminder bubble on the long idle timer', () => {
+    vi.useFakeTimers()
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+    writeGuestPreferences({ proactiveAiEnabled: true })
+    renderTutor()
+
+    expect(screen.queryByRole('button', { name: /Mở Trợ giảng AI: / })).not.toBeInTheDocument()
+    act(() => vi.advanceTimersByTime(90000))
+
+    expect(screen.getByRole('button', { name: 'Mở Trợ giảng AI: Học đi bạn ê 👀' })).toBeInTheDocument()
+  })
+
+  test('suppresses reminder bubbles when proactive AI is disabled but keeps manual Tutor opening', async () => {
+    vi.useFakeTimers()
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+    writeGuestPreferences({ proactiveAiEnabled: false })
+    renderTutor()
+
+    act(() => vi.advanceTimersByTime(180000))
+    expect(screen.queryByRole('button', { name: /Mở Trợ giảng AI: / })).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
+    act(() => vi.advanceTimersByTime(260))
+    expect(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).toBeInTheDocument()
+  })
+
+  test('suppresses reminder bubbles while Tutor is open', () => {
+    vi.useFakeTimers()
+    vi.spyOn(Math, 'random').mockReturnValue(0)
+    renderTutor()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
+    act(() => vi.advanceTimersByTime(260))
+    act(() => vi.advanceTimersByTime(180000))
+
+    expect(screen.queryByRole('button', { name: /Mở Trợ giảng AI: / })).not.toBeInTheDocument()
   })
 })
 
