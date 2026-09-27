@@ -46,31 +46,46 @@ public class PracticeController {
     @PostMapping("/{skill}/attempts/start")
     public ReadingAttemptResponse start(@PathVariable String skill, @RequestBody StartRequest request, HttpServletRequest httpRequest) {
         AuthPrincipal principal = principal(httpRequest);
-        if (!"reading".equalsIgnoreCase(skill)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Durable flow is only available for Reading.");
-        return ReadingAttemptResponse.from(service.startReadingAttempt(request.setId(), principal.userId(), request.idempotencyKey()));
+        ensureObjectiveSkill(skill);
+        PracticeAttempt attempt = "reading".equalsIgnoreCase(skill)
+                ? service.startReadingAttempt(request.setId(), principal.userId(), request.idempotencyKey())
+                : service.startListeningAttempt(request.setId(), principal.userId(), request.idempotencyKey());
+        return ReadingAttemptResponse.from(attempt);
     }
 
     @PutMapping("/{skill}/attempts/{attemptId}/answers")
     public ReadingAttemptResponse saveAnswers(@PathVariable String skill, @PathVariable UUID attemptId,
             @RequestBody AnswersRequest request, HttpServletRequest httpRequest) {
         AuthPrincipal principal = principal(httpRequest);
-        if (!"reading".equalsIgnoreCase(skill)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Durable flow is only available for Reading.");
-        return ReadingAttemptResponse.from(service.saveReadingAnswers(principal.userId(), attemptId, request.answers()));
+        ensureObjectiveSkill(skill);
+        return ReadingAttemptResponse.from(service.saveObjectiveAnswers(principal.userId(), attemptId, request.answers()));
     }
 
     @PostMapping("/{skill}/attempts/{attemptId}/submit")
     public ReadingAttemptResponse submitDurable(@PathVariable String skill, @PathVariable UUID attemptId,
             @RequestBody DurableSubmitRequest request, HttpServletRequest httpRequest) {
         AuthPrincipal principal = principal(httpRequest);
-        if (!"reading".equalsIgnoreCase(skill)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Durable flow is only available for Reading.");
-        return ReadingAttemptResponse.from(service.submitReadingAttempt(principal.userId(), attemptId, request.answers(), request.idempotencyKey()));
+        ensureObjectiveSkill(skill);
+        PracticeAttempt attempt = "reading".equalsIgnoreCase(skill)
+                ? service.submitReadingAttempt(principal.userId(), attemptId, request.answers(), request.idempotencyKey())
+                : service.submitListeningAttempt(principal.userId(), attemptId, request.answers(), request.idempotencyKey());
+        return ReadingAttemptResponse.from(attempt);
     }
 
     @GetMapping("/{skill}/attempts/{attemptId}/result")
     public ReadingAttemptResponse result(@PathVariable String skill, @PathVariable UUID attemptId, HttpServletRequest httpRequest) {
         AuthPrincipal principal = principal(httpRequest);
-        if (!"reading".equalsIgnoreCase(skill)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Durable flow is only available for Reading.");
-        return ReadingAttemptResponse.from(service.readingResult(principal.userId(), attemptId));
+        ensureObjectiveSkill(skill);
+        PracticeAttempt attempt = "reading".equalsIgnoreCase(skill)
+                ? service.readingResult(principal.userId(), attemptId)
+                : service.listeningResult(principal.userId(), attemptId);
+        return ReadingAttemptResponse.from(attempt);
+    }
+
+    private void ensureObjectiveSkill(String skill) {
+        if (!"reading".equalsIgnoreCase(skill) && !"listening".equalsIgnoreCase(skill)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Durable flow is only available for Reading and Listening.");
+        }
     }
 
     private AuthPrincipal principal(HttpServletRequest request) {

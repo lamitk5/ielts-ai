@@ -77,7 +77,7 @@ public class SyntheticPracticeCatalog {
                                 new PracticeParagraph("reading-foundation-01-p2",
                                         "After two weeks, researchers compared written summaries. Participants who used spaced retrieval produced more accurate summaries than those who reread the text only once.")))),
                 new PracticeSet("listening-foundation-01", "Listening", "Listening foundation",
-                        "Luyện nghe theo ngữ cảnh với transcript thân thiện để xem lại sau khi trả lời.", List.of(
+                        "Bộ câu hỏi Listening thuộc project-owned content; audio hiện chưa được cấu hình.", List.of(
                                 new PracticeQuestion("listening-q1", "What time does the library open?",
                                         List.of("7:30", "8:00", "8:30", "9:00"), "B", "The library opens at 8:00."),
                                 new PracticeQuestion("listening-q2", "Which room is reserved?",

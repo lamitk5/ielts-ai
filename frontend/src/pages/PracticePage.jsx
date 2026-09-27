@@ -9,6 +9,7 @@ import {
   fetchPracticeSet,
   savePracticeAnswers,
   startPracticeAttempt,
+  submitListeningAttempt,
   submitPracticeAttempt,
   submitReadingAttempt,
 } from '../features/reading/practiceApi'
@@ -19,6 +20,7 @@ import { ReadingQuestionPane } from '../components/workspace/ReadingQuestionPane
 import { saveSessionSnapshot, loadSessionSnapshot } from '../features/session/sessionStorage'
 import { validateSessionSnapshot } from '../features/session/sessionContinuity'
 import { usePreferences } from '../features/preferences/PreferenceProvider'
+import ListeningPracticeWorkspace from '../components/listening/ListeningPracticeWorkspace'
 
 function PracticeSkillSession({ skill, fixture }) {
   const [practiceSet, setPracticeSet] = useState(fixture)
@@ -62,7 +64,7 @@ function PracticeSetSession({ skill, practiceSet }) {
   const [timerExpired, setTimerExpired] = useState(false)
 
   useEffect(() => {
-    if (!isAuthenticated || skill !== 'reading') return undefined
+    if (!isAuthenticated || !['reading', 'listening'].includes(skill)) return undefined
     let active = true
     const idempotencyKey = `${skill}:${setId}`
     startPracticeAttempt(skill, setId, `${setId}:v1`, idempotencyKey)
@@ -126,6 +128,9 @@ function PracticeSetSession({ skill, practiceSet }) {
       if (skill === 'reading' && durableAttempt?.id) {
         const submitted = await submitReadingAttempt(skill, setId, durableAttempt.id, answers, `${skill}:${setId}`)
         setResult({ ...submitted, attemptId: submitted.id })
+      } else if (skill === 'listening' && durableAttempt?.id) {
+        const submitted = await submitListeningAttempt(skill, setId, durableAttempt.id, answers, `${skill}:${setId}`)
+        setResult({ ...submitted, attemptId: submitted.id })
       } else {
         setResult(await submitPracticeAttempt(skill, setId, answers))
       }
@@ -149,10 +154,18 @@ function PracticeSetSession({ skill, practiceSet }) {
           </div>
         ) : null}
         {skill === 'listening' ? (
-          <GlassCard className="practice-boundary" role="status">
-            <strong>Phát audio chưa được cấu hình</strong>
-            <span>Bộ đề synthetic hiện dùng nội dung văn bản để kiểm tra luồng trả lời và chấm điểm deterministic.</span>
-          </GlassCard>
+          <ListeningPracticeWorkspace
+            questions={questions}
+            answers={answers}
+            onAnswer={(id, value) => {
+              handleSelectQuestion(id)
+              setAnswers((current) => {
+                const next = { ...current, [id]: value }
+                if (durableAttempt?.id) void savePracticeAnswers(durableAttempt.id, next).catch(() => {})
+                return next
+              })
+            }}
+          />
         ) : null}
         {skill === 'reading' ? (
           <SplitLearningWorkspace
@@ -187,7 +200,7 @@ function PracticeSetSession({ skill, practiceSet }) {
               />
             }
           />
-        ) : questions.map((question, index) => (
+        ) : skill === 'listening' ? null : questions.map((question, index) => (
           <GlassCard className="practice-question" key={question.id}>
             <p className="practice-question-number">CÂU {index + 1}</p>
             <h2>{question.prompt}</h2>

@@ -17,7 +17,7 @@ export const practiceFixtures = {
   },
   listening: {
     name: 'Listening',
-    description: 'Synthetic practice set · nghe theo ngữ cảnh và xem lại transcript sau khi trả lời.',
+    description: 'Synthetic practice set · câu hỏi luyện tập với audio chưa được cấu hình.',
     setId: 'listening-foundation-01',
     questions: [
       { id: 'listening-q1', prompt: 'What time does the library open?', options: ['7:30', '8:00', '8:30', '9:00'] },

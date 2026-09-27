@@ -52,7 +52,18 @@ public class PracticeService {
         return durableAttempts.start(userId, set.id(), versionOf(set), "reading", idempotencyKey);
     }
 
+    public PracticeAttempt startListeningAttempt(String setId, UUID userId, String idempotencyKey) {
+        requireDurableAttempts();
+        PracticeSet set = catalog.find("listening", setId);
+        return durableAttempts.start(userId, set.id(), versionOf(set), "listening", idempotencyKey);
+    }
+
     public PracticeAttempt saveReadingAnswers(UUID userId, UUID attemptId, Map<String, String> answers) {
+        requireDurableAttempts();
+        return durableAttempts.saveAnswers(userId, attemptId, answers == null ? Map.of() : answers);
+    }
+
+    public PracticeAttempt saveObjectiveAnswers(UUID userId, UUID attemptId, Map<String, String> answers) {
         requireDurableAttempts();
         return durableAttempts.saveAnswers(userId, attemptId, answers == null ? Map.of() : answers);
     }
@@ -77,6 +88,29 @@ public class PracticeService {
         PracticeAttempt attempt = durableAttempts.get(userId, attemptId);
         if (attempt == null) throw new IllegalArgumentException("Reading attempt not found");
         if (!"reading".equalsIgnoreCase(attempt.skill())) throw new IllegalArgumentException("Attempt is not a Reading attempt");
+        return attempt;
+    }
+
+    public PracticeAttempt submitListeningAttempt(UUID userId, UUID attemptId, Map<String, String> answers, String idempotencyKey) {
+        requireDurableAttempts();
+        PracticeAttempt attempt = durableAttempts.get(userId, attemptId);
+        if (attempt == null) throw new IllegalArgumentException("Listening attempt not found");
+        if (!"listening".equalsIgnoreCase(attempt.skill())) throw new IllegalArgumentException("Attempt is not a Listening attempt");
+        PracticeSet set = catalog.find("listening", attempt.practiceId());
+        Map<String, String> submittedAnswers = answers == null ? Map.of() : Map.copyOf(answers);
+        int score = 0;
+        for (PracticeQuestion question : set.questions()) {
+            if (question.answerKey().equalsIgnoreCase(submittedAnswers.getOrDefault(question.id(), "").trim())) score++;
+        }
+        return durableAttempts.submit(userId, attemptId, submittedAnswers, score, set.questions().size(),
+                "{\"skill\":\"listening\",\"mediaStatus\":\"NOT_CONFIGURED\"}", idempotencyKey);
+    }
+
+    public PracticeAttempt listeningResult(UUID userId, UUID attemptId) {
+        requireDurableAttempts();
+        PracticeAttempt attempt = durableAttempts.get(userId, attemptId);
+        if (attempt == null) throw new IllegalArgumentException("Listening attempt not found");
+        if (!"listening".equalsIgnoreCase(attempt.skill())) throw new IllegalArgumentException("Attempt is not a Listening attempt");
         return attempt;
     }
 

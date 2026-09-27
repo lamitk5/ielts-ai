@@ -67,6 +67,15 @@ export async function submitReadingAttempt(skill, setId, attemptId, answers, ide
   return readAttemptResponse(response, 'Không thể nộp bài Reading.')
 }
 
+export async function submitListeningAttempt(skill, setId, attemptId, answers, idempotencyKey = `${skill}:${setId}`) {
+  const response = await fetch(`/api/practice/${skill}/attempts/${attemptId}/submit`, {
+    method: 'POST',
+    headers: sessionHeaders(),
+    body: JSON.stringify({ answers, idempotencyKey }),
+  })
+  return readAttemptResponse(response, 'Không thể nộp bài Listening.')
+}
+
 export async function fetchReadingAttemptResult(skill, attemptId) {
   const response = await fetch(`/api/practice/${skill}/attempts/${attemptId}/result`, {
     headers: sessionHeaders(),
