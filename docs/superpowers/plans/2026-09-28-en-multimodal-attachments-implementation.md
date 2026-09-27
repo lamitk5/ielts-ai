@@ -112,7 +112,7 @@ rendering.
 - Consumes: MultipartFile, TutorAttachmentContract, Apache Tika detection, ImageIO, and the authenticated request boundary.
 - Produces: TutorAttachmentValidationResult validate(MultipartFile file), returning canonical filename, MIME, kind, byte size, checksum input, and safe error code/message.
 
-- [ ] Step 1: Write the failing validator tests. Add acceptsPdfDocxTxtPngJpgJpegWebp, rejectsOversizedFile, rejectsEmptyFile, rejectsExtensionMimeMismatch, rejectsMagicByteMismatch, rejectsActiveContent, rejectsTraversalFilename, and rejectsImageAbove25Megapixels. Assert 10 MiB is accepted at the exact boundary and 10 MiB plus one byte is rejected.
+- [ ] Step 1: Write the failing validator tests. Add acceptsPdfDocxTxtPngJpgJpegWebp, rejectsOversizedFile, rejectsEmptyFile, rejectsExtensionMimeMismatch, rejectsMagicByteMismatch, rejectsMalformedDocument, rejectsDecompressionBomb, rejectsActiveContent, rejectsTraversalFilename, and rejectsImageAbove25Megapixels. Assert 10 MiB is accepted at the exact boundary and 10 MiB plus one byte is rejected.
 - [ ] Step 2: Run RED. Run cmd /c .\mvnw.cmd -Dtest=TutorAttachmentValidatorTest test. Expected: FAIL because the validator and pixel guard are not defined.
 - [ ] Step 3: Implement validation. Detect content server-side, verify PDF/DOCX/PNG/JPEG/WEBP signatures, decode text safely, sanitize display names, reject active content and generic ZIP, enforce 10 MiB and 25 megapixels, and return normalized errors without provider or filesystem details. Set Spring multipart max-file-size to 10MB and max-request-size to 50MB for the batch endpoint.
 - [ ] Step 4: Run GREEN. Run the focused Maven command and expect every supported/unsupported boundary test to pass.
@@ -152,9 +152,9 @@ rendering.
 
 **Interfaces:**
 - Consumes: AuthPrincipal, ConversationService.create, TutorAttachmentValidator, TutorAttachmentStorage, and repository methods from Task 4.
-- Produces: POST /api/ai/conversations for an owned ACTIVE conversation; POST /api/ai/attachments with conversationId and repeated files; GET /api/ai/attachments/{id}; DELETE /api/ai/attachments/{id}; response { attachments: List<TutorAttachment> }.
+- Produces: POST /api/ai/conversations for an owned ACTIVE conversation; POST /api/ai/attachments with conversationId and repeated files; GET /api/ai/attachments/{id}; authorized image preview through the same ownership boundary; DELETE /api/ai/attachments/{id}; response { attachments: List<TutorAttachment> }.
 
-- [ ] Step 1: Write failing MVC tests. Add createsOwnedConversationWithoutCallingAI, uploadsOneToFiveFiles, rejectsSixFiles, returnsSafeMetadataAndStatus, getsOnlyOwnedAttachment, removesOwnedAttachment, and rejectsMissingOrForeignConversation.
+- [ ] Step 1: Write failing MVC tests. Add createsOwnedConversationWithoutCallingAI, uploadsOneToFiveFiles, rejectsSixFiles, returnsSafeMetadataAndStatus, getsOnlyOwnedAttachment, previewsOnlyOwnedImage, removesOwnedAttachment, usesAntiEnumerationSafeStatusForForeignId, and rejectsMissingOrForeignConversation.
 - [ ] Step 2: Run RED. Run cmd /c .\mvnw.cmd -Dtest=TutorAttachmentApiContractTest,TutorAttachmentControllerTest,ConversationControllerTest test. Expected: FAIL because batch parts, conversation bootstrap, and ownership scope are not implemented.
 - [ ] Step 3: Implement the API. Keep /api/ai/attachments and current authentication interception. Accept canonical files[] plus the one-file compatibility alias, persist each item independently, return safe metadata, and never return storage paths. Require conversation ownership before attachment lookup.
 - [ ] Step 4: Run GREEN. Run the same focused Maven command and expect the API contract tests to pass.
@@ -167,18 +167,20 @@ rendering.
 - Create: backend/src/main/java/com/ieltsaitutor/ai/attachment/TutorAttachmentProcessingService.java
 - Create: backend/src/main/java/com/ieltsaitutor/ai/attachment/TutorAttachmentProcessingRecovery.java
 - Create: backend/src/main/java/com/ieltsaitutor/ai/attachment/TutorAttachmentProcessingProperties.java
+- Create: backend/src/main/java/com/ieltsaitutor/ai/attachment/TutorAttachmentCleanupService.java
 - Create: backend/src/test/java/com/ieltsaitutor/ai/attachment/TutorAttachmentProcessingServiceTest.java
 - Create: backend/src/test/java/com/ieltsaitutor/ai/attachment/TutorAttachmentProcessingRecoveryTest.java
+- Create: backend/src/test/java/com/ieltsaitutor/ai/attachment/TutorAttachmentCleanupServiceTest.java
 - Modify: backend/src/main/java/com/ieltsaitutor/ai/attachment/TutorAttachmentService.java
 - Modify: backend/src/main/resources/application.properties
 
 **Interfaces:**
 - Consumes: stored attachment IDs, repository lifecycle methods, and the later document/image processors.
-- Produces: process(UUID attachmentId): void; recoverStale(Instant now): int; configuration timeout five minutes and one bounded recovery attempt.
+- Produces: process(UUID attachmentId): void; recoverStale(Instant now): int; cleanupRemovedOrExpired(): int; configuration timeout five minutes and one bounded recovery attempt.
 
-- [ ] Step 1: Write failing lifecycle tests. Add transitionsStoredToProcessingToReady, parserFailureBecomesFailed, providerFailureDoesNotInvalidateReady, staleProcessingBecomesFailedAfterBoundedRecovery, and siblingFilesRemainValid.
+- [ ] Step 1: Write failing lifecycle tests. Add transitionsStoredToProcessingToReady, parserFailureBecomesFailed, providerFailureDoesNotInvalidateReady, staleProcessingBecomesFailedAfterBoundedRecovery, siblingFilesRemainValid, deletesUnreferencedRemovedBytes, retainsMessageReferencedBytes, and retainsActiveAttachmentBytes.
 - [ ] Step 2: Run RED. Run cmd /c .\mvnw.cmd -Dtest=TutorAttachmentProcessingServiceTest,TutorAttachmentProcessingRecoveryTest test. Expected: FAIL because processing orchestration and recovery do not exist.
-- [ ] Step 3: Implement bounded processing. Mark processing_started_at, delegate one file at a time to the processor boundary, record normalized error codes, and recover stale rows after five minutes without unbounded retries. Configure bounded worker concurrency and ensure upload success is independent per file.
+- [ ] Step 3: Implement bounded processing and cleanup. Mark processing_started_at, delegate one file at a time to the processor boundary, record normalized error codes, and recover stale rows after five minutes without unbounded retries. Configure bounded worker concurrency and ensure upload success is independent per file. Run cleanup only for REMOVED or EXPIRED rows whose storage key has no active attachment or retained message reference; never delete bytes still needed by history.
 - [ ] Step 4: Run GREEN. Run the focused Maven command and expect deterministic transitions and timeout tests to pass.
 - [ ] Step 5: Run API regressions. Run cmd /c .\mvnw.cmd -Dtest=TutorAttachmentApiContractTest,TutorAttachmentControllerTest test.
 - [ ] Step 6: Commit. Commit feat(attachments): add bounded processing lifecycle.
@@ -357,9 +359,9 @@ rendering.
 - Consumes: successful chat attachment IDs and ai_message_attachments.
 - Produces: ConversationDetail messages with safe TutorAttachmentHistoryView metadata; ConversationService.appendMessageWithAttachments(UUID userId, UUID conversationId, AiMessage message, List<UUID> attachmentIds).
 
-- [ ] Step 1: Write failing history tests. Add linksReadyAttachmentsAfterSuccessfulSend, doesNotLinkFailedAttachments, reloadReturnsSafeMetadata, doesNotLoadBinaryBodies, and messageAttachmentOrdinalIsStable.
+- [ ] Step 1: Write failing history tests. Add linksReadyAttachmentsAfterSuccessfulSend, doesNotLinkFailedAttachments, reloadReturnsSafeMetadata, doesNotLoadBinaryBodies, messageAttachmentOrdinalIsStable, and conversationDeletionSchedulesUnreferencedCleanup.
 - [ ] Step 2: Run RED. Run cmd /c .\mvnw.cmd -Dtest=ConversationAttachmentHistoryTest,ConversationControllerTest test. Expected: FAIL because AiMessage and JDBC history have no attachment relation.
-- [ ] Step 3: Implement durable linking. Persist relation rows only after a successful chat message, return safe filename/kind/size/status/preview metadata, and keep binaries out of conversation history hydration. Enforce owner and conversation checks again in the repository transaction.
+- [ ] Step 3: Implement durable linking. Persist relation rows only after a successful chat message, return safe filename/kind/size/status/preview metadata, and keep binaries out of conversation history hydration. Enforce owner and conversation checks again in the repository transaction, and invoke the bounded cleanup boundary after conversation deletion without removing retained message bytes.
 - [ ] Step 4: Run GREEN. Run the focused Maven command and expect link, reload, and no-binary assertions to pass.
 - [ ] Step 5: Run memory/security regressions. Run cmd /c .\mvnw.cmd -Dtest=ConversationControllerTest,Phase2BConversationSecurityRegressionTest,ConversationServiceTest test.
 - [ ] Step 6: Commit. Commit feat(attachments): persist attachment links in Tutor history.
@@ -397,7 +399,7 @@ rendering.
 - Consumes: upload API normalization from Task 15 and the current AttachmentStatus presentation contract.
 - Produces: AttachmentComposer multiple selection with exact accept values; AttachmentStatus list rendering image/document cards with filename, size, state, remove, and retry actions.
 
-- [ ] Step 1: Write failing component tests. Add acceptsOneFile, acceptsFiveFiles, rejectsSixthSelection, rejectsUnsupportedType, rejectsOver10MiB, rendersFiveIndependentCards, rendersImageThumbnail, rendersDocumentIcon, and exposesKeyboardRemoveRetryActions.
+- [ ] Step 1: Write failing component tests. Add acceptsOneFile, acceptsFiveFiles, rejectsSixthSelection, rejectsUnsupportedType, rejectsOver10MiB, rendersFiveIndependentCards, rendersImageThumbnail, rendersDocumentIcon, exposesKeyboardRemoveRetryActions, and keepsReducedMotionAccessible.
 - [ ] Step 2: Run RED. Run npm test -- --run src/__tests__/tutor-multimodal-picker.test.jsx. Expected: FAIL because the current composer selects only files[0] and disables itself after one active attachment.
 - [ ] Step 3: Implement the picker/cards. Use multiple on the existing hidden input, reject excess files without uploading them, keep each card independent, preserve responsive/Academic Luxury styles, and use accessible live status labels.
 - [ ] Step 4: Run GREEN. Run the focused Vitest command and expect picker/card assertions to pass.
@@ -457,7 +459,7 @@ rendering.
 - Consumes: all attachment, private retrieval, provider, chat, and history boundaries from Tasks 1 through 18.
 - Produces: deterministic regression evidence for cross-user isolation, cross-conversation isolation, READY enforcement, no fake vision, mixed turns, no-reupload retry, and history persistence.
 
-- [ ] Step 1: Write failing integration/regression tests. Add userACannotUseUserBAttachment, conversationACannotUseConversationBAttachment, removedAndExpiredAreRejected, imageUsesActualPixels, textOnlyProviderCannotReceiveVisionTurn, mixedImagePdfDocxPreservesSources, providerFailureKeepsAttachmentReady, retryUsesExistingIds, and reloadPreservesMetadata.
+- [ ] Step 1: Write failing integration/regression tests. Add userACannotUseUserBAttachment, conversationACannotUseConversationBAttachment, removedAndExpiredAreRejected, expiredSessionCannotAccessAttachment, imageUsesActualPixels, textOnlyProviderCannotReceiveVisionTurn, mixedImagePdfDocxPreservesSources, providerFailureKeepsAttachmentReady, retryUsesExistingIds, and reloadPreservesMetadata.
 - [ ] Step 2: Run RED. Run backend cmd /c .\mvnw.cmd -Dtest=TutorAttachmentSecurityRegressionTest,TutorMultimodalIntegrationTest test and frontend npm test -- --run src/__tests__/tutor-multimodal-regression.test.jsx. Expected: newly added assertions fail until all earlier boundaries are wired together.
 - [ ] Step 3: Implement only integration fixes exposed by these tests. Do not redesign unrelated flows, bypass ownership, add fake responses, or change admin RAG semantics. Use deterministic provider fakes and fixture files; do not call live providers in automated tests.
 - [ ] Step 4: Run GREEN. Rerun both focused commands and require zero failures.
@@ -480,10 +482,11 @@ rendering.
 - [ ] Step 3: Run backend full verification. From backend run cmd /c .\mvnw.cmd test and cmd /c .\mvnw.cmd package. Record tests, failures, errors, skips, and any known Docker/Testcontainers environment limitation without changing dependencies speculatively.
 - [ ] Step 4: Verify a clean QA migration. Use a newly provisioned QA database, never the legacy/shared database. Start the backend with explicit RAG_DB_NAME and existing provider-safe local configuration, then run scripts/db/inspect-flyway-state.ps1 -DatabaseUrl using the QA connection string without password query parameters. Require V1 through V30 success, ai_attachments, ai_attachment_chunks, ai_message_attachments, vector(768), and required indexes.
 - [ ] Step 5: Run real local/QA acceptance. Upload five supported files, reject a sixth, reject an oversize file, ask about a unique fact in TXT/DOCX/PDF, ask “Ảnh này có gì?” with real JPG/PNG pixels, compare multiple documents, run image + PDF + DOCX mixed chat, exercise scanned-PDF fallback, and verify truthful errors when vision is unavailable.
-- [ ] Step 6: Verify retry and persistence. Fail one upload while four succeed, retry only the failed file, retry chat without another upload, reload Én to verify metadata/chips, restart backend, and verify history remains available.
+- [ ] Step 6: Verify retry, persistence, and cleanup. Fail one upload while four succeed, retry only the failed file, retry chat without another upload, reload Én to verify metadata/chips, restart backend, verify history remains available, and prove removed/expired bytes are deleted only when no active or retained message reference remains.
 - [ ] Step 7: Verify security and runtime hygiene. Use two local QA users and two conversations to prove foreign UUID denial and conversation isolation. Check browser console for uncaught errors/warnings, network for failed loops or duplicate uploads, no raw paths/provider errors, and no horizontal overflow in the existing 375/768/1024/1440 responsive checks.
 - [ ] Step 8: Fix only reproducible Important/Critical defects. For each defect, add a failing regression test, verify RED, make the smallest fix, verify GREEN, and rerun the affected suite. Do not start another feature or alter approved scope.
 - [ ] Step 9: Final repository checks. Run git diff --check, git status --short, and git log --oneline -12. Require no uncommitted changes, no legacy DB modification, no push, no merge, and no deploy. Do not create an empty verification commit.
+- [ ] Step 10: Commit the acceptance record. Commit docs(qa): record En multimodal attachment acceptance after the acceptance document is complete; if an Important/Critical fix was required, include only that focused fix and its tests in the same task commit.
 
 ## Spec coverage map
 
@@ -494,6 +497,7 @@ rendering.
 - Tika extraction, chunking, provenance, embeddings, and private retrieval: Tasks 7, 8, 9.
 - Vision routing, actual image payloads, scanned PDF, and mixed turns: Tasks 10, 11, 12, 13, 19, 20.
 - Context budget and document summarization: Task 9.
+- Authorized image previews, retention, and cleanup: Tasks 5, 6, 14, 18, 20.
 - Frontend picker, cards, queue, READY gating, retry, and history: Tasks 15, 16, 17, 18.
 - Automated test strategy, acceptance cases, and final verification: Tasks 1–20.
 
@@ -551,4 +555,4 @@ verification.
 17. feat(frontend): add bounded attachment upload queue
 18. feat(frontend): gate Tutor send on ready attachments
 19. test(ai): verify secure multimodal Tutor flows
-20. No empty verification commit; only a focused fix commit if Task 20 finds a reproducible Important/Critical defect.
+20. docs(qa): record En multimodal attachment acceptance (plus any focused Task 20 defect fix).
