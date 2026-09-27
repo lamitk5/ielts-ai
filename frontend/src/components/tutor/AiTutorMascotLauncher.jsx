@@ -10,6 +10,21 @@ function getPointerDirection(rect, clientX, clientY) {
   return vertical > 0 ? 'below' : 'above'
 }
 
+const PUPIL_TRAVEL = 1.6
+const HEAD_TRAVEL = 1.2
+const HEAD_ROTATION = 2
+const TRACKING_DISTANCE = 180
+
+function getTrackingVector(rect, clientX, clientY) {
+  const dx = clientX - (rect.left + rect.width / 2)
+  const dy = clientY - (rect.top + rect.height / 2)
+  const distance = Math.hypot(dx, dy)
+  if (!distance) return { x: 0, y: 0, intensity: 0 }
+
+  const intensity = Math.min(1, distance / TRACKING_DISTANCE)
+  return { x: (dx / distance) * intensity, y: (dy / distance) * intensity, intensity }
+}
+
 function LumenScholar({ prefersReducedMotion }) {
   return (
     <svg className="ai-tutor-mascot" data-testid="lumen-scholar-mascot" data-idle-motion={prefersReducedMotion ? 'disabled' : 'enabled'} viewBox="0 0 120 120" role="img" aria-label="LUMEN Scholar" focusable="false">
@@ -27,12 +42,12 @@ function LumenScholar({ prefersReducedMotion }) {
         <path className="ai-tutor-mascot-cap" d="M24 46c5-25 17-37 36-37s31 12 36 37c-21-7-51-7-72 0Z" fill="var(--navy)" stroke="var(--accent)" strokeWidth="1.5" />
         <path className="ai-tutor-mascot-cap-band" d="M31 40c18-5 40-5 58 0" fill="none" stroke="var(--gold-light)" strokeWidth="1" opacity=".8" />
         <g className="ai-tutor-mascot-eye ai-tutor-mascot-eye-left">
-          <circle cx="47" cy="60" r="3.4" fill="#fffaf0" />
-          <circle className="ai-tutor-mascot-pupil" data-testid="mascot-pupil-left" cx="47" cy="60" r="1.4" fill="var(--navy)" />
+          <circle cx="47" cy="60" r="4.6" fill="#fffaf0" />
+          <circle className="ai-tutor-mascot-pupil" data-testid="mascot-pupil-left" cx="47" cy="60" r="1.6" fill="var(--navy)" />
         </g>
         <g className="ai-tutor-mascot-eye ai-tutor-mascot-eye-right">
-          <circle cx="73" cy="60" r="3.4" fill="#fffaf0" />
-          <circle className="ai-tutor-mascot-pupil" data-testid="mascot-pupil-right" cx="73" cy="60" r="1.4" fill="var(--navy)" />
+          <circle cx="73" cy="60" r="4.6" fill="#fffaf0" />
+          <circle className="ai-tutor-mascot-pupil" data-testid="mascot-pupil-right" cx="73" cy="60" r="1.6" fill="var(--navy)" />
         </g>
         <path className="ai-tutor-mascot-smile" d="M53 78c5 4 9 4 14 0" fill="none" stroke="var(--gold-light)" strokeWidth="1.5" strokeLinecap="round" />
       </g>
@@ -48,39 +63,42 @@ function AiTutorMascotLauncher({ onClick, buttonRef, open = false }) {
   const pendingPointerRef = useRef(null)
   const activationTimerRef = useRef(null)
 
+  useEffect(() => {
+    function handleGlobalPointerMove(event) {
+      if (prefersReducedMotion || (event.pointerType && event.pointerType !== 'mouse' && event.pointerType !== 'pen')) return
+      pendingPointerRef.current = { clientX: event.clientX, clientY: event.clientY }
+      if (frameRef.current) return
+      frameRef.current = requestAnimationFrame(() => {
+        frameRef.current = null
+        const current = pendingPointerRef.current
+        if (!current || !buttonRef?.current) return
+        const rect = buttonRef.current.getBoundingClientRect()
+        const vector = getTrackingVector(rect, current.clientX, current.clientY)
+        const direction = getPointerDirection(rect, current.clientX, current.clientY)
+        const mascot = buttonRef.current.querySelector('.ai-tutor-mascot')
+        if (!mascot) return
+        const style = mascot.style
+        style.setProperty('--mascot-pupil-x', `${Number((vector.x * PUPIL_TRAVEL).toFixed(2))}px`)
+        style.setProperty('--mascot-pupil-y', `${Number((vector.y * PUPIL_TRAVEL).toFixed(2))}px`)
+        style.setProperty('--mascot-head-x', `${Number((vector.x * HEAD_TRAVEL).toFixed(2))}px`)
+        style.setProperty('--mascot-head-y', `${Number((vector.y * HEAD_TRAVEL).toFixed(2))}px`)
+        style.setProperty('--mascot-head-rotate', `${Number((vector.x * vector.intensity * HEAD_ROTATION).toFixed(2))}deg`)
+        buttonRef.current.dataset.pointerDirection = direction
+      })
+    }
+
+    window.addEventListener('pointermove', handleGlobalPointerMove, { passive: true })
+    return () => {
+      window.removeEventListener('pointermove', handleGlobalPointerMove)
+      if (frameRef.current) cancelAnimationFrame(frameRef.current)
+      frameRef.current = null
+      pendingPointerRef.current = null
+    }
+  }, [buttonRef, prefersReducedMotion])
+
   useEffect(() => () => {
-    if (frameRef.current) cancelAnimationFrame(frameRef.current)
     if (activationTimerRef.current) window.clearTimeout(activationTimerRef.current)
   }, [])
-
-  function handlePointerMove(event) {
-    if (prefersReducedMotion || event.pointerType === 'touch') return
-    pendingPointerRef.current = { clientX: event.clientX, clientY: event.clientY }
-    if (frameRef.current) return
-    frameRef.current = requestAnimationFrame(() => {
-      frameRef.current = null
-      const current = pendingPointerRef.current
-      if (!current || !buttonRef?.current) return
-      const rect = buttonRef.current.getBoundingClientRect()
-      const horizontal = current.clientX - (rect.left + rect.width / 2)
-      const vertical = current.clientY - (rect.top + rect.height / 2)
-      const x = Math.max(-1, Math.min(1, horizontal / Math.max(1, rect.width / 2))) * 1.2
-      const y = Math.max(-1, Math.min(1, vertical / Math.max(1, rect.height / 2))) * 1.2
-      const direction = getPointerDirection(rect, current.clientX, current.clientY)
-      buttonRef.current.style.setProperty('--mascot-pupil-x', `${Number(x.toFixed(2))}px`)
-      buttonRef.current.style.setProperty('--mascot-pupil-y', `${Number(y.toFixed(2))}px`)
-      buttonRef.current.dataset.pointerDirection = direction
-    })
-  }
-
-  function handlePointerLeave() {
-    if (frameRef.current) cancelAnimationFrame(frameRef.current)
-    frameRef.current = null
-    pendingPointerRef.current = null
-    buttonRef.current?.style.setProperty('--mascot-pupil-x', '0px')
-    buttonRef.current?.style.setProperty('--mascot-pupil-y', '0px')
-    if (buttonRef.current) buttonRef.current.dataset.pointerDirection = 'center'
-  }
 
   function handleClick() {
     if (prefersReducedMotion) {
@@ -110,8 +128,6 @@ function AiTutorMascotLauncher({ onClick, buttonRef, open = false }) {
       data-mascot="lumen-scholar"
       data-pointer-direction="center"
       onClick={handleClick}
-      onPointerMove={handlePointerMove}
-      onPointerLeave={handlePointerLeave}
     >
       <LumenScholar prefersReducedMotion={prefersReducedMotion} />
       <span className="ai-tutor-mascot-tooltip" role="tooltip">Trợ giảng AI</span>

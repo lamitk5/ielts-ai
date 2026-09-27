@@ -79,18 +79,41 @@ describe('AI Tutor mascot launcher', () => {
     await waitFor(() => expect(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).toBeInTheDocument())
   })
 
-  test('tracks a pointer direction for fine pointers and remains keyboard-safe', async () => {
+  test('tracks a global pointer outside the launcher and clamps visible pupil direction', async () => {
     renderTutor()
     const launcher = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
+    const mascot = screen.getByTestId('lumen-scholar-mascot')
+    launcher.getBoundingClientRect = () => ({ left: 100, top: 100, width: 80, height: 80 })
+    const anchoredTransform = launcher.style.transform
+
+    fireEvent.pointerMove(window, { pointerType: 'mouse', clientX: 0, clientY: 0 })
+    await waitFor(() => expect(launcher).toHaveAttribute('data-pointer-direction', 'above'))
+    expect(Number.parseFloat(mascot.style.getPropertyValue('--mascot-pupil-x'))).toBeLessThan(0)
+    expect(Number.parseFloat(mascot.style.getPropertyValue('--mascot-pupil-y'))).toBeLessThan(0)
+    expect(Number.parseFloat(mascot.style.getPropertyValue('--mascot-pupil-x'))).toBeGreaterThanOrEqual(-1.6)
+    expect(Number.parseFloat(mascot.style.getPropertyValue('--mascot-pupil-y'))).toBeGreaterThanOrEqual(-1.6)
+
+    fireEvent.pointerMove(window, { pointerType: 'mouse', clientX: 999, clientY: 999 })
+    await waitFor(() => expect(launcher).toHaveAttribute('data-pointer-direction', 'below'))
+    expect(Number.parseFloat(mascot.style.getPropertyValue('--mascot-pupil-x'))).toBeGreaterThan(0)
+    expect(Number.parseFloat(mascot.style.getPropertyValue('--mascot-pupil-y'))).toBeGreaterThan(0)
+    expect(Number.parseFloat(mascot.style.getPropertyValue('--mascot-pupil-x'))).toBeLessThanOrEqual(1.6)
+    expect(Number.parseFloat(mascot.style.getPropertyValue('--mascot-pupil-y'))).toBeLessThanOrEqual(1.6)
+    expect(launcher.style.transform).toBe(anchoredTransform)
+    expect(launcher).toHaveClass('ai-tutor-mascot-launcher')
+  })
+
+  test('keeps global tracking disabled for touch pointers', async () => {
+    renderTutor()
+    const launcher = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
+    const mascot = screen.getByTestId('lumen-scholar-mascot')
     launcher.getBoundingClientRect = () => ({ left: 100, top: 100, width: 80, height: 80 })
 
-    fireEvent.pointerMove(launcher, { pointerType: 'mouse', clientX: 200, clientY: 140 })
-    await waitFor(() => expect(launcher).toHaveAttribute('data-pointer-direction', 'right'))
-    expect(launcher.style.getPropertyValue('--mascot-pupil-x')).toBe('1.2px')
-    fireEvent.pointerLeave(launcher, { pointerType: 'mouse' })
+    fireEvent.pointerMove(window, { pointerType: 'touch', clientX: 0, clientY: 0 })
+    await new Promise((resolve) => setTimeout(resolve, 0))
     expect(launcher).toHaveAttribute('data-pointer-direction', 'center')
-    expect(launcher.style.getPropertyValue('--mascot-pupil-x')).toBe('0px')
-    expect(launcher).toHaveClass('ai-tutor-mascot-launcher')
+    expect(mascot.style.getPropertyValue('--mascot-pupil-x')).toBe('')
+    expect(mascot.style.getPropertyValue('--mascot-pupil-y')).toBe('')
   })
 
   test('exposes idle motion only when reduced motion is not requested', async () => {

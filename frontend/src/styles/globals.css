@@ -4617,9 +4617,10 @@ input:focus-visible {
   position: static;
   display: inline;
 }
-.ai-tutor-mascot { --mascot-pupil-x: 0px; --mascot-pupil-y: 0px; }
-.ai-tutor-mascot-face { transform-box: fill-box; transform-origin: center; transition: transform .22s ease; }
-.ai-tutor-mascot-pupil { transform-box: fill-box; transform-origin: center; transition: transform 180ms ease; }
+.ai-tutor-mascot { --mascot-pupil-x: 0px; --mascot-pupil-y: 0px; --mascot-head-x: 0px; --mascot-head-y: 0px; --mascot-head-rotate: 0deg; }
+.ai-tutor-mascot-face { transform-box: view-box; transform-origin: center; transition: transform .22s ease; }
+.ai-tutor-mascot-launcher .ai-tutor-mascot-face { transform: translate(var(--mascot-head-x), var(--mascot-head-y)) rotate(var(--mascot-head-rotate)) !important; }
+.ai-tutor-mascot-pupil { transform-box: view-box; transform-origin: center; transition: transform 180ms ease; }
 .ai-tutor-mascot-launcher .ai-tutor-mascot-pupil { transform: translate(var(--mascot-pupil-x), var(--mascot-pupil-y)) !important; }
 .ai-tutor-mascot-launcher[data-pointer-direction='left'] .ai-tutor-mascot-face { transform: translateX(-3%); }
 .ai-tutor-mascot-launcher[data-pointer-direction='right'] .ai-tutor-mascot-face { transform: translateX(3%); }
