@@ -11,7 +11,7 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
-class AttemptLifecycleTest {
+public class AttemptLifecycleTest {
     @Test
     void answersCanBeSavedOnlyBeforeSubmissionAndResultIsImmutable() {
         InMemoryAttemptRepository repository = new InMemoryAttemptRepository();
@@ -51,7 +51,7 @@ class AttemptLifecycleTest {
         assertThrows(AttemptOwnershipException.class, () -> service.get(UUID.randomUUID(), attempt.id()));
     }
 
-    static final class InMemoryAttemptRepository implements AttemptRepository {
+    public static final class InMemoryAttemptRepository implements AttemptRepository {
         private final Map<UUID, PracticeAttempt> data = new HashMap<>();
 
         @Override

@@ -4,13 +4,22 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AttemptService {
     private final AttemptRepository repository;
+    private final AttemptLearningEventPublisher learningEventPublisher;
 
     public AttemptService(AttemptRepository repository) {
+        this(repository, null);
+    }
+
+    @Autowired
+    public AttemptService(AttemptRepository repository, AttemptLearningEventPublisher learningEventPublisher) {
         this.repository = repository;
+        this.learningEventPublisher = learningEventPublisher;
     }
 
     public PracticeAttempt start(UUID userId, String practiceId, String practiceVersion, String skill, String idempotencyKey) {
@@ -32,6 +41,7 @@ public class AttemptService {
         return repository.saveAnswers(attempt, answers);
     }
 
+    @Transactional
     public PracticeAttempt submit(UUID userId, UUID attemptId, Map<String, String> answers, int score, int total,
             String resultPayload, String idempotencyKey) {
         PracticeAttempt attempt = owned(userId, attemptId);
@@ -45,6 +55,9 @@ public class AttemptService {
             throw new AttemptConflictException("Submission key does not match attempt");
         }
         if (total <= 0 || score < 0 || score > total) throw new AttemptConflictException("Invalid result");
+        if (learningEventPublisher != null) {
+            learningEventPublisher.publish(attempt, answers, score, total);
+        }
         return repository.saveResult(attempt, answers, score, total, resultPayload);
     }
 
