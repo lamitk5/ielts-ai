@@ -1,5 +1,5 @@
 import { ChevronDown, Menu, UserCircle, X } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from '../../features/auth/AuthProvider'
 import { PreferenceProvider, applyPreferenceTokens } from '../../features/preferences/PreferenceProvider'
@@ -18,10 +18,18 @@ function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isAccountOpen, setIsAccountOpen] = useState(false)
   const [settingsRoute, setSettingsRoute] = useState(null)
+  const [isScrolled, setIsScrolled] = useState(() => window.scrollY > 12)
   const settingsOpenerRef = useRef(null)
   const { isAuthenticated, logout } = useAuth()
   const location = useLocation()
   const isSettingsOpen = settingsRoute === location.key
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 12)
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll()
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const closeMenu = () => setIsMenuOpen(false)
 
@@ -32,7 +40,7 @@ function Navbar() {
   }
 
   return (
-    <header className="site-header">
+    <header className={`site-header site-header-glass ${isScrolled ? 'site-header-scrolled' : ''}`.trim()}>
       <nav className="site-nav" aria-label="Primary navigation">
         <NavLink className="brand" to="/" onClick={closeMenu}>
           IELTS AI Tutor

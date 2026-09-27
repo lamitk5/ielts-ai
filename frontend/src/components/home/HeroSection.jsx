@@ -18,7 +18,9 @@ function HeroSection() {
         <div className="hero-content">
           <p className="eyebrow hero-eyebrow">IELTS 4 KỸ NĂNG • AI TUTOR 24/7</p>
           <h1 id="hero-title" className="font-display hero-title">
-            Bứt phá Band điểm IELTS cùng Trợ giảng AI Độc quyền
+            <span className="hero-title-line">Bứt phá Band điểm IELTS</span>{' '}
+            <span className="hero-title-line">cùng <span className="hero-title-phrase">Trợ giảng AI</span></span>{' '}
+            <span className="hero-title-line">Độc quyền</span>
           </h1>
           <p className="hero-description">
             Luyện tập Reading, Listening, Writing và Speaking trên một nền tảng duy nhất.

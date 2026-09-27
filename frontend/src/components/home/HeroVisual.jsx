@@ -6,7 +6,12 @@ const skillSignals = ['R', 'L', 'W', 'S']
 
 function HeroVisual() {
   return (
-    <div className="hero-visual" data-testid="hero-visual" aria-hidden="true">
+    <div
+      className="hero-visual hero-visual-large"
+      data-testid="hero-visual"
+      data-hero-visual="learning-intelligence"
+      aria-hidden="true"
+    >
       <div className="hero-visual-glow hero-visual-glow-gold" />
       <div className="hero-visual-glow hero-visual-glow-blue" />
       <ParallaxLayer className="hero-orbit hero-orbit-back" distance={12}>

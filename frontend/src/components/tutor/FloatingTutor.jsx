@@ -1,7 +1,7 @@
 import { useContext, useEffect, useRef, useState } from 'react'
 import { UNSAFE_LocationContext } from 'react-router-dom'
 import { X } from 'lucide-react'
-import FloatingTutorButton from './FloatingTutorButton'
+import AiTutorMascotLauncher from './AiTutorMascotLauncher'
 import TutorPanel from './TutorPanel'
 import { SHELL_STATES } from './TutorShell'
 import AuthGate from '../auth/AuthGate'
@@ -311,7 +311,7 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
           )}
         </div>
       ) : null}
-      <FloatingTutorButton buttonRef={buttonRef} open={open} onClick={() => setOpen(true)} />
+      <AiTutorMascotLauncher buttonRef={buttonRef} open={open} onClick={() => setOpen(true)} />
     </>
   )
 }
