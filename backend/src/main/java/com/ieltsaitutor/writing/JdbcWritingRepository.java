@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -48,7 +49,11 @@ public class JdbcWritingRepository implements WritingRepository {
     }
 
     @Override
+    @Transactional
     public WritingAttempt start(UUID userId, String taskId) {
+        jdbc.query("SELECT pg_advisory_xact_lock(hashtextextended(:lockKey, CAST(0 AS bigint)))",
+                new MapSqlParameterSource("lockKey", userId + ":" + taskId),
+                (rs, rowNum) -> null);
         Optional<WritingAttempt> active = jdbc.query("""
                 SELECT id,user_id,task_id,response_text,word_count,assessment_status,assessment_payload,attempt_status,created_at,submitted_at
                 FROM writing_submissions WHERE id = (SELECT id FROM writing_submissions
