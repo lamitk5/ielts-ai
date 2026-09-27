@@ -40,9 +40,7 @@ function useIdleLife(prefersReducedMotion) {
   }, [])
 
   useEffect(() => {
-    if (prefersReducedMotion) {
-      return undefined
-    }
+    if (prefersReducedMotion) return undefined
 
     let tiltTimer
     let resetTimer
@@ -68,24 +66,24 @@ function useIdleLife(prefersReducedMotion) {
   return { isBlinking, idleTilt }
 }
 
-function ScholarEye({ side, blinking }) {
-  const cx = side === 'left' ? 58 : 102
-  const eyeClass = `ai-tutor-mascot-eye ai-tutor-mascot-eye-${side} lumen-scholar-eye`
+function PixelEye({ side, blinking }) {
+  const cx = side === 'left' ? 46 : 82
+  const eyeClass = `ai-tutor-mascot-eye ai-tutor-mascot-eye-${side} pixel-owl-eye`
 
   return (
     <g className={eyeClass} data-blink={blinking ? 'closed' : 'open'}>
-      <ellipse className="lumen-scholar-eye-socket" cx={cx} cy="78" rx="25" ry="21" />
-      <circle className="lumen-scholar-eye-highlight" cx={cx - 7} cy="70" r="4" />
+      <circle className="pixel-owl-eye-ring" cx={cx} cy="67" r="16" />
+      <circle className="pixel-owl-eye-white" cx={cx} cy="67" r="12" />
       <circle
-        className="ai-tutor-mascot-pupil lumen-scholar-pupil"
+        className="ai-tutor-mascot-pupil pixel-owl-pupil"
         data-testid={`mascot-pupil-${side}`}
         cx={cx}
-        cy="78"
-        r="11"
+        cy="67"
+        r="8"
         style={{ transform: 'translate(var(--mascot-pupil-x), var(--mascot-pupil-y))' }}
       />
-      <circle className="lumen-scholar-eye-glint" cx={cx + 5} cy="73" r="2.5" />
-      <path className="lumen-scholar-eye-lid" d={`M${cx - 23} 78 Q${cx} 98 ${cx + 23} 78 Q${cx} 84 ${cx - 23} 78Z`} />
+      <rect className="pixel-owl-eye-glint" x={cx - 4} y="61" width="4" height="4" />
+      <rect className="pixel-owl-eye-lid" x={cx - 14} y="65" width="28" height="5" />
     </g>
   )
 }
@@ -96,43 +94,48 @@ export default function LumenScholarMascot({ prefersReducedMotion, isBlinking = 
 
   return (
     <svg
-      className="ai-tutor-mascot ai-tutor-lumen-scholar"
+      className="ai-tutor-mascot ai-tutor-pixel-owl-scholar"
       data-testid="lumen-scholar-mascot"
+      data-character="pixel-owl-scholar"
       data-idle-motion={prefersReducedMotion ? 'disabled' : 'enabled'}
       data-idle-blink={isIdleBlinking ? 'closed' : 'open'}
       data-blink={blinking ? 'closed' : 'open'}
       data-idle-tilt={prefersReducedMotion ? 'center' : idleTilt}
-      viewBox="0 0 160 160"
+      viewBox="0 0 128 128"
+      shapeRendering="crispEdges"
       role="img"
-      aria-label="LUMEN Scholar"
+      aria-label="LUMEN Pixel Owl"
       focusable="false"
     >
-      <circle className="ai-tutor-mascot-aura" cx="80" cy="80" r="70" />
-      <circle className="lumen-scholar-halo" cx="80" cy="76" r="59" />
+      <rect className="ai-tutor-mascot-aura" x="9" y="9" width="110" height="110" />
       <g
         className="ai-tutor-mascot-face"
         style={{ transform: 'translate(var(--mascot-head-x), var(--mascot-head-y)) rotate(var(--mascot-head-rotate))' }}
       >
-        <g className="lumen-scholar-expression">
-          <path className="lumen-scholar-shoulders" d="M25 155c3-24 20-38 55-42 35 4 52 18 55 42Z" />
-          <path className="lumen-scholar-robe" d="M46 127c10 8 22 12 34 12s24-4 34-12l10 28H36Z" />
-          <path className="lumen-scholar-collar" d="m62 125 18 17 18-17 8 30H54Z" />
-          <path className="lumen-scholar-head" d="M39 52c2-24 19-37 41-37s39 13 41 37l-8 58c-3 17-15 27-33 27s-30-10-33-27Z" />
-          <path className="lumen-scholar-ear lumen-scholar-ear-left" d="m43 49-12-22 25 13Z" />
-          <path className="lumen-scholar-ear lumen-scholar-ear-right" d="m117 49 12-22-25 13Z" />
-          <path className="lumen-scholar-face-plate" d="M43 73c0-22 16-34 37-34s37 12 37 34c0 27-13 48-37 48S43 100 43 73Z" />
-          <path className="ai-tutor-mascot-cap" d="M31 48c7-25 26-37 49-37s42 12 49 37l-12 7H43Z" />
-          <path className="lumen-scholar-cap-band" d="M39 49h82" />
-          <path className="lumen-scholar-cap-tassel" d="M80 12v24m0 0c-7 0-10 4-10 8h20c0-4-3-8-10-8Z" />
-          <path className="lumen-scholar-brow lumen-scholar-brow-left" d="M43 62q15-11 30 0" />
-          <path className="lumen-scholar-brow lumen-scholar-brow-right" d="M87 62q15-11 30 0" />
-          <ScholarEye side="left" blinking={blinking} />
-          <ScholarEye side="right" blinking={blinking} />
-          <path className="lumen-scholar-beak" d="m72 98 8-7 8 7-8 9Z" />
-          <path className="lumen-scholar-smile" d="M69 113q11 8 22 0" />
-          <path className="lumen-scholar-book" d="M27 148q25-10 53 0v10H27Zm53 0q28-10 53 0v10H80Z" />
-          <path className="lumen-scholar-book-spine" d="M80 148v12" />
-          <path className="lumen-scholar-star" d="m128 72 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z" />
+        <g className="pixel-owl-expression">
+          <path className="pixel-owl-robe" d="M16 127v-12l8-8h16l8-8h24l8 8h16l8 8h8v12Z" />
+          <path className="pixel-owl-wing pixel-owl-wing-left" d="M38 101H25l-9 12 12 8 18-8Z" />
+          <path className="pixel-owl-wing pixel-owl-wing-right" d="M90 101h13l9 12-12 8-18-8Z" />
+          <path className="pixel-owl-feather" d="M22 111h15m-12 5h14m72-5H96m10 5H92" />
+          <path className="pixel-owl-book" d="M19 96h26v24H19Zm26 0h5v24h-5Z" />
+          <path className="pixel-owl-book-mark" d="M25 102h13m-13 5h9" />
+          <path className="pixel-owl-face" d="M26 43v-9h8v-8h8v-8h8v-5h16v5h8v8h8v8h8v9l7 7v32l-7 7v8H79v6H49v-6H34v-8l-8-7V50Z" />
+          <path className="pixel-owl-face-shadow" d="M27 77h8v10h9v7h36v-7h10V77l7 6v8l-8 7H79v6H49v-6H34l-8-7Z" />
+          <path className="pixel-owl-feather pixel-owl-feather-left" d="M29 43 17 38l8 12m4-4-10 8" />
+          <path className="pixel-owl-feather pixel-owl-feather-right" d="m99 43 12-5-8 12m-4-4 10 8" />
+          <path className="pixel-owl-cap-top" d="M16 31 64 8l48 23-48 25Z" />
+          <path className="ai-tutor-mascot-cap" d="M31 35h66v12l-8 8H39l-8-8Z" />
+          <path className="pixel-owl-cap-band" d="M32 45h64l-8 7H40Z" />
+          <path className="pixel-owl-tassel-line" d="M91 25v31" />
+          <path className="pixel-owl-tassel" d="M88 52h8v12h-8Z" />
+          <path className="pixel-owl-brow" d="M31 52h25m17 0h25" />
+          <PixelEye side="left" blinking={blinking} />
+          <PixelEye side="right" blinking={blinking} />
+          <path className="pixel-owl-beak" d="m60 73 4-5 4 5-4 8Z" />
+          <path className="pixel-owl-collar" d="M48 91h32l-8 11H56Z" />
+          <path className="pixel-owl-tie" d="m60 94 4 3 4-3 3 14H57Z" />
+          <rect className="pixel-owl-medallion" x="60" y="105" width="8" height="8" />
+          <path className="pixel-owl-medallion-star" d="m64 106 2 3 2 1-2 1-2 3-2-3-2-1 2-1Z" />
         </g>
       </g>
     </svg>

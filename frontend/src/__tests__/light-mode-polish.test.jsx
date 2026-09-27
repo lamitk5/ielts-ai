@@ -61,7 +61,7 @@ describe('Academic Luxury light mode polish', () => {
     expect(document.documentElement).toHaveAttribute('data-theme', 'light')
     expect(screen.getByTestId('hero-bookshelf-background')).toBeInTheDocument()
     expect(screen.getByTestId('hero-visual')).toHaveClass('hero-visual-large')
-    expect(screen.getByTestId('lumen-scholar-mascot')).toHaveClass('ai-tutor-lumen-scholar')
+    expect(screen.getByTestId('lumen-scholar-mascot')).toHaveClass('ai-tutor-pixel-owl-scholar')
   })
 
   test('keeps accent preferences mapped to the refined semantic controls', () => {

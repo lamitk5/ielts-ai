@@ -95,7 +95,7 @@ function AiTutorMascotLauncher({ onClick, buttonRef, open = false }) {
       aria-hidden={open ? 'true' : undefined}
       tabIndex={open ? -1 : undefined}
       hidden={open && !isActivating}
-      data-mascot="lumen-scholar"
+      data-mascot="lumen-pixel-owl"
       data-pointer-direction="center"
       onClick={handleClick}
     >
