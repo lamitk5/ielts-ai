@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -49,4 +51,35 @@ public class WritingController {
     }
 
     public record SubmissionRequest(String taskId, String responseText) {}
+
+    @PostMapping("/attempts")
+    public WritingAttemptResponse startAttempt(@RequestBody AttemptStartRequest request, HttpServletRequest httpRequest) {
+        AuthPrincipal authenticated = principal(httpRequest);
+        return WritingAttemptResponse.from(service.startAttempt(authenticated.userId(), request.taskId()));
+    }
+
+    @GetMapping("/attempts/{attemptId}")
+    public WritingAttemptResponse getAttempt(@PathVariable UUID attemptId, HttpServletRequest httpRequest) {
+        return WritingAttemptResponse.from(service.getAttempt(principal(httpRequest).userId(), attemptId));
+    }
+
+    @PutMapping("/attempts/{attemptId}/draft")
+    public WritingAttemptResponse saveAttemptDraft(@PathVariable UUID attemptId, @RequestBody DraftRequest request, HttpServletRequest httpRequest) {
+        return WritingAttemptResponse.from(service.saveAttemptDraft(principal(httpRequest).userId(), attemptId, request.responseText()));
+    }
+
+    @PostMapping("/attempts/{attemptId}/submit")
+    public WritingAttemptResponse submitAttempt(@PathVariable UUID attemptId, @RequestBody DraftRequest request, HttpServletRequest httpRequest) {
+        return WritingAttemptResponse.from(service.submitAttempt(principal(httpRequest).userId(), attemptId, request.responseText()));
+    }
+
+    public record AttemptStartRequest(String taskId) {}
+    public record DraftRequest(String responseText) {}
+    public record WritingAttemptResponse(UUID id, UUID userId, String taskId, String taskType, String status,
+            String responseText, int wordCount, java.time.Instant createdAt, java.time.Instant submittedAt, WritingAssessment assessment) {
+        static WritingAttemptResponse from(WritingAttempt attempt) {
+            return new WritingAttemptResponse(attempt.id(), attempt.userId(), attempt.taskId(), attempt.taskType(), attempt.status(),
+                    attempt.responseText(), attempt.wordCount(), attempt.createdAt(), attempt.submittedAt(), attempt.assessment());
+        }
+    }
 }

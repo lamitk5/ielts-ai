@@ -44,21 +44,51 @@ public class WritingAssessmentService {
     }
 
     public WritingAssessment assess(UUID userId, String taskId, String responseText) {
+        return evaluate(userId, taskId, responseText, true);
+    }
+
+    public WritingAttempt startAttempt(UUID userId, String taskId) {
+        if (taskType(taskId) == null) throw new IllegalArgumentException("Writing task không hợp lệ");
+        return repository.start(userId, taskId);
+    }
+
+    public WritingAttempt saveAttemptDraft(UUID userId, UUID attemptId, String responseText) {
+        WritingAttempt attempt = owned(userId, attemptId);
+        if (!"IN_PROGRESS".equals(attempt.status())) throw new IllegalStateException("Writing attempt đã được nộp");
+        return repository.saveDraft(attempt.withDraft(responseText));
+    }
+
+    public WritingAttempt getAttempt(UUID userId, UUID attemptId) {
+        return owned(userId, attemptId);
+    }
+
+    public WritingAttempt submitAttempt(UUID userId, UUID attemptId, String responseText) {
+        WritingAttempt attempt = owned(userId, attemptId);
+        if (!"IN_PROGRESS".equals(attempt.status())) return attempt;
+        WritingAssessment assessment = evaluate(userId, attempt.taskId(), responseText, false);
+        emit(userId, attempt.taskId(), assessment.wordCount());
+        return repository.complete(attempt.withDraft(responseText), assessment);
+    }
+
+    private WritingAssessment evaluate(UUID userId, String taskId, String responseText, boolean persist) {
         String taskType = taskType(taskId);
-        if (taskType == null) return persistUnavailable(userId, taskId);
+        if (taskType == null) return unavailable(userId, taskId);
         try {
             AiChatResult result = provider.chat(new AiChatCommand(
                     "Assess this IELTS writing response. Return JSON only with overallBandEstimate, criteria, strengths, issues, suggestions.",
                     new AiChatContext("WRITING", null, taskId, null, taskType, null, responseText, null, taskId),
                     List.of()));
-            if (!"ANSWERED".equals(result.status())) return persistUnavailable(userId, taskId);
+            if (!"ANSWERED".equals(result.status())) return persistIfNeeded(userId, taskId, unavailable(userId, taskId, responseText), persist);
             WritingAssessment assessment = parse(userId, taskId, responseText, result.answer());
-            repository.save(assessment);
-            emit(userId, taskId, assessment.wordCount());
-            return assessment;
+            return persistIfNeeded(userId, taskId, assessment, persist);
         } catch (RuntimeException exception) {
-            return persistUnavailable(userId, taskId);
+            return persistIfNeeded(userId, taskId, unavailable(userId, taskId, responseText), persist);
         }
+    }
+
+    private WritingAttempt owned(UUID userId, UUID attemptId) {
+        return repository.find(attemptId, userId).filter(attempt -> attempt.userId().equals(userId))
+                .orElseThrow(() -> new IllegalArgumentException("Writing attempt không tồn tại"));
     }
 
     private String taskType(String taskId) {
@@ -78,7 +108,7 @@ public class WritingAssessmentService {
                     strings(root.get("strengths")), strings(root.get("issues")), strings(root.get("suggestions")),
                     List.of(), "NOT_ENABLED", false, DISCLAIMER, java.time.Instant.now(), responseText, wordCount(responseText));
         } catch (Exception exception) {
-            return unavailable(userId, taskId);
+            return unavailable(userId, taskId, responseText);
         }
     }
 
@@ -91,9 +121,14 @@ public class WritingAssessmentService {
     }
 
     private WritingAssessment persistUnavailable(UUID userId, String taskId) {
-        WritingAssessment assessment = unavailable(userId, taskId);
-        repository.save(assessment);
-        emit(userId, taskId, assessment.wordCount());
+        return persistIfNeeded(userId, taskId, unavailable(userId, taskId), true);
+    }
+
+    private WritingAssessment persistIfNeeded(UUID userId, String taskId, WritingAssessment assessment, boolean persist) {
+        if (persist) {
+            repository.save(assessment);
+            emit(userId, taskId, assessment.wordCount());
+        }
         return assessment;
     }
 
@@ -105,5 +140,11 @@ public class WritingAssessmentService {
 
     private WritingAssessment unavailable(UUID userId, String taskId) {
         return WritingAssessment.unavailable(userId, taskId);
+    }
+
+    private WritingAssessment unavailable(UUID userId, String taskId, String responseText) {
+        return new WritingAssessment("UNAVAILABLE", userId, taskId, null, Map.of(), List.of(), List.of(), List.of(),
+                List.of(), "NOT_ENABLED", false, "Chưa có đánh giá AI khả dụng cho bài viết này.",
+                java.time.Instant.now(), responseText, wordCount(responseText));
     }
 }

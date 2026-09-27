@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import GlassCard from '../components/common/GlassCard'
 import { useAuth } from '../features/auth/AuthProvider'
 import { usePreferences } from '../features/preferences/PreferenceProvider'
-import { getWritingSubmissions, submitWriting } from '../features/writing/writingApi'
+import { getWritingSubmissions, saveWritingAttemptDraft, startWritingAttempt, submitWriting, submitWritingAttempt } from '../features/writing/writingApi'
 import { getCurrentDraft, saveDraft, deleteDraft } from '../services/learningDraftsApi'
 import FloatingTutor from '../components/tutor/FloatingTutor'
 import { SplitLearningWorkspace } from '../components/workspace/SplitLearningWorkspace'
@@ -34,6 +34,7 @@ function WritingPage() {
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [history, setHistory] = useState({ status: 'idle', items: [] })
+  const [writingAttempt, setWritingAttempt] = useState(null)
 
   // Draft persistence state
   const [draftId, setDraftId] = useState(null)
@@ -118,6 +119,18 @@ function WritingPage() {
     }
   }, [isAuthenticated, taskId, user?.id])
 
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setWritingAttempt(null)
+      return undefined
+    }
+    let active = true
+    startWritingAttempt(taskId)
+      .then((attempt) => { if (active && attempt?.id) setWritingAttempt(attempt) })
+      .catch(() => {})
+    return () => { active = false }
+  }, [isAuthenticated, taskId])
+
   // Fetch history for authenticated members
   useEffect(() => {
     if (!isAuthenticated) {
@@ -159,6 +172,7 @@ function WritingPage() {
         setDraftVersion(result.version)
         draftVersionRef.current = result.version
         setSaveStatus('saved')
+        if (writingAttempt?.id) saveWritingAttemptDraft(writingAttempt.id, textToSave).catch(() => {})
         if (user?.id) {
           saveSessionSnapshot(user.id, {
             skill: 'writing',
@@ -191,8 +205,11 @@ function WritingPage() {
     }
     setSubmitting(true)
     try {
-      const result = await submitWriting(taskId, responseText)
-      setAssessment(result)
+      const result = writingAttempt?.id
+        ? await submitWritingAttempt(writingAttempt.id, responseText)
+        : await submitWriting(taskId, responseText)
+      setAssessment(result.assessment ?? result)
+      if (writingAttempt?.id) setWritingAttempt(result)
       if (draftId) {
         deleteDraft(draftId).catch(() => {})
         setDraftId(null)
