@@ -8,10 +8,10 @@ import { PREFERENCE_STORAGE_KEY, readAccountPreferenceCache, readGuestPreference
 import { getPreferences, savePreferences } from '../services/preferencesApi'
 
 const account = { id: 'member-1', email: 'member@example.com' }
-const server = (accentPreset = 'SAPPHIRE', version = 4) => ({
+const server = (accentPreset = 'SAPPHIRE', version = 4, language = 'VI') => ({
   themeMode: 'SYSTEM', accentPreset, fontScale: 'DEFAULT', density: 'DEFAULT',
   reduceMotion: 'SYSTEM', proactiveAiEnabled: false, crossHighlightEnabled: true,
-  timerDefaultEnabled: false, readingSplitRatio: 40, writingSplitRatio: 40, version,
+  timerDefaultEnabled: false, readingSplitRatio: 40, writingSplitRatio: 40, language, version,
 })
 
 function Probe() {
@@ -65,12 +65,12 @@ describe('preference persistence', () => {
 
   test('wire contract maps complete uppercase Java enums in both directions', async () => {
     localStorage.setItem('ielts-ai-tutor.session', JSON.stringify({ token: 'token', user: account }))
-    const fetchMock = vi.fn().mockResolvedValueOnce({ ok: true, json: async () => server('EMERALD') })
-      .mockResolvedValueOnce({ ok: true, json: async () => server('VIOLET', 5) })
+    const fetchMock = vi.fn().mockResolvedValueOnce({ ok: true, json: async () => server('EMERALD', 4, 'EN') })
+      .mockResolvedValueOnce({ ok: true, json: async () => server('VIOLET', 5, 'EN') })
     vi.stubGlobal('fetch', fetchMock)
-    expect(await getPreferences()).toEqual({ ...DEFAULT_PREFERENCES, accentPreset: 'emerald', version: 4 })
+    expect(await getPreferences()).toEqual({ ...DEFAULT_PREFERENCES, accentPreset: 'emerald', language: 'en', version: 4 })
     expect(await savePreferences({ ...DEFAULT_PREFERENCES, themeMode: 'dark', density: 'spacious', reduceMotion: 'reduce', accentPreset: 'violet' }, 4))
-      .toEqual({ ...DEFAULT_PREFERENCES, accentPreset: 'violet', version: 5 })
+      .toEqual({ ...DEFAULT_PREFERENCES, accentPreset: 'violet', language: 'en', version: 5 })
     expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toEqual({
       ...server('VIOLET', 4), themeMode: 'DARK', density: 'COMFORTABLE', reduceMotion: 'REDUCED',
     })

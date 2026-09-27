@@ -16,6 +16,7 @@ public class UserPreferencesService {
     private static final Set<String> DENSITIES = Set.of("COMFORTABLE", "DEFAULT", "COMPACT");
     private static final Set<String> MOTION = Set.of("SYSTEM", "REDUCED", "ALLOWED");
     private static final Set<Integer> RATIOS = Set.of(40, 50, 60);
+    private static final Set<String> LANGUAGES = Set.of("VI", "EN");
 
     private final UserPreferencesRepository repository;
 
@@ -43,7 +44,8 @@ public class UserPreferencesService {
                 || !allowed(FONT_SCALES, value.fontScale()) || !allowed(DENSITIES, value.density())
                 || !allowed(MOTION, value.reduceMotion()) || value.proactiveAiEnabled() == null
                 || value.crossHighlightEnabled() == null || value.timerDefaultEnabled() == null
-                || !allowed(RATIOS, value.readingSplitRatio()) || !allowed(RATIOS, value.writingSplitRatio())) {
+                || !allowed(RATIOS, value.readingSplitRatio()) || !allowed(RATIOS, value.writingSplitRatio())
+                || !allowed(LANGUAGES, value.language())) {
             throw new AuthException("PREFERENCES_INVALID_REQUEST", HttpStatus.BAD_REQUEST, "Thiết lập chưa hợp lệ.");
         }
     }

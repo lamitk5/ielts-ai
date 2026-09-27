@@ -6,12 +6,12 @@ const wireEnums = {
   fontScale: { small: 'SMALL', default: 'DEFAULT', large: 'LARGE' },
   density: { spacious: 'COMFORTABLE', default: 'DEFAULT', compact: 'COMPACT' },
   reduceMotion: { system: 'SYSTEM', reduce: 'REDUCED', allow: 'ALLOWED' },
+  language: { vi: 'VI', en: 'EN' },
 }
 
 function toWire(preferences) {
   const normalized = normalizePreferences(preferences)
   return Object.fromEntries(Object.entries(normalized)
-    .filter(([key]) => key !== 'language')
     .map(([key, value]) => [key, wireEnums[key]?.[value] ?? value]))
 }
 

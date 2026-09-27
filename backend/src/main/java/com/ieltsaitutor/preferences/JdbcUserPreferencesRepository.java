@@ -19,7 +19,7 @@ public class JdbcUserPreferencesRepository implements UserPreferencesRepository 
                         rs.getString("theme_mode"), rs.getString("accent_preset"), rs.getString("font_scale"),
                         rs.getString("density"), rs.getString("reduce_motion"), rs.getBoolean("proactive_ai_enabled"),
                         rs.getBoolean("cross_highlight_enabled"), rs.getBoolean("timer_default_enabled"),
-                        rs.getInt("reading_split_ratio"), rs.getInt("writing_split_ratio"), rs.getLong("version"),
+                        rs.getInt("reading_split_ratio"), rs.getInt("writing_split_ratio"), rs.getString("language"), rs.getLong("version"),
                         rs.getTimestamp("updated_at").toInstant())).stream().findFirst().orElse(null);
     }
 
@@ -36,7 +36,7 @@ public class JdbcUserPreferencesRepository implements UserPreferencesRepository 
                     font_scale=:fontScale, density=:density, reduce_motion=:reduceMotion,
                     proactive_ai_enabled=:proactiveAiEnabled, cross_highlight_enabled=:crossHighlightEnabled,
                     timer_default_enabled=:timerDefaultEnabled, reading_split_ratio=:readingSplitRatio,
-                    writing_split_ratio=:writingSplitRatio, version=version+1, updated_at=CURRENT_TIMESTAMP
+                    writing_split_ratio=:writingSplitRatio, language=:language, version=version+1, updated_at=CURRENT_TIMESTAMP
                 WHERE user_id=:userId AND version=:expectedVersion
                 """, new MapSqlParameterSource().addValue("userId", userId)
                 .addValue("themeMode", value.themeMode()).addValue("accentPreset", value.accentPreset())
@@ -47,6 +47,7 @@ public class JdbcUserPreferencesRepository implements UserPreferencesRepository 
                 .addValue("timerDefaultEnabled", value.timerDefaultEnabled())
                 .addValue("readingSplitRatio", value.readingSplitRatio())
                 .addValue("writingSplitRatio", value.writingSplitRatio())
+                .addValue("language", value.language())
                 .addValue("expectedVersion", expectedVersion)) == 1;
     }
 }
