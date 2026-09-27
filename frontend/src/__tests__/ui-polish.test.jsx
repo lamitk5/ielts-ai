@@ -18,17 +18,22 @@ function renderTutor() {
 afterEach(() => { vi.useRealTimers(); localStorage.clear() })
 
 describe('AI Tutor mascot launcher', () => {
-  test('renders the premium LUMEN Scholar mascot identity', () => {
+  test('renders the premium LUMEN Pixel Scholar identity', () => {
     renderTutor()
 
     const launcher = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
-    expect(launcher).toHaveAttribute('data-mascot', 'lumen-scholar')
+    expect(launcher).toHaveAttribute('data-mascot', 'lumen-pixel-scholar')
     expect(screen.getByTestId('lumen-scholar-mascot')).toBeInTheDocument()
-    expect(screen.getByTestId('lumen-scholar-mascot')).toHaveClass('ai-tutor-mascot')
+    expect(screen.getByTestId('lumen-scholar-mascot')).toHaveClass('ai-tutor-mascot', 'ai-tutor-pixel-scholar')
+    expect(screen.getByTestId('lumen-scholar-mascot')).toHaveAttribute('shape-rendering', 'crispEdges')
+    expect(screen.getByTestId('lumen-scholar-mascot')).toHaveAttribute('data-blink', 'open')
     expect(screen.getByTestId('lumen-scholar-mascot').querySelector('.ai-tutor-mascot-cap')).toBeInTheDocument()
     expect(screen.getByTestId('lumen-scholar-mascot').querySelector('.ai-tutor-mascot-eye-left')).toBeInTheDocument()
     expect(screen.getByTestId('lumen-scholar-mascot').querySelector('.ai-tutor-mascot-eye-right')).toBeInTheDocument()
+    expect(screen.getByTestId('lumen-scholar-mascot').querySelectorAll('.ai-tutor-mascot-pupil')).toHaveLength(2)
+    expect(screen.getByTestId('lumen-scholar-mascot').querySelector('.ai-tutor-mascot-glasses')).not.toBeInTheDocument()
     expect(screen.getByTestId('lumen-scholar-mascot').querySelector('.ai-tutor-mascot-ear')).not.toBeInTheDocument()
+    expect(screen.getByTestId('lumen-scholar-mascot').querySelector('defs, linearGradient')).not.toBeInTheDocument()
     expect(screen.getByText('Trợ giảng AI')).toHaveClass('ai-tutor-mascot-tooltip')
   })
 
@@ -38,6 +43,7 @@ describe('AI Tutor mascot launcher', () => {
     const launcher = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
     expect(launcher).toHaveClass('ai-tutor-mascot-launcher')
     expect(launcher).toHaveAttribute('data-pointer-direction', 'center')
+    expect(launcher).toHaveAttribute('data-mascot', 'lumen-pixel-scholar')
     expect(screen.getByText('Trợ giảng AI')).toHaveClass('ai-tutor-mascot-tooltip')
     expect(screen.queryByTestId('floating-tutor-button')).not.toBeInTheDocument()
   })
@@ -49,6 +55,7 @@ describe('AI Tutor mascot launcher', () => {
     const launcher = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
     fireEvent.click(launcher)
     expect(launcher).toHaveClass('ai-tutor-mascot-launcher-activating')
+    expect(screen.getByTestId('lumen-scholar-mascot')).toHaveAttribute('data-blink', 'closed')
     expect(screen.queryByRole('dialog', { name: 'Trợ giảng AI' })).not.toBeInTheDocument()
 
     act(() => vi.advanceTimersByTime(259))
