@@ -2748,6 +2748,27 @@ input:focus-visible {
   gap: 1rem;
 }
 
+.practice-timer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid var(--border-soft);
+  border-radius: .75rem;
+  padding: .7rem 1rem;
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+}
+
+.practice-timer strong {
+  color: var(--gold);
+  font-size: 1.05rem;
+  letter-spacing: .06em;
+}
+
 .practice-question {
   padding: clamp(1.25rem, 4vw, 2rem);
 }

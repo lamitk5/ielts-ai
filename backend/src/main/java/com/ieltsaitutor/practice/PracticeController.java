@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.ieltsaitutor.auth.AuthInterceptor;
 import com.ieltsaitutor.auth.AuthPrincipal;
+import com.ieltsaitutor.practice.attempt.PracticeAttempt;
 
 @RestController
 @RequestMapping("/api/practice")
@@ -41,8 +43,56 @@ public class PracticeController {
         return new AttemptResponse(result.attemptId(), result.score(), result.total());
     }
 
+    @PostMapping("/{skill}/attempts/start")
+    public ReadingAttemptResponse start(@PathVariable String skill, @RequestBody StartRequest request, HttpServletRequest httpRequest) {
+        AuthPrincipal principal = principal(httpRequest);
+        if (!"reading".equalsIgnoreCase(skill)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Durable flow is only available for Reading.");
+        return ReadingAttemptResponse.from(service.startReadingAttempt(request.setId(), principal.userId(), request.idempotencyKey()));
+    }
+
+    @PutMapping("/{skill}/attempts/{attemptId}/answers")
+    public ReadingAttemptResponse saveAnswers(@PathVariable String skill, @PathVariable UUID attemptId,
+            @RequestBody AnswersRequest request, HttpServletRequest httpRequest) {
+        AuthPrincipal principal = principal(httpRequest);
+        if (!"reading".equalsIgnoreCase(skill)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Durable flow is only available for Reading.");
+        return ReadingAttemptResponse.from(service.saveReadingAnswers(principal.userId(), attemptId, request.answers()));
+    }
+
+    @PostMapping("/{skill}/attempts/{attemptId}/submit")
+    public ReadingAttemptResponse submitDurable(@PathVariable String skill, @PathVariable UUID attemptId,
+            @RequestBody DurableSubmitRequest request, HttpServletRequest httpRequest) {
+        AuthPrincipal principal = principal(httpRequest);
+        if (!"reading".equalsIgnoreCase(skill)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Durable flow is only available for Reading.");
+        return ReadingAttemptResponse.from(service.submitReadingAttempt(principal.userId(), attemptId, request.answers(), request.idempotencyKey()));
+    }
+
+    @GetMapping("/{skill}/attempts/{attemptId}/result")
+    public ReadingAttemptResponse result(@PathVariable String skill, @PathVariable UUID attemptId, HttpServletRequest httpRequest) {
+        AuthPrincipal principal = principal(httpRequest);
+        if (!"reading".equalsIgnoreCase(skill)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Durable flow is only available for Reading.");
+        return ReadingAttemptResponse.from(service.readingResult(principal.userId(), attemptId));
+    }
+
+    private AuthPrincipal principal(HttpServletRequest request) {
+        Object value = request.getAttribute(AuthInterceptor.PRINCIPAL_ATTRIBUTE);
+        if (value instanceof AuthPrincipal principal) return principal;
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Đăng nhập để tiếp tục.");
+    }
+
     public record AttemptRequest(String setId, Map<String, String> answers) {}
     public record AttemptResponse(UUID attemptId, int score, int total) {}
+    public record StartRequest(String setId, String idempotencyKey) {}
+    public record AnswersRequest(Map<String, String> answers) {}
+    public record DurableSubmitRequest(Map<String, String> answers, String idempotencyKey) {}
+    public record ReadingAttemptResponse(UUID id, String practiceId, String practiceVersion, String skill, String status,
+            Map<String, String> answers, Integer score, Integer total, java.time.Instant startedAt,
+            java.time.Instant submittedAt, String resultPayload) {
+        static ReadingAttemptResponse from(PracticeAttempt attempt) {
+            return new ReadingAttemptResponse(attempt.id(), attempt.practiceId(), attempt.practiceVersion(), attempt.skill(),
+                    attempt.status().name(), attempt.answers(), attempt.score(), attempt.total(), attempt.startedAt(),
+                    attempt.submittedAt(), attempt.resultPayload());
+        }
+    }
 
     public record PracticeSetView(String id, String skill, String title, String description, List<QuestionView> questions, PassageView passage) {
         static PracticeSetView from(PracticeSet set) { return new PracticeSetView(set.id(), set.skill(), set.title(), set.description(),

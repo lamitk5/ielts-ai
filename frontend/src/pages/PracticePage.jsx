@@ -5,13 +5,20 @@ import GlassCard from '../components/common/GlassCard'
 import PlaceholderPage from './PlaceholderPage'
 import { useAuth } from '../features/auth/AuthProvider'
 import { practiceFixtures } from '../features/reading/practiceFixtures'
-import { fetchPracticeSet, submitPracticeAttempt } from '../features/reading/practiceApi'
+import {
+  fetchPracticeSet,
+  savePracticeAnswers,
+  startPracticeAttempt,
+  submitPracticeAttempt,
+  submitReadingAttempt,
+} from '../features/reading/practiceApi'
 import FloatingTutor from '../components/tutor/FloatingTutor'
 import { SplitLearningWorkspace } from '../components/workspace/SplitLearningWorkspace'
 import { ReadingPassagePane } from '../components/workspace/ReadingPassagePane'
 import { ReadingQuestionPane } from '../components/workspace/ReadingQuestionPane'
 import { saveSessionSnapshot, loadSessionSnapshot } from '../features/session/sessionStorage'
 import { validateSessionSnapshot } from '../features/session/sessionContinuity'
+import { usePreferences } from '../features/preferences/PreferenceProvider'
 
 function PracticeSkillSession({ skill, fixture }) {
   const [practiceSet, setPracticeSet] = useState(fixture)
@@ -31,6 +38,7 @@ function PracticeSkillSession({ skill, fixture }) {
 
 function PracticeSetSession({ skill, practiceSet }) {
   const { user, isAuthenticated } = useAuth()
+  const { preferences } = usePreferences()
   const setId = practiceSet.setId ?? practiceSet.id
   const questions = practiceSet.questions ?? []
 
@@ -46,9 +54,39 @@ function PracticeSetSession({ skill, practiceSet }) {
     return practiceSet.questions?.[0]?.id ?? null
   })
   const [result, setResult] = useState(null)
+  const [durableAttempt, setDurableAttempt] = useState(null)
   const [error, setError] = useState('')
   const [flaggedIds, setFlaggedIds] = useState(() => new Set())
   const [reviewedIds, setReviewedIds] = useState(() => new Set())
+  const [remainingSeconds, setRemainingSeconds] = useState(60 * 60)
+  const [timerExpired, setTimerExpired] = useState(false)
+
+  useEffect(() => {
+    if (!isAuthenticated || skill !== 'reading') return undefined
+    let active = true
+    const idempotencyKey = `${skill}:${setId}`
+    startPracticeAttempt(skill, setId, `${setId}:v1`, idempotencyKey)
+      .then((attempt) => {
+        if (!active || !attempt?.id) return
+        setDurableAttempt(attempt)
+        if (attempt.answers && Object.keys(attempt.answers).length) setAnswers(attempt.answers)
+      })
+      .catch(() => {})
+    return () => { active = false }
+  }, [isAuthenticated, skill, setId])
+
+  useEffect(() => {
+    if (skill !== 'reading' || !preferences.timerDefaultEnabled) return undefined
+    const startedAt = durableAttempt?.startedAt ? Date.parse(durableAttempt.startedAt) : Date.now()
+    const update = () => {
+      const next = Math.max(0, 60 * 60 - Math.floor((Date.now() - startedAt) / 1000))
+      setRemainingSeconds(next)
+      setTimerExpired(next === 0)
+    }
+    update()
+    const timer = window.setInterval(update, 1000)
+    return () => window.clearInterval(timer)
+  }, [durableAttempt?.startedAt, preferences.timerDefaultEnabled, skill])
 
   const activeQuestionId = questions.some((question) => question.id === currentQuestionId)
     ? currentQuestionId
@@ -80,8 +118,17 @@ function PracticeSetSession({ skill, practiceSet }) {
       setError('Đăng nhập để lưu kết quả luyện tập.')
       return
     }
+    if (timerExpired) {
+      setError('Thời gian luyện tập đã hết. Hãy xem lại kết quả đã lưu của bạn.')
+      return
+    }
     try {
-      setResult(await submitPracticeAttempt(skill, practiceSet.setId ?? practiceSet.id, answers))
+      if (skill === 'reading' && durableAttempt?.id) {
+        const submitted = await submitReadingAttempt(skill, setId, durableAttempt.id, answers, `${skill}:${setId}`)
+        setResult({ ...submitted, attemptId: submitted.id })
+      } else {
+        setResult(await submitPracticeAttempt(skill, setId, answers))
+      }
     } catch (submissionError) {
       setError(submissionError.message)
     }
@@ -95,6 +142,12 @@ function PracticeSetSession({ skill, practiceSet }) {
         <p className="foundation-copy">{practiceSet.description}</p>
       </div>
       <form className="practice-form" onSubmit={handleSubmit}>
+        {skill === 'reading' && preferences.timerDefaultEnabled ? (
+          <div className="practice-timer" role="timer" aria-label="Thời gian còn lại">
+            <span>THỜI GIAN CÒN LẠI</span>
+            <strong>{timerExpired ? 'Hết giờ' : `${String(Math.floor(remainingSeconds / 60)).padStart(2, '0')}:${String(remainingSeconds % 60).padStart(2, '0')}`}</strong>
+          </div>
+        ) : null}
         {skill === 'listening' ? (
           <GlassCard className="practice-boundary" role="status">
             <strong>Phát audio chưa được cấu hình</strong>
@@ -117,7 +170,11 @@ function PracticeSetSession({ skill, practiceSet }) {
                 onSelect={handleSelectQuestion}
                 onAnswer={(id, value) => {
                   handleSelectQuestion(id)
-                  setAnswers((current) => ({ ...current, [id]: value }))
+                  setAnswers((current) => {
+                    const next = { ...current, [id]: value }
+                    if (durableAttempt?.id) void savePracticeAnswers(durableAttempt.id, next).catch(() => {})
+                    return next
+                  })
                   setReviewedIds((current) => {
                     const next = new Set(current)
                     next.delete(id)
@@ -146,7 +203,11 @@ function PracticeSetSession({ skill, practiceSet }) {
                       checked={answers[question.id] === value}
                       onChange={() => {
                         handleSelectQuestion(question.id)
-                        setAnswers((current) => ({ ...current, [question.id]: value }))
+                        setAnswers((current) => {
+                          const next = { ...current, [question.id]: value }
+                          if (durableAttempt?.id) void savePracticeAnswers(durableAttempt.id, next).catch(() => {})
+                          return next
+                        })
                       }}
                     />
                     <span>{value}. {option}</span>
@@ -164,7 +225,7 @@ function PracticeSetSession({ skill, practiceSet }) {
           </GlassCard>
         ) : null}
         <div className="practice-actions">
-          <Button type="submit" variant="primary" size="lg">Nộp bài</Button>
+          <Button type="submit" variant="primary" size="lg" disabled={timerExpired}>Nộp bài</Button>
           <Link className="button button-secondary button-lg" to="/">Về trang chủ</Link>
         </div>
       </form>
@@ -174,7 +235,7 @@ function PracticeSetSession({ skill, practiceSet }) {
           lessonId: practiceSet.setId ?? practiceSet.id,
           exerciseId: practiceSet.setId ?? practiceSet.id,
           questionId: activeQuestionId,
-          ...(result?.attemptId ? { attemptId: result.attemptId } : {}),
+          ...(result?.attemptId || result?.id ? { attemptId: result.attemptId ?? result.id } : {}),
         }}
       />
     </section>

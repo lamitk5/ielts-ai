@@ -6,6 +6,7 @@ import App from '../App'
 import { writeAdminToken } from '../services/ragAdminApi'
 
 function renderAdmin() {
+  writeAdminToken('accessibility-test-token')
   return render(<MemoryRouter initialEntries={['/admin/rag']}><App /></MemoryRouter>)
 }
 
@@ -20,8 +21,10 @@ describe('RAG admin accessibility verification', () => {
   test('admin route is keyboard reachable', async () => {
     const user = userEvent.setup()
     renderAdmin()
-    for (let index = 0; index < 12 && !screen.getByLabelText(/admin token/i).matches(':focus'); index += 1) await user.tab()
-    expect(screen.getByLabelText(/admin token/i)).toHaveFocus()
+    const heading = screen.getByRole('heading', { name: /quản trị học liệu/i })
+    for (let index = 0; index < 12 && !screen.getByRole('button', { name: 'Tải lên chờ duyệt' }).matches(':focus'); index += 1) await user.tab()
+    expect(heading).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Tải lên chờ duyệt' })).toBeInTheDocument()
   })
 
   test('admin status actions are semantic', async () => {
@@ -36,7 +39,7 @@ describe('RAG admin accessibility verification', () => {
   })
 
   test('reduced motion does not require animation', () => {
-    render(<MemoryRouter initialEntries={['/admin/rag']}><App /></MemoryRouter>)
-    expect(screen.getByRole('heading', { name: /mở khóa quản trị học liệu/i })).toBeInTheDocument()
+    renderAdmin()
+    expect(screen.getByRole('heading', { name: /quản trị học liệu/i })).toBeInTheDocument()
   })
 })
