@@ -73,7 +73,7 @@ An operation that reports success must have a committed durable record or an exp
 
 ### 4.1 Home, dashboard, and catalog
 
-1. The learner authenticates or registers through the existing Auth flow.
+1. The learner authenticates or registers through the existing Auth flow and enters Home/Dashboard.
 2. Home and Dashboard show only learner-owned progress. A guest sees neutral previews and an assessment CTA, never personal bands, mistakes, or exam data.
 3. The learner chooses Reading, Listening, Writing, or Speaking.
 4. The catalog API returns active, learner-visible practice entries. The server filters by `APPROVED` publication state and ownership-independent public visibility.
@@ -154,6 +154,10 @@ Required constraints and indexes:
 
 The server rechecks approval state in every catalog query. The projection is not an authorization bypass and cannot make a draft visible by itself. The existing static deterministic seed catalog remains a versioned built-in catalog with `APPROVED` provenance; it is not represented as a generated database row and is never mixed with unapproved generated content.
 
+Catalog content is limited to project-owned, synthetic, licensed, or explicitly user-authorized material whose rights metadata is complete. Cambridge, British Council, and other third-party material is not assumed licensed. Similarity validation is a heuristic review signal only, never a copyright guarantee, and administrator approval is mandatory before generated content enters the learner catalog.
+
+The current Phase 3 code has a concrete Reading synthesis path; it must not be described as generating Listening, Writing, or Speaking content until those pipelines exist. Those three skills use approved built-in or already-persisted project-owned content in this MVP. If an approved item is unavailable for any skill, the learner sees the unavailable state defined in Section 15 rather than fabricated exercises or media.
+
 ### 5.2 Idempotent hydration/publication
 
 Approval and publication are one transaction:
@@ -193,6 +197,8 @@ The endpoint returns only active approved publications and approved built-in see
 `GET /api/practice/catalog/{practiceId}` returns the selected approved version, task metadata, learner-safe content, source/provenance summary, and available media references. It returns `404` for unknown, inactive, unapproved, or unauthorized content without revealing which hidden state caused the rejection.
 
 The existing learner practice endpoints remain compatible while their catalog implementation changes from process-memory lookup to the durable publication query. Generated content is not duplicated into a second practice-content model.
+
+The compatibility surface is explicit: `GET /api/practice/{skill}/sets` becomes the learner catalog list, `GET /api/practice/{skill}/sets/{id}` becomes practice detail, and `POST /api/practice/{skill}/attempts` remains a compatibility submit endpoint while the resumable attempt endpoints below are introduced. The implementation must preserve the existing `PracticeSet`, `PracticeQuestion`, `PracticePassage`, and `PracticeAttemptStore` contracts for current Reading/Listening clients while routing their persistence through the durable publication and attempt services.
 
 ## 6. Attempt and result persistence
 
@@ -241,6 +247,10 @@ Writing adds `practice_version`, `status`, `started_at`, `submitted_at`, `elapse
 
 Submitting an already submitted attempt is idempotent when the same final payload is provided and is rejected when the payload conflicts. An attempt cannot change practice ID/version after start. Resuming is allowed only for the owner and only from `IN_PROGRESS`.
 
+The state machine is monotonic: `IN_PROGRESS → SUBMITTED → SCORED → FEEDBACK_READY`, with `SUBMITTED → FAILED` or `SCORED → FAILED` only for a recorded processing failure. Answers and drafts are mutable only in `IN_PROGRESS`; after `SUBMITTED`, the final answer payload and practice version are immutable. A failed feedback step never erases the submitted response and can be retried against the same attempt.
+
+Existing skill-specific endpoints remain the compatibility boundary for Writing and Speaking: `GET/POST /api/practice/writing/tasks|submissions` and `GET/POST /api/practice/speaking/prompts|attempts`. Their persisted rows are adapted to the same lifecycle and ownership rules rather than copied into a second response store. `GET /api/me/attempts`, `/api/me/progress`, and `/api/me/activity` remain the learner history/progress surface and read the durable attempt/event projections.
+
 ### 6.3 Result contract
 
 Every result carries:
@@ -262,16 +272,35 @@ Every result carries:
 
 `overallBandEstimate` is nullable and is labelled **Band ước lượng** when present. Provider payloads, API keys, raw prompts, and internal errors are never stored or returned.
 
+Writing feedback criteria are fixed by task type: Task 1 uses Task Achievement, Coherence and Cohesion, Lexical Resource, and Grammatical Range and Accuracy; Task 2 uses Task Response, Coherence and Cohesion, Lexical Resource, and Grammatical Range and Accuracy. Both task types use the same normalized criterion contract. A provider result missing a valid 0–9 estimate or the required criteria is stored as unavailable, not partially presented as a score.
+
+### 6.4 High-level API responsibility map
+
+The future implementation must assign each responsibility to the following boundaries:
+
+| Area | Existing or additive responsibility |
+| --- | --- |
+| Learner catalog | `/api/practice/{skill}/sets`, `/api/practice/{skill}/sets/{id}` list and detail approved publications |
+| Learner attempts | `/api/practice/{skill}/attempts` compatibility submit plus `/api/practice/{practiceId}/attempts`, `/api/attempts/{id}`, `/api/attempts/{id}/answers`, `/api/attempts/{id}/submit`, and `/api/attempts/{id}/result` for lifecycle control |
+| Learner history | `/api/me/attempts`, `/api/me/progress`, `/api/me/activity`, and existing Phase 2 `/api/learning/*` owner-scoped projections |
+| Writing | Existing `/api/practice/writing/tasks`, `/submissions`, and owner-scoped result/review state |
+| Speaking | Existing `/api/practice/speaking/prompts`, `/attempts`, and explicit STT/manual status |
+| Tutor | Existing `/api/ai/chat` plus `/api/ai/conversations`, `/api/ai/conversations/{id}`, and `/archive`; requests carry trusted context identifiers |
+| Admin | Existing `/api/admin/practice-generator/**` and `/api/admin/rag/**`; backend role enforcement remains authoritative |
+| Preferences | Existing `/api/user/preferences` GET/PUT with optimistic versioning, extended to persist authenticated language |
+
+Every protected endpoint resolves the principal from the existing Auth interceptor. A route may return a normalized `401`, `403`, `404`, `409`, or unavailable response, but it never leaks whether a hidden record exists.
+
 ## 7. Phase 2 Adaptive Learning integration
 
-The completion transaction writes the attempt/result first. After commit, an idempotent application service emits the existing Phase 2 learning event with:
+The completion transaction writes the attempt/result and one idempotent row in the existing `learning_events` table before commit. The event carries:
 
 ```text
 userId, eventType, skill, attemptId, practiceSetId, questionId,
 sourceReference, payload, occurredAt, clientEventId
 ```
 
-The event pipeline then updates mistakes, skill profile, learner profile, and active roadmap using the existing Phase 2 services. A repeated submit or event delivery cannot create a duplicate event because the existing user-scoped event idempotency keys remain authoritative.
+After the event row is durable, the existing Phase 2 pipeline updates mistakes, skill profile, learner profile, and active roadmap. Projection refresh may be retried from the durable event without losing the completed attempt. A repeated submit or event delivery cannot create a duplicate event because the existing user-scoped event idempotency keys remain authoritative. The attempt service must not swallow a failure before the event row is durable or report a completion with no event record.
 
 Evidence rules:
 
@@ -297,7 +326,7 @@ The frontend retains only:
 
 When an authenticated conversation has a `conversationId`, the frontend sends no durable `history` array. The backend loads the bounded recent history and summary from PostgreSQL. The first authenticated message creates a conversation with an empty client history; the returned conversation ID is used for subsequent requests. The backend rejects or ignores client history for an owned conversation rather than concatenating it with stored history.
 
-For guests, no conversation is persisted. The frontend may send at most the current tab’s bounded eight-message history; the server treats it as ephemeral input and never presents it as durable history. On reload, guest Tutor starts a fresh session.
+For guests, no conversation is persisted. The frontend may send at most the current tab’s bounded eight-message history; the server treats it as ephemeral input and never presents it as durable history. On reload, guest Tutor starts a fresh session. For authenticated users, opening Tutor after a browser refresh first loads the owned conversation summary/messages through the conversation API and then renders that server response; local browser history is never used to reconstruct or override it.
 
 ### 8.2 Context identifiers and trusted resolution
 
@@ -334,7 +363,8 @@ Visual requirements:
 - premium pixel-art owl with warm ivory feathers and large expressive eyes;
 - navy graduation cap, champagne-gold trim/tassel, and a small robe/book cue;
 - restrained Academic Luxury palette, no arcade neon treatment and no stock image;
-- separate pupil elements with visibly larger eye bounds so cursor movement is legible.
+- separate pupil elements with visibly larger eye bounds so cursor movement is legible;
+- crisp, deliberate pixel edges using project-owned inline SVG/CSS/React rather than a generic arcade/game asset.
 
 Interaction contract:
 
@@ -463,14 +493,20 @@ If any gate fails, stop. Do not brute-force migration history and do not directl
 
 | Failure | Required behavior |
 | --- | --- |
+| Database unavailable | Return a normalized unavailable/error state; do not report catalog, save, submit, preference, or conversation success and do not substitute process-memory data as durable state |
 | AI provider unavailable/429/timeout | Deterministic learning remains usable; Writing/Speaking feedback shows unavailable/retry state; no fabricated result |
 | RAG insufficient context/evidence | Return normalized `INSUFFICIENT_CONTEXT` or `INSUFFICIENT_EVIDENCE`, empty/accurate sources, and no invented citation |
 | Practice content missing/inactive | Return a clear unavailable/not-found state; do not fall back to unapproved or memory-only generated content |
+| Stale practice version | Reject start/save/submit with a normalized conflict; preserve the learner’s existing draft and require an explicit move to the current approved version |
+| Unauthorized attempt/result/context | Return `401`, `403`, or non-disclosing `404` according to the existing Auth contract; never reveal another learner’s record |
 | Attempt save failure | Keep the attempt pending/dirty, show save failure, and never report persisted submission success |
+| Submit failure | Keep the attempt `IN_PROGRESS` or transition to explicit `FAILED` with the last durable answers; allow retry without creating a second attempt |
 | Catalog database failure | Return a product-safe unavailable state; never claim a durable catalog result from an in-memory cache |
 | Duplicate submit/retry | Use attempt/event idempotency keys and return the committed result without duplicate learning evidence |
 | Session expires | Stop protected requests, preserve unsent composer/draft locally only where safe, and guide the learner to re-authenticate |
 | Attachment rejected | Keep the composer usable, show normalized reason, and never upload or expose rejected content |
+| Reload during an in-progress attempt | Reload the owner’s durable attempt and latest saved answers; unsaved local input is marked unsaved and is never presented as persisted |
+| Backend restart | Re-read approved catalog, attempts, results, learning projections, preferences, and authenticated Tutor history from PostgreSQL; no user-visible state is reconstructed from process memory |
 
 ## 16. Expected implementation boundaries
 
