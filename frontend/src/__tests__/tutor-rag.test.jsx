@@ -13,6 +13,7 @@ async function send(response) {
   const user = userEvent.setup()
   render(<FloatingTutor />)
   await user.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
+  await waitFor(() => expect(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' })).toBeInTheDocument())
   await user.type(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' }), 'Explain this rubric')
   await user.keyboard('{Enter}')
   return waitFor(() => screen.getByText(response.answer))
@@ -24,6 +25,7 @@ describe('Tutor RAG citations', () => {
     render(<FloatingTutor />)
     await user.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
 
+    await waitFor(() => expect(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).toBeInTheDocument())
     expect(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).toHaveClass('tutor-shell-viewport-safe')
   })
 

@@ -47,6 +47,7 @@ describe('floating AI tutor', () => {
     const trigger = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
     await user.click(trigger)
 
+    await waitFor(() => expect(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).toBeInTheDocument())
     expect(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' })).toHaveFocus()
     expect(screen.getByRole('button', { name: 'Gửi câu hỏi' })).toHaveClass('tutor-send-button')
@@ -66,6 +67,7 @@ describe('floating AI tutor', () => {
     renderApp('/')
 
     await user.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
+    await waitFor(() => expect(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).toBeInTheDocument())
     const dialog = screen.getByRole('dialog', { name: 'Trợ giảng AI' })
     expect(within(dialog).getAllByRole('listitem')).toHaveLength(1)
 
@@ -87,6 +89,7 @@ describe('floating AI tutor', () => {
     render(<FloatingTutor />)
 
     await user.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' })).toBeInTheDocument())
     const input = screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' })
     await user.type(input, 'Giải thích lỗi Writing của tôi')
     await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }))
@@ -116,6 +119,7 @@ describe('floating AI tutor', () => {
     render(<FloatingTutor context={{ skill: 'WRITING', exerciseId: 'task-1-academic-01', taskType: 'Task 1 · Academic' }} />)
 
     await user.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' })).toBeInTheDocument())
     await user.type(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' }), 'Giải thích Task Achievement')
     await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }))
 
@@ -135,6 +139,7 @@ describe('floating AI tutor', () => {
     )
 
     await user.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' })).toBeInTheDocument())
     await user.type(
       screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' }),
       'Giải thích sự khác nhau giữa FALSE và NOT GIVEN trong IELTS Reading.',
@@ -158,6 +163,7 @@ describe('floating AI tutor', () => {
     render(<FloatingTutor />)
 
     await user.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' })).toBeInTheDocument())
     await user.type(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' }), 'Câu hỏi dài')
     await user.keyboard('{Enter}')
 
@@ -177,6 +183,7 @@ describe('floating AI tutor', () => {
     )
 
     await user.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' })).toBeInTheDocument())
     const input = screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' })
     await user.type(input, 'Câu hỏi cần kết nối')
     await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }))
@@ -196,6 +203,7 @@ describe('floating AI tutor', () => {
     render(<FloatingTutor />)
 
     await user.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' })).toBeInTheDocument())
     await user.type(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' }), 'Tại sao câu 14 là FALSE?')
     await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }))
 
@@ -214,6 +222,7 @@ describe('floating AI tutor', () => {
     render(<FloatingTutor context={{ skill: 'READING', questionId: 'reading-q1' }} />)
 
     await user.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' })).toBeInTheDocument())
     await user.type(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' }), 'Tôi đang làm câu nào?')
     await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }))
 
@@ -229,6 +238,7 @@ describe('floating AI tutor', () => {
     render(<FloatingTutor />)
 
     await user.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' })).toBeInTheDocument())
     await user.type(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' }), 'Thử lại câu hỏi này')
     await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }))
     await waitFor(() => expect(screen.getByRole('button', { name: 'Thử lại' })).toBeInTheDocument())
@@ -245,6 +255,7 @@ describe('floating AI tutor', () => {
     render(<FloatingTutor />)
 
     await user.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' })).toBeInTheDocument())
     const input = screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' })
     await user.type(input, 'Câu hỏi đầu tiên')
     await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }))
@@ -266,6 +277,7 @@ describe('floating AI tutor', () => {
     render(<FloatingTutor />)
 
     await user.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' })).toBeInTheDocument())
     const input = screen.getByRole('textbox', { name: 'Tin nhắn cho Trợ giảng AI' })
     await user.type(input, 'How do I improve coherence?')
     await user.keyboard('{Enter}')

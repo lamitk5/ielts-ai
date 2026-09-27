@@ -16,7 +16,7 @@ const accents = [
 ]
 
 const selectOptions = {
-  fontScale: [['small', 'Nhỏ'], ['default', 'Mặc định'], ['large', 'Lớn']],
+  fontScale: [['small', 'fontSmall', 'Nhỏ'], ['default', 'fontDefault', 'Mặc định'], ['large', 'fontLarge', 'Lớn']],
   density: [['spacious', 'densitySpacious', 'Thoáng'], ['default', 'densityDefault', 'Tiêu chuẩn'], ['compact', 'densityCompact', 'Gọn']],
 }
 
@@ -35,10 +35,10 @@ function PreferenceControlGroup({ preferences, updatePreference }) {
   const preferenceContext = useOptionalPreferences()
   const translate = preferenceContext?.translate ?? ((_key, fallback) => fallback)
   const preview = [
-    [translate('theme', 'Giao diện'), themes.find(([value]) => value === preferences.themeMode)?.[2]],
-    ['Màu nhấn', accents.find(([value]) => value === preferences.accentPreset)?.[1]],
-    ['Cỡ chữ', selectOptions.fontScale.find(([value]) => value === preferences.fontScale)?.[1]],
-    [translate('density', 'Mật độ hiển thị'), selectOptions.density.find(([value]) => value === preferences.density)?.[2]],
+    [translate('theme', 'Giao diện'), translate(themes.find(([value]) => value === preferences.themeMode)?.[1], themes.find(([value]) => value === preferences.themeMode)?.[2])],
+    [translate('accent', 'Màu nhấn'), accents.find(([value]) => value === preferences.accentPreset)?.[1]],
+    [translate('fontSize', 'Cỡ chữ'), translate(selectOptions.fontScale.find(([value]) => value === preferences.fontScale)?.[1], selectOptions.fontScale.find(([value]) => value === preferences.fontScale)?.[2])],
+    [translate('density', 'Mật độ hiển thị'), translate(selectOptions.density.find(([value]) => value === preferences.density)?.[1], selectOptions.density.find(([value]) => value === preferences.density)?.[2])],
   ].map(([label, value]) => `${label}: ${value}`).join(' · ')
 
   const fontScaleValue = { small: 0, default: 1, large: 2 }[preferences.fontScale]
@@ -46,11 +46,11 @@ function PreferenceControlGroup({ preferences, updatePreference }) {
 
   return (
     <>
-      <p className="settings-preview" aria-live="polite">Xem trước: {preview}</p>
+      <p className="settings-preview" aria-live="polite">{translate('preview', 'Xem trước')}: {preview}</p>
 
       <fieldset className="settings-group settings-section">
         <legend><span role="heading" aria-level="3">{translate('appearance', 'Giao diện & Hiển thị')}</span></legend>
-        <div className="settings-theme-previews" aria-label="Xem trước giao diện">
+        <div className="settings-theme-previews" aria-label={translate('themePreview', 'Xem trước giao diện')}>
           {themes.map(([value, labelKey, fallback]) => (
             <button type="button" key={value} className={`settings-theme-preview ${preferences.themeMode === value ? 'settings-theme-preview-active' : ''}`.trim()} aria-pressed={preferences.themeMode === value} onClick={() => updatePreference('themeMode', value)}>
               <span className={`settings-theme-preview-swatch settings-theme-preview-${value}`} aria-hidden="true" />
@@ -60,9 +60,9 @@ function PreferenceControlGroup({ preferences, updatePreference }) {
         </div>
         <SelectField label={translate('theme', 'Giao diện')} value={preferences.themeMode} options={themes} translate={translate} onChange={(value) => updatePreference('themeMode', value)} />
         <SelectField label={translate('accent', 'Màu nhấn')} value={preferences.accentPreset} options={accents} translate={translate} onChange={(value) => updatePreference('accentPreset', value)} />
-        <div className="settings-accent-swatches" aria-label="Các màu nhấn">
+        <div className="settings-accent-swatches" aria-label={translate('accentSwatches', 'Các màu nhấn')}>
           {accents.map(([value, label]) => (
-            <button type="button" key={value} className={`settings-accent-swatch settings-accent-${value}`.trim()} aria-label={`Chọn màu nhấn ${label}`} aria-pressed={preferences.accentPreset === value} onClick={() => updatePreference('accentPreset', value)}>
+            <button type="button" key={value} className={`settings-accent-swatch settings-accent-${value}`.trim()} aria-label={`${translate('accentChoose', 'Chọn màu nhấn')} ${label}`} aria-pressed={preferences.accentPreset === value} onClick={() => updatePreference('accentPreset', value)}>
               <span className="sr-only">{label}</span>
             </button>
           ))}

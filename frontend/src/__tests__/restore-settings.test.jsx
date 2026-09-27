@@ -134,6 +134,7 @@ describe('final Academic Luxury restore', () => {
       </MemoryRouter>,
     )
     await user.click(screen.getByRole('button', { name: 'Mở Trợ giảng AI' }))
+    await waitFor(() => expect(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).toBeInTheDocument())
     expect(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Giải thích lỗi Writing của tôi' })).not.toBeInTheDocument()
   })
@@ -146,6 +147,8 @@ describe('final Academic Luxury restore', () => {
     )
     const launcher = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
     fireEvent.click(launcher)
+    expect(screen.queryByRole('dialog', { name: 'Trợ giảng AI' })).not.toBeInTheDocument()
+    await waitFor(() => expect(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).toBeInTheDocument())
     const dialog = screen.getByRole('dialog', { name: 'Trợ giảng AI' })
     expect(dialog.closest('.tutor-panel-layer')).toHaveClass('tutor-panel-layer-launching')
     await waitFor(() => expect(dialog.closest('.tutor-panel-layer')).not.toHaveClass('tutor-panel-layer-launching'))

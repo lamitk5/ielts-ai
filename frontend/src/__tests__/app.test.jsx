@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, test } from 'vitest'
@@ -100,6 +100,7 @@ describe('app shell and routing', () => {
     const tutorBtn = screen.getByRole('button', { name: 'Mở Trợ giảng AI' })
     await user.click(tutorBtn)
 
+    await waitFor(() => expect(screen.getByRole('dialog', { name: 'Trợ giảng AI' })).toBeInTheDocument())
     const dialog = screen.getByRole('dialog', { name: 'Trợ giảng AI' })
     expect(dialog).toBeInTheDocument()
     expect(within(dialog).getByRole('link', { name: 'Đăng nhập' })).toBeInTheDocument()

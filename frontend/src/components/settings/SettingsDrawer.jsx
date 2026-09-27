@@ -83,11 +83,11 @@ export default function SettingsDrawer({ open, onClose, openerRef }) {
         <div className="settings-scroll">
           <p className="settings-intro">{translate('settingsIntro', 'Tùy chỉnh trải nghiệm học của bạn.')}</p>
           <p className="settings-status" role="status">{translate(statusKeys[status] ?? statusKeys.idle, statusKeys[status] ?? statusKeys.idle)}</p>
-          {status === 'unsynced' && <Button variant="ghost" size="sm" onClick={retry}>Thử lại</Button>}
+          {status === 'unsynced' && <Button variant="ghost" size="sm" onClick={retry}>{translate('retry', 'Thử lại')}</Button>}
           <PreferenceControlGroup preferences={preferences} updatePreference={updatePreference} />
           {confirmReset ? (
-            <div className="settings-confirm" role="group" aria-label="Xác nhận khôi phục">
-              <p>{translate('confirmReset', 'Vui lòng xác nhận khôi phục tất cả thiết lập mặc định.')}</p>
+            <div className="settings-confirm" role="group" aria-label={translate('confirmResetGroup', 'Xác nhận khôi phục')}>
+              <p>{translate('confirmResetCopy', 'Vui lòng xác nhận khôi phục tất cả thiết lập mặc định.')}</p>
               <div className="settings-confirm-actions">
                 <Button ref={cancelResetRef} variant="secondary" size="sm" onClick={() => setConfirmReset(false)}>{translate('cancel', 'Hủy')}</Button>
                 <Button variant="primary" size="sm" onClick={reset}>{translate('confirmReset', 'Xác nhận khôi phục')}</Button>

@@ -4617,8 +4617,10 @@ input:focus-visible {
   position: static;
   display: inline;
 }
+.ai-tutor-mascot { --mascot-pupil-x: 0px; --mascot-pupil-y: 0px; }
 .ai-tutor-mascot-face { transform-box: fill-box; transform-origin: center; transition: transform .22s ease; }
 .ai-tutor-mascot-pupil { transform-box: fill-box; transform-origin: center; transition: transform 180ms ease; }
+.ai-tutor-mascot-launcher .ai-tutor-mascot-pupil { transform: translate(var(--mascot-pupil-x), var(--mascot-pupil-y)) !important; }
 .ai-tutor-mascot-launcher[data-pointer-direction='left'] .ai-tutor-mascot-face { transform: translateX(-3%); }
 .ai-tutor-mascot-launcher[data-pointer-direction='right'] .ai-tutor-mascot-face { transform: translateX(3%); }
 .ai-tutor-mascot-launcher[data-pointer-direction='above'] .ai-tutor-mascot-face { transform: translateY(-3%); }
@@ -4627,7 +4629,9 @@ input:focus-visible {
 .ai-tutor-mascot-launcher[data-pointer-direction='right'] .ai-tutor-mascot-pupil { transform: translateX(1.2px); }
 .ai-tutor-mascot-launcher[data-pointer-direction='above'] .ai-tutor-mascot-pupil { transform: translateY(-1.2px); }
 .ai-tutor-mascot-launcher[data-pointer-direction='below'] .ai-tutor-mascot-pupil { transform: translateY(1.2px); }
-.ai-tutor-mascot-launcher-activating .ai-tutor-mascot-eye { animation: lumen-scholar-blink 260ms ease-out; transform-box: fill-box; transform-origin: center; }
+.ai-tutor-mascot[data-idle-motion='enabled'] .ai-tutor-mascot-eye { animation: lumen-scholar-idle-blink 7.5s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes lumen-scholar-idle-blink { 0%, 92%, 100% { transform: scaleY(1); } 94%, 97% { transform: scaleY(.12); } }
+.ai-tutor-mascot-launcher-activating .ai-tutor-mascot-eye { animation: lumen-scholar-blink 260ms ease-out !important; transform-box: fill-box; transform-origin: center; }
 @keyframes lumen-scholar-blink { 0%, 100% { transform: scaleY(1); } 35%, 62% { transform: scaleY(.12); } }
 .ai-tutor-mascot-star { animation: lumen-scholar-star 3.2s ease-in-out infinite; transform-origin: center; }
 @keyframes lumen-scholar-star { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }

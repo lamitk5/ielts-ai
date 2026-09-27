@@ -134,6 +134,20 @@ describe('Settings drawer', () => {
     expect(document.documentElement.style.getPropertyValue('--type-scale')).toBe('1.125')
   })
 
+  test('English switches the remaining settings labels and accessible descriptions', async () => {
+    const user = userEvent.setup()
+    renderNavbar()
+    await user.click(screen.getByRole('button', { name: 'Cài đặt' }))
+    const dialog = screen.getByRole('dialog', { name: 'Cài đặt' })
+    await user.selectOptions(within(dialog).getByRole('combobox', { name: 'Ngôn ngữ' }), 'en')
+    const englishDialog = screen.getByRole('dialog', { name: 'Settings' })
+    expect(within(englishDialog).getByText(/Preview:/)).toBeInTheDocument()
+    expect(within(englishDialog).getByRole('group', { name: 'Learning Space & AI Tutor' })).toBeInTheDocument()
+    expect(within(englishDialog).getByRole('button', { name: 'Choose accent color Gold' })).toBeInTheDocument()
+    expect(within(englishDialog).getByRole('button', { name: 'Restore defaults' })).toBeInTheDocument()
+    expect(within(englishDialog).queryByText('Xem trước:')).not.toBeInTheDocument()
+  })
+
   test('presents settings as labeled premium personalization groups', async () => {
     const user = userEvent.setup()
     renderNavbar()
