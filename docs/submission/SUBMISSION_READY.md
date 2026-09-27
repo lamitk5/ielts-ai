@@ -6,7 +6,7 @@
 
 ## Final HEAD
 
-`64e10110d734f815f32c195bd515a2d755b1699f` was the clean application HEAD audited before this documentation-only report commit. The final documentation commit is recorded in the final response.
+`d9d8a8656b72064e47397f9282e084b73f6768f` was the clean application HEAD audited before this documentation-only report commit. The final documentation commit is recorded in the final response.
 
 ## Implemented student flows
 
@@ -37,11 +37,19 @@ The admin-only generator and review workflow provide source registration, bluepr
 
 ## Verification
 
-- Frontend tests: PASS — 70 files, 386 tests.
+- Frontend tests: PASS — 70 files, 390 tests.
 - Frontend lint: PASS — exit code 0; existing non-blocking warnings remain.
 - Frontend build: PASS — Vite production build completed; existing chunk-size warning remains.
 - Backend tests: BLOCKED — 404 run, 0 failures, 5 errors, 1 skipped. Five Spring context tests cannot validate against the current `ielts_ai_tutor` database because resolved Flyway migrations 9 and 10 are not applied.
 - Backend package: BLOCKED — the normal package lifecycle reaches the same test-stage Flyway validation blocker.
+
+## Interaction polish
+
+- Én panel: compact desktop width 440px, max-height 72vh, independently scrolling messages, reachable header/composer, responsive mobile bounds.
+- Én reminders: randomized 9–12 second cadence, 5 second visible duration, proactive/panel suppression and cleanup covered by fake-timer tests.
+- Settings and LUMEN logo: keyboard/fine-pointer scale, subtle tilt, controlled champagne glow, and reduced-motion-safe transitions.
+- Functional buttons: shared hover/active micro-interactions exclude disabled controls and preserve focus behavior.
+- Local development proxy: `frontend/vite.config.js` defaults `/api` to `http://127.0.0.1:8081`; `VITE_API_PROXY_TARGET` remains an explicit override.
 
 ## Responsive verification
 
@@ -58,7 +66,7 @@ The browser extension used for this run did not expose a viewport override, so i
 - The Testcontainers PostgreSQL integration test remains skipped because Docker Desktop returned an HTTP 400 named-pipe response and no valid Docker environment was available. No dependency upgrade or Docker mutation was attempted.
 - No documented local learner/admin credentials were present in the repository, so authenticated learner/admin browser smoke was not executed. Anonymous route behavior and the admin guard were verified.
 - Speaking STT/pronunciation remains unavailable without a configured provider; the UI states this boundary and preserves text practice.
-- Live external AI-provider smoke was not performed during this local visual/regression pass.
+- Real Én chat smoke succeeded twice after clean frontend restarts with no manually injected proxy target; the response rendered through `/api/ai/chat` on the verified local backend.
 
 ## Submission status
 
