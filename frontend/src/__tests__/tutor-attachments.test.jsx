@@ -199,6 +199,17 @@ describe('AttachmentStatus component', () => {
     expect(onRetry).toHaveBeenCalledTimes(1)
   })
 
+  test('uses a truthful processing failure status label', () => {
+    render(<AttachmentStatus attachment={{
+      id: 'att-failed-label',
+      filename: 'notes.txt',
+      sizeBytes: 1024,
+      status: 'FAILED',
+    }} onRemove={vi.fn()} />)
+
+    expect(screen.getByText('Không thể xử lý tệp')).toBeInTheDocument()
+  })
+
   test('renders image thumbnail when previewUrl is present', () => {
     const attachment = {
       id: 'att-img',

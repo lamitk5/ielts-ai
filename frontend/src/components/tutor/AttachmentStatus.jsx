@@ -17,7 +17,7 @@ const STATUS_LABELS = {
   PROCESSING: 'Đang đọc nội dung...',
   READY: 'Sẵn sàng',
   IMAGE_READY: 'Ảnh đã sẵn sàng',
-  FAILED: 'Thất bại',
+  FAILED: 'Không thể xử lý tệp',
   REMOVED: 'Đã xóa',
   EXPIRED: 'Hết hạn',
 }

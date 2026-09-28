@@ -17,7 +17,7 @@ import org.springframework.mock.web.MockMultipartFile;
 
 class TutorAttachmentServiceTest {
     @Test
-    void batchUploadRunsLifecycleProcessingBeforeReturningMetadata() throws Exception {
+    void batchUploadReturnsStoredMetadataBeforeBackgroundProcessingCompletes() throws Exception {
         TutorAttachmentRepository repository = mock(TutorAttachmentRepository.class);
         TutorAttachmentStorage storage = mock(TutorAttachmentStorage.class);
         TutorAttachmentValidator validator = mock(TutorAttachmentValidator.class);
@@ -36,8 +36,9 @@ class TutorAttachmentServiceTest {
         List<TutorAttachment> result = service.uploadBatch(UUID.randomUUID(), UUID.randomUUID(), List.of(
                 new MockMultipartFile("files", "guide.txt", "text/plain", content)));
 
-        verify(processing).process(any());
+        verify(processing).submit(any());
+        verify(processing, org.mockito.Mockito.never()).process(any());
         assertThat(result).singleElement().extracting(TutorAttachment::status)
-                .isEqualTo(TutorAttachment.AttachmentStatus.READY);
+                .isEqualTo(TutorAttachment.AttachmentStatus.STORED);
     }
 }

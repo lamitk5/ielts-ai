@@ -50,10 +50,13 @@ describe('Én attachment upload lifecycle', () => {
             json: async () => ({
               attachments: [{
                 id: 'test-id',
+                conversationId: 'conversation-test',
                 filename: 'study-notes.jpg',
                 contentType: 'image/jpeg',
+                kind: 'IMAGE',
                 sizeBytes: 4,
                 status: 'STORED',
+                errorCode: null,
               }],
             }),
           })
@@ -67,10 +70,13 @@ describe('Én attachment upload lifecycle', () => {
           status: 200,
           json: async () => ({
             id: 'test-id',
+            conversationId: 'conversation-test',
             filename: 'study-notes.jpg',
             contentType: 'image/jpeg',
+            kind: 'IMAGE',
             sizeBytes: 4,
             status,
+            errorCode: null,
           }),
         }
       }

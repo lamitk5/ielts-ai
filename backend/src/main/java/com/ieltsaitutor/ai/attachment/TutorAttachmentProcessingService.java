@@ -3,8 +3,11 @@ package com.ieltsaitutor.ai.attachment;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.List;
+import java.util.concurrent.RejectedExecutionException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 import com.ieltsaitutor.rag.embedding.EmbeddingProvider;
@@ -21,16 +24,25 @@ public class TutorAttachmentProcessingService {
     private final TutorAttachmentDocumentProcessor documents;
     private final TutorAttachmentChunkRepository chunks;
     private final EmbeddingProvider embeddings;
+    private final TaskExecutor executor;
+
+    public TutorAttachmentProcessingService(TutorAttachmentRepository repository,
+            TutorAttachmentDocumentProcessor documents, TutorAttachmentChunkRepository chunks,
+            EmbeddingProvider embeddings) {
+        this(repository, documents, chunks, embeddings, Runnable::run);
+    }
 
     @Autowired
     public TutorAttachmentProcessingService(TutorAttachmentRepository repository,
             TutorAttachmentDocumentProcessor documents, TutorAttachmentChunkRepository chunks,
-            EmbeddingProvider embeddings) {
+            EmbeddingProvider embeddings,
+            @Qualifier("tutorAttachmentProcessingExecutor") TaskExecutor executor) {
         this.repository = repository;
         this.processor = null;
         this.documents = documents;
         this.chunks = chunks;
         this.embeddings = embeddings;
+        this.executor = executor;
     }
 
     public TutorAttachmentProcessingService(TutorAttachmentRepository repository, Consumer<TutorAttachment> processor) {
@@ -39,6 +51,16 @@ public class TutorAttachmentProcessingService {
         this.documents = null;
         this.chunks = null;
         this.embeddings = null;
+        this.executor = Runnable::run;
+    }
+
+    public void submit(UUID attachmentId) {
+        try {
+            executor.execute(() -> process(attachmentId));
+        } catch (RejectedExecutionException exception) {
+            repository.updateStatus(attachmentId, TutorAttachment.AttachmentStatus.FAILED,
+                    "ATTACHMENT_PROCESSING_QUEUE_FULL");
+        }
     }
 
     public void process(UUID attachmentId) {

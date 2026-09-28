@@ -1,5 +1,6 @@
 package com.ieltsaitutor.ai.attachment;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -10,9 +11,24 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.core.task.TaskExecutor;
 
 class TutorAttachmentProcessingServiceTest {
     private final TutorAttachmentRepository repository = mock(TutorAttachmentRepository.class);
+
+    @Test
+    void submitQueuesWorkWithoutRunningItInline() {
+        UUID attachmentId = UUID.randomUUID();
+        var queued = new java.util.concurrent.atomic.AtomicReference<Runnable>();
+        TaskExecutor executor = queued::set;
+        TutorAttachmentProcessingService service = new TutorAttachmentProcessingService(
+                repository, null, null, null, executor);
+
+        service.submit(attachmentId);
+
+        assertThat(queued.get()).isNotNull();
+        verify(repository, org.mockito.Mockito.never()).findById(any());
+    }
 
     @Test
     void transitionsStoredToProcessingToReady() {

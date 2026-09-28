@@ -55,8 +55,8 @@ public class TutorAttachmentService {
         return files.stream().map(file -> {
             TutorAttachment attachment = upload(userId, conversationId, file);
             if (processing == null) return attachment;
-            processing.process(attachment.id());
-            return repository.findById(attachment.id()).orElse(attachment);
+            processing.submit(attachment.id());
+            return attachment;
         }).toList();
     }
 
