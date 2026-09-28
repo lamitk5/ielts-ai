@@ -13,6 +13,7 @@ const STATUS_LABELS = {
   SELECTED: 'Đã chọn',
   UPLOADING: 'Đang tải lên...',
   UPLOADED: 'Đã tải lên',
+  STORED: 'Đang chuẩn bị...',
   PROCESSING: 'Đang xử lý...',
   READY: 'Sẵn sàng',
   IMAGE_READY: 'Ảnh đã sẵn sàng',
@@ -26,7 +27,7 @@ export function AttachmentStatus({ attachment, onRemove, onRetry, className = ''
 
   const isFailed = attachment.status === 'FAILED'
   const isUploading = attachment.status === 'UPLOADING'
-  const isProcessing = attachment.status === 'PROCESSING'
+  const isProcessing = ['STORED', 'PROCESSING'].includes(attachment.status)
   const formattedSize = formatFileSize(attachment.sizeBytes)
   const statusLabel = STATUS_LABELS[attachment.status] ?? attachment.status
   const presentation = getAttachmentPresentation(attachment)

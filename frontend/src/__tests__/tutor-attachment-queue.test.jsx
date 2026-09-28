@@ -73,6 +73,16 @@ describe('bounded Tutor attachment queue', () => {
     vi.useRealTimers()
   })
 
+  test('pollsStoredAttachmentsToReady', async () => {
+    api.uploadAttachments.mockResolvedValue([{ id: 'a-stored', filename: 'guide.txt', status: 'STORED', sizeBytes: 1 }])
+    api.getAttachment.mockResolvedValueOnce({ id: 'a-stored', filename: 'guide.txt', status: 'READY', sizeBytes: 1 })
+    const { result } = renderHook(() => useTutorAttachmentQueue({ conversationId: 'c1' }))
+
+    act(() => result.current.addFiles([file('guide.txt')]))
+
+    await waitFor(() => expect(result.current.readyIds).toEqual(['a-stored']))
+  })
+
   test('releasesPreviewUrls', async () => {
     vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:a')
     const revoke = vi.spyOn(URL, 'revokeObjectURL')

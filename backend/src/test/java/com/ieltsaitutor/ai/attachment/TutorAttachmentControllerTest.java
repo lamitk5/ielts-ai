@@ -16,6 +16,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Instant;
 import java.util.UUID;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -265,6 +266,23 @@ class TutorAttachmentControllerTest {
                         .header("Authorization", "Bearer valid"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error.code").value("ATTACHMENT_NOT_FOUND"));
+    }
+
+    @Test
+    void persistentServiceReadsOwnedAttachmentById() {
+        TutorAttachmentRepository repository = mock(TutorAttachmentRepository.class);
+        TutorAttachmentStorage storage = mock(TutorAttachmentStorage.class);
+        TutorAttachmentValidator validator = mock(TutorAttachmentValidator.class);
+        UUID userId = UUID.randomUUID();
+        UUID attachmentId = UUID.randomUUID();
+        TutorAttachment attachment = new TutorAttachment(attachmentId, userId, UUID.randomUUID(), "notes.txt",
+                "notes.txt", "text/plain", AttachmentKind.DOCUMENT, 5, "sha", "storage-key",
+                AttachmentStatus.READY, null, null, 0, Instant.now(), Instant.now(), null);
+        when(repository.findById(attachmentId)).thenReturn(Optional.of(attachment));
+
+        TutorAttachmentService persistent = new TutorAttachmentService(repository, storage, validator);
+
+        assertThat(persistent.get(userId, attachmentId)).isEqualTo(attachment);
     }
 
     @Test

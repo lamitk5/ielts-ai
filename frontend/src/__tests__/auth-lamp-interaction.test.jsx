@@ -18,6 +18,15 @@ afterEach(() => {
 })
 
 describe('auth lamp interaction', () => {
+  test('uses a tall lamp silhouette with a long vertical body', () => {
+    renderAuth('/login')
+
+    const lamp = screen.getByTestId('auth-desk-lamp')
+    const [, , viewBoxWidth, viewBoxHeight] = lamp.getAttribute('viewBox').split(' ').map(Number)
+    expect(viewBoxHeight).toBeGreaterThan(viewBoxWidth * 1.35)
+    expect(lamp.querySelector('.auth-lamp-stem').getAttribute('d')).toContain('V270')
+  })
+
   test('starts Login locked until the lamp is turned on', async () => {
     const user = userEvent.setup()
     renderAuth('/login')

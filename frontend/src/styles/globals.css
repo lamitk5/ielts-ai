@@ -4128,8 +4128,8 @@ input:focus-visible {
 .auth-light-mote-four { top: 32%; left: 76%; width: .22rem; height: .22rem; animation-delay: -5.1s; }
 .auth-light-mote-five { top: 78%; left: 63%; width: .16rem; height: .16rem; animation-delay: -.7s; }
 .auth-lamp-column { position: relative; display: grid; width: 100%; min-height: 27rem; place-items: center; }
-.auth-lamp-scene { position: relative; z-index: 0; width: min(26rem, 100%); height: 25rem; transform: translateY(-2.25rem); }
-.auth-desk-lamp { position: absolute; top: 0; left: 50%; width: 16rem; height: 18.9rem; overflow: visible; pointer-events: none; transform: translateX(-50%); }
+.auth-lamp-scene { position: relative; z-index: 0; width: min(28rem, 100%); height: 29rem; transform: translateY(-1rem); }
+.auth-desk-lamp { position: absolute; top: 0; left: 50%; width: 18.5rem; height: 27rem; overflow: visible; pointer-events: none; transform: translateX(-50%); }
 .auth-lamp-shade { stroke: rgba(229, 201, 130, .82); stroke-width: 1.25; transition: fill 420ms ease, filter 420ms ease, stroke 420ms ease; }
 .auth-lamp-shade-highlight { fill: none; stroke: rgba(255, 239, 192, .28); stroke-linecap: round; stroke-width: 1; transition: stroke 420ms ease; }
 .auth-lamp-shade-rim, .auth-lamp-stem, .auth-lamp-stem-highlight, .auth-lamp-pull { fill: none; stroke: rgba(229, 201, 130, .68); stroke-linecap: round; stroke-width: 1.7; }
@@ -4144,9 +4144,9 @@ input:focus-visible {
 .auth-lamp-bulb { fill: var(--gold-light); opacity: .35; transition: opacity 420ms ease, filter 420ms ease; }
 .auth-lamp-bulb-ring { fill: none; stroke: rgba(229, 201, 130, .28); stroke-width: 1; opacity: .55; transition: opacity 420ms ease, stroke 420ms ease; }
 .auth-lamp-bulb-core { fill: rgba(255, 239, 192, .68); opacity: .24; transition: opacity 420ms ease, filter 420ms ease; }
-.auth-light-cone { position: absolute; top: 7.4rem; left: 50%; width: 21rem; height: 15rem; border-radius: 50%; background: radial-gradient(ellipse 42% 34% at 50% 4%, var(--lamp-core), transparent 72%), radial-gradient(ellipse 86% 74% at 50% 0%, var(--lamp-spill), transparent 72%); filter: blur(.85rem); opacity: 0; pointer-events: none; transform: translateX(-50%) scale(.88); transform-origin: 50% 0; transition: opacity 420ms ease, transform 420ms ease; }
-.auth-light-spill { position: absolute; top: 7.6rem; left: 48%; width: 30rem; height: 12rem; border-radius: 50%; background: radial-gradient(ellipse at 0% 50%, var(--lamp-spill), rgba(229, 201, 130, .06) 42%, transparent 74%); filter: blur(1.8rem); opacity: 0; pointer-events: none; transform: translateX(-2%) rotate(6deg); transition: opacity 420ms ease, transform 420ms ease; }
-.auth-lamp-halo { position: absolute; top: 2rem; left: 50%; width: 8rem; height: 8rem; border-radius: 50%; background: radial-gradient(circle, var(--lamp-glow) 0 24%, rgba(229, 201, 130, .13) 42%, transparent 72%); filter: blur(1.8rem); opacity: 0; pointer-events: none; transform: translateX(-50%); transition: opacity 420ms ease; }
+.auth-light-cone { position: absolute; top: 9rem; left: 50%; width: 23rem; height: 18rem; border-radius: 50%; background: radial-gradient(ellipse 42% 34% at 50% 4%, var(--lamp-core), transparent 72%), radial-gradient(ellipse 86% 74% at 50% 0%, var(--lamp-spill), transparent 72%); filter: blur(.85rem); opacity: 0; pointer-events: none; transform: translateX(-50%) scale(.88); transform-origin: 50% 0; transition: opacity 420ms ease, transform 420ms ease; }
+.auth-light-spill { position: absolute; top: 9.2rem; left: 48%; width: 32rem; height: 14rem; border-radius: 50%; background: radial-gradient(ellipse at 0% 50%, var(--lamp-spill), rgba(229, 201, 130, .06) 42%, transparent 74%); filter: blur(1.8rem); opacity: 0; pointer-events: none; transform: translateX(-2%) rotate(6deg); transition: opacity 420ms ease, transform 420ms ease; }
+.auth-lamp-halo { position: absolute; top: 2.5rem; left: 50%; width: 9rem; height: 9rem; border-radius: 50%; background: radial-gradient(circle, var(--lamp-glow) 0 24%, rgba(229, 201, 130, .13) 42%, transparent 72%); filter: blur(1.8rem); opacity: 0; pointer-events: none; transform: translateX(-50%); transition: opacity 420ms ease; }
 .auth-lamp-on .auth-light-cone, .auth-lamp-on .auth-light-spill, .auth-lamp-on .auth-lamp-halo { opacity: 1; }
 .auth-lamp-on .auth-light-cone { transform: translateX(-50%) scale(1); }
 .auth-lamp-on .auth-light-spill { transform: translateX(0) rotate(6deg) scale(1); }
@@ -4158,7 +4158,7 @@ input:focus-visible {
 .auth-lamp-on .auth-lamp-shade { filter: drop-shadow(0 0 .9rem rgba(229, 201, 130, .26)); }
 .auth-lamp-on .auth-lamp-pull-anchor { opacity: .95; }
 .auth-lamp-on .auth-lamp-shadow { opacity: .48; }
-.auth-lamp-pull-control { position: absolute; z-index: 3; top: 10rem; left: calc(50% + 2.4rem); width: 2.3rem; height: 3.25rem; border: 0; padding: 0; background: transparent; cursor: grab; touch-action: none; transform: translateX(-50%) translateY(var(--pull-distance)); transition: transform 260ms ease; }
+.auth-lamp-pull-control { position: absolute; z-index: 3; top: 11.3rem; left: calc(50% + 3rem); width: 2.3rem; height: 3.25rem; border: 0; padding: 0; background: transparent; cursor: grab; touch-action: none; transform: translateX(-50%) translateY(var(--pull-distance)); transition: transform 260ms ease; }
 .auth-lamp-pull-control.is-pulling { cursor: grabbing; transition-duration: 80ms; }
 .auth-lamp-pull-control:focus-visible { outline: 2px solid var(--gold-light); outline-offset: .25rem; border-radius: 999px; }
 .auth-lamp-cord { position: absolute; top: 0; left: 50%; width: 1px; height: 1.85rem; background: linear-gradient(180deg, rgba(229, 201, 130, .8), rgba(229, 201, 130, .36)); transform: translateX(-50%); }
@@ -4202,12 +4202,12 @@ input:focus-visible {
 @media (max-width: 760px) {
   .auth-cinematic { grid-template-columns: 1fr; gap: 0; padding-top: 2rem; }
   .auth-lamp-column { min-height: 16rem; }
-  .auth-lamp-scene { width: min(22rem, 100%); height: 15.5rem; transform: none; }
-  .auth-desk-lamp { transform: translateX(-50%) scale(.64); transform-origin: top center; }
-  .auth-light-cone { top: 4.6rem; width: 14rem; height: 9rem; }
-  .auth-lamp-halo { top: 1rem; width: 6rem; height: 6rem; }
-  .auth-light-spill { top: 4.8rem; left: 50%; width: 22rem; height: 9rem; }
-  .auth-lamp-pull-control { top: 5.8rem; left: calc(50% + 1.55rem); transform: translateX(-50%) translateY(var(--pull-distance)) scale(.9); }
+  .auth-lamp-scene { width: min(22rem, 100%); height: 19rem; transform: none; }
+  .auth-desk-lamp { width: 13rem; height: 19rem; transform: translateX(-50%); transform-origin: top center; }
+  .auth-light-cone { top: 5.7rem; width: 15rem; height: 10rem; }
+  .auth-lamp-halo { top: 1.4rem; width: 6.5rem; height: 6.5rem; }
+  .auth-light-spill { top: 5.9rem; left: 50%; width: 23rem; height: 10rem; }
+  .auth-lamp-pull-control { top: 7.3rem; left: calc(50% + 2.1rem); transform: translateX(-50%) translateY(var(--pull-distance)) scale(.9); }
   .auth-lamp-pull-control.is-pulling { transform: translateX(-50%) translateY(var(--pull-distance)) scale(.9); }
   .auth-cinematic-card { width: min(100%, 31rem); }
 }

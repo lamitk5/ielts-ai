@@ -4,6 +4,7 @@ import { deleteAttachment, getAttachment, uploadAttachments } from '../../servic
 const MAX_FILES = 5
 const MAX_PROCESSING_POLLS = 40
 const PROCESSING_POLL_MS = 100
+const PENDING_STATUSES = ['STORED', 'PROCESSING']
 
 function wait(ms) {
   return new Promise((resolve) => window.setTimeout(resolve, ms))
@@ -49,7 +50,7 @@ export function useTutorAttachmentQueue({ conversationId, onError } = {}) {
       const uploaded = result?.[0]
       if (!uploaded?.id) throw new Error('Tải tệp không trả về mã hợp lệ.')
       updateAttachment(entry.localId, { ...uploaded, id: uploaded.id, status: uploaded.status || 'READY' })
-      const finalRecord = uploaded.status === 'PROCESSING'
+      const finalRecord = PENDING_STATUSES.includes(uploaded.status)
         ? await pollUntilReady(entry.localId, uploaded.id)
         : uploaded
       updateAttachment(entry.localId, { ...finalRecord, id: uploaded.id, file: entry.file, previewUrl: entry.previewUrl })
@@ -134,7 +135,7 @@ export function useTutorAttachmentQueue({ conversationId, onError } = {}) {
   const readyIds = useMemo(() => attachments
     .filter((item) => (item.status === 'READY' || item.status === 'IMAGE_READY') && item.id)
     .map((item) => item.id), [attachments])
-  const isBusy = attachments.some((item) => ['UPLOADING', 'PROCESSING'].includes(item.status))
+  const isBusy = attachments.some((item) => ['UPLOADING', ...PENDING_STATUSES].includes(item.status))
   const reportError = useCallback((error) => onErrorRef.current?.(error), [])
 
   return { attachments, addFiles, retry, remove, readyIds, isBusy, reportError, markChatRetry: () => {} }

@@ -70,7 +70,7 @@ function AuthCinematicShell({ children, labelledBy }) {
           <span className="auth-light-cone" data-testid="auth-light-cone" aria-hidden="true" />
           <span className="auth-light-spill" aria-hidden="true" />
           <span className="auth-lamp-halo" aria-hidden="true" />
-          <svg className="auth-desk-lamp" data-testid="auth-desk-lamp" viewBox="0 0 220 260" focusable="false" aria-hidden="true">
+          <svg className="auth-desk-lamp" data-testid="auth-desk-lamp" viewBox="0 0 220 320" focusable="false" aria-hidden="true">
             <defs>
               <linearGradient id="authLampShadeMetal" x1="0" x2="1" y1="0" y2="1">
                 <stop offset="0" stopColor="#101a2d" />
@@ -90,20 +90,20 @@ function AuthCinematicShell({ children, labelledBy }) {
                 <feGaussianBlur stdDeviation="4" />
               </filter>
             </defs>
-            <ellipse className="auth-lamp-shadow" cx="110" cy="238" rx="76" ry="9" filter="url(#authLampSvgShadow)" />
-            <path className="auth-lamp-shade" d="M18 62C32 34 70 18 110 18s78 16 92 44l-15 58c-25 14-51 21-77 21s-52-7-77-21L18 62Z" fill="url(#authLampShadeMetal)" />
-            <path className="auth-lamp-shade-highlight" d="M32 61C50 40 77 29 110 29s60 11 78 32" />
-            <path className="auth-lamp-shade-rim" d="M33 116Q110 151 187 116" />
-            <path className="auth-lamp-shade-inner" d="M34 113Q110 145 186 113Q170 133 110 140Q50 133 34 113Z" fill="url(#authLampShadeGlow)" />
-            <path className="auth-lamp-stem" d="M110 138V216" />
-            <path className="auth-lamp-stem-highlight" d="M116 143V214" />
-            <path className="auth-lamp-pull" d="M147 116V157" />
-            <circle className="auth-lamp-pull-anchor" cx="147" cy="157" r="2.5" />
-            <path className="auth-lamp-base" d="M43 220Q110 207 177 220l9 14q-76 19-152 0l9-14Z" fill="url(#authLampBaseMetal)" />
-            <path className="auth-lamp-base-highlight" d="M49 222Q110 213 171 222" />
-            <ellipse className="auth-lamp-bulb-ring" cx="110" cy="116" rx="21" ry="9" />
-            <circle className="auth-lamp-bulb" cx="110" cy="116" r="14" />
-            <circle className="auth-lamp-bulb-core" cx="110" cy="116" r="5" />
+            <ellipse className="auth-lamp-shadow" cx="110" cy="300" rx="76" ry="9" filter="url(#authLampSvgShadow)" />
+            <path className="auth-lamp-shade" d="M18 72C32 40 70 20 110 20s78 20 92 52l-15 54c-25 15-51 22-77 22s-52-7-77-22L18 72Z" fill="url(#authLampShadeMetal)" />
+            <path className="auth-lamp-shade-highlight" d="M32 71C50 47 77 33 110 33s60 14 78 38" />
+            <path className="auth-lamp-shade-rim" d="M33 126Q110 161 187 126" />
+            <path className="auth-lamp-shade-inner" d="M34 123Q110 155 186 123Q170 146 110 152Q50 146 34 123Z" fill="url(#authLampShadeGlow)" />
+            <path className="auth-lamp-stem" d="M110 148V270" />
+            <path className="auth-lamp-stem-highlight" d="M116 153V268" />
+            <path className="auth-lamp-pull" d="M147 126V178" />
+            <circle className="auth-lamp-pull-anchor" cx="147" cy="178" r="2.5" />
+            <path className="auth-lamp-base" d="M43 276Q110 263 177 276l9 14q-76 19-152 0l9-14Z" fill="url(#authLampBaseMetal)" />
+            <path className="auth-lamp-base-highlight" d="M49 278Q110 269 171 278" />
+            <ellipse className="auth-lamp-bulb-ring" cx="110" cy="126" rx="21" ry="9" />
+            <circle className="auth-lamp-bulb" cx="110" cy="126" r="14" />
+            <circle className="auth-lamp-bulb-core" cx="110" cy="126" r="5" />
           </svg>
           <button
             type="button"

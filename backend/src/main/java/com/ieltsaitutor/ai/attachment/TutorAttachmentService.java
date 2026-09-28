@@ -25,26 +25,39 @@ public class TutorAttachmentService {
     private final TutorAttachmentRepository repository;
     private final TutorAttachmentStorage storage;
     private final TutorAttachmentValidator validator;
+    private final TutorAttachmentProcessingService processing;
 
     public TutorAttachmentService() {
         this.repository = null;
         this.storage = null;
         this.validator = null;
+        this.processing = null;
+    }
+
+    public TutorAttachmentService(TutorAttachmentRepository repository, TutorAttachmentStorage storage,
+            TutorAttachmentValidator validator) {
+        this(repository, storage, validator, null);
     }
 
     @Autowired
     public TutorAttachmentService(TutorAttachmentRepository repository, TutorAttachmentStorage storage,
-            TutorAttachmentValidator validator) {
+            TutorAttachmentValidator validator, TutorAttachmentProcessingService processing) {
         this.repository = repository;
         this.storage = storage;
         this.validator = validator;
+        this.processing = processing;
     }
 
     public List<TutorAttachment> uploadBatch(UUID userId, UUID conversationId, List<MultipartFile> files) {
         if (conversationId == null || files == null || files.isEmpty() || files.size() > 5) {
             throw new AuthException("ATTACHMENT_BATCH_INVALID", HttpStatus.BAD_REQUEST, "Chỉ có thể đính kèm từ 1 đến 5 tệp.");
         }
-        return files.stream().map(file -> upload(userId, conversationId, file)).toList();
+        return files.stream().map(file -> {
+            TutorAttachment attachment = upload(userId, conversationId, file);
+            if (processing == null) return attachment;
+            processing.process(attachment.id());
+            return repository.findById(attachment.id()).orElse(attachment);
+        }).toList();
     }
 
     public TutorAttachment upload(UUID userId, UUID conversationId, MultipartFile file) {
@@ -133,6 +146,11 @@ public class TutorAttachmentService {
     }
 
     public TutorAttachment get(UUID userId, UUID attachmentId) {
+        if (repository != null) {
+            return repository.findById(attachmentId)
+                    .filter(attachment -> attachment.userId().equals(userId))
+                    .orElseThrow(() -> new AuthException("ATTACHMENT_NOT_FOUND", HttpStatus.NOT_FOUND, "Không tìm thấy tệp đính kèm."));
+        }
         Map<UUID, TutorAttachment> userMap = store.get(userId);
         if (userMap == null || !userMap.containsKey(attachmentId)) {
             throw new AuthException("ATTACHMENT_NOT_FOUND", HttpStatus.NOT_FOUND, "Không tìm thấy tệp đính kèm.");
@@ -141,6 +159,13 @@ public class TutorAttachmentService {
     }
 
     public void delete(UUID userId, UUID attachmentId) {
+        if (repository != null) {
+            if (repository.findById(attachmentId).filter(attachment -> attachment.userId().equals(userId)).isEmpty()) {
+                throw new AuthException("ATTACHMENT_NOT_FOUND", HttpStatus.NOT_FOUND, "Không tìm thấy tệp đính kèm.");
+            }
+            repository.updateStatus(attachmentId, AttachmentStatus.REMOVED, null);
+            return;
+        }
         Map<UUID, TutorAttachment> userMap = store.get(userId);
         if (userMap == null || !userMap.containsKey(attachmentId)) {
             throw new AuthException("ATTACHMENT_NOT_FOUND", HttpStatus.NOT_FOUND, "Không tìm thấy tệp đính kèm.");
