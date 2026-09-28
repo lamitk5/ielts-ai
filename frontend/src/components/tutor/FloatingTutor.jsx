@@ -91,7 +91,7 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
     openedRef.current = true
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    inputRef.current?.focus()
+    const focusTimer = window.setTimeout(() => inputRef.current?.focus(), 0)
 
     function handleKeyDown(event) {
       if (event.key === 'Escape') {
@@ -102,6 +102,7 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
 
     document.addEventListener('keydown', handleKeyDown)
     return () => {
+      window.clearTimeout(focusTimer)
       document.removeEventListener('keydown', handleKeyDown)
       document.body.style.overflow = previousOverflow
     }

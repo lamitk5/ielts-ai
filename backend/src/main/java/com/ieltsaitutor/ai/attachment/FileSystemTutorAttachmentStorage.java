@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 public class FileSystemTutorAttachmentStorage implements TutorAttachmentStorage {
     private final Path root;
 
+    @Autowired
     public FileSystemTutorAttachmentStorage(
             @Value("${ai.tutor.attachment.storage-root:backend/data/tutor-attachments}") String root) {
         this(Path.of(root));

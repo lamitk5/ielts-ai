@@ -67,6 +67,7 @@ export function TutorComposer({
         <input
           id="tutor-input"
           ref={inputRef}
+          autoFocus
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           placeholder="Hỏi về bài luyện của bạn..."

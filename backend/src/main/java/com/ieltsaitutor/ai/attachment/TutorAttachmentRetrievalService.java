@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.ieltsaitutor.rag.embedding.EmbeddingSpace;
@@ -21,9 +22,10 @@ public class TutorAttachmentRetrievalService {
     private final QueryEmbeddingService queryEmbedding;
     private final EmbeddingSpace configuredSpace;
 
+    @Autowired
     public TutorAttachmentRetrievalService(TutorAttachmentChunkRepository repository, QueryEmbeddingService queryEmbedding,
-            com.ieltsaitutor.rag.embedding.EmbeddingSpaceSelector selector) {
-        this(repository, queryEmbedding, selector.primarySpace().orElse(null));
+            com.ieltsaitutor.rag.embedding.EmbeddingProvider provider) {
+        this(repository, queryEmbedding, configuredSpace(provider));
     }
 
     public TutorAttachmentRetrievalService(TutorAttachmentChunkRepository repository, QueryEmbeddingService queryEmbedding,
@@ -31,6 +33,10 @@ public class TutorAttachmentRetrievalService {
         this.repository = repository;
         this.queryEmbedding = queryEmbedding;
         this.configuredSpace = configuredSpace;
+    }
+
+    private static EmbeddingSpace configuredSpace(com.ieltsaitutor.rag.embedding.EmbeddingProvider provider) {
+        return provider != null && provider.isEmbeddingConfigured() ? provider.embeddingSpace() : null;
     }
 
     public List<RetrievedAttachmentChunk> retrieve(UUID userId, UUID conversationId, List<UUID> attachmentIds,
