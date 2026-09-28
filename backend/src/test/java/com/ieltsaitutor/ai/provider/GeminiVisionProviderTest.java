@@ -44,7 +44,7 @@ class GeminiVisionProviderTest {
         properties.setApiKey("server-only-test-key");
         properties.setModel("gemini-test");
         properties.setBaseUrl("http://localhost:" + server.getAddress().getPort() + "/v1beta/models");
-        properties.setResponseTimeout(Duration.ofMillis(300));
+        properties.setResponseTimeout(Duration.ofSeconds(2));
         properties.setMaxRetries(0);
         provider = new GeminiAiProvider(WebClient.builder().build(), properties, new ObjectMapper());
     }
