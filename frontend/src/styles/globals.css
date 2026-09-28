@@ -3392,7 +3392,7 @@ input:focus-visible {
 }
 
 .auth-footer-copy {
-  margin: 1.25rem 0 0;
+  margin: 2rem 0 0;
   color: var(--muted);
   font-size: .85rem;
   text-align: center;
@@ -4210,6 +4210,7 @@ input:focus-visible {
   .auth-lamp-pull-control { top: 7.3rem; left: calc(50% + 2.1rem); transform: translateX(-50%) translateY(var(--pull-distance)) scale(.9); }
   .auth-lamp-pull-control.is-pulling { transform: translateX(-50%) translateY(var(--pull-distance)) scale(.9); }
   .auth-cinematic-card { width: min(100%, 31rem); }
+  .auth-footer-copy { margin-top: 1.5rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
