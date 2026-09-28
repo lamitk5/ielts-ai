@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -44,9 +45,10 @@ public class AiProviderRouter implements AiProvider {
     @Override
     public AiChatResult chat(AiChatCommand command) {
         AiProviderException lastTransient = null;
+        java.util.Set<ProviderCapability> requiredCapabilities = requiredCapabilities(command);
         for (ProviderId providerId : configuredOrder) {
             AiProviderAdapter adapter = adapters.get(providerId);
-            if (adapter == null || !adapter.enabled() || !adapter.capabilities().contains(ProviderCapability.CHAT)) {
+            if (adapter == null || !adapter.enabled() || !adapter.capabilities().containsAll(requiredCapabilities)) {
                 continue;
             }
             if (!health.tryAcquire(providerId)) continue;
@@ -65,6 +67,14 @@ public class AiProviderRouter implements AiProvider {
         }
         throw new AiProviderException("AI_TEMPORARILY_UNAVAILABLE", HttpStatus.SERVICE_UNAVAILABLE,
                 "Trợ giảng AI tạm thời chưa sẵn sàng.", lastTransient);
+    }
+
+    private java.util.Set<ProviderCapability> requiredCapabilities(AiChatCommand command) {
+        EnumSet<ProviderCapability> required = EnumSet.of(ProviderCapability.CHAT);
+        if (command != null && command.requiredCapabilities() != null) {
+            required.addAll(command.requiredCapabilities());
+        }
+        return required;
     }
 
     private List<ProviderId> orderedProviders(AiProviderProperties properties) {
