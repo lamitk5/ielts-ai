@@ -4,6 +4,8 @@
 backend/target/
 backend/data/rag/uploads/
 backend/data/rag/db/
+backend/.runtime/
+**/tutor-attachments/
 .superpowers/sdd/
 frontend/node_modules/
 frontend/dist/

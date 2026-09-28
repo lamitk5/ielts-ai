@@ -2,6 +2,7 @@ package com.ieltsaitutor.ai.attachment;
 
 import java.sql.Types;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 
@@ -62,7 +63,7 @@ public class JdbcTutorAttachmentChunkRepository implements TutorAttachmentChunkR
                     .addValue("embeddingModel", space.model())
                     .addValue("embeddingDimension", space.dimension())
                     .addValue("embeddingVersion", space.version())
-                    .addValue("createdAt", java.sql.Timestamp.from(Instant.now()), Types.TIMESTAMP_WITH_TIMEZONE);
+                    .addValue("createdAt", Instant.now().atOffset(ZoneOffset.UTC), Types.TIMESTAMP_WITH_TIMEZONE);
         }
         jdbc.batchUpdate("""
                 INSERT INTO ai_attachment_chunks
