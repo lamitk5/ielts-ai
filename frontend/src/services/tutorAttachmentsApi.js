@@ -53,6 +53,38 @@ export async function uploadAttachment(file, options = {}) {
   return payload
 }
 
+export async function uploadAttachments(files, conversationId, options = {}) {
+  const selected = Array.from(files || [])
+  if (!conversationId) throw new AttachmentApiError('ATTACHMENT_CONVERSATION_REQUIRED', 'Cần một cuộc hội thoại để tải tệp.', 400)
+  if (selected.length === 0 || selected.length > 5) {
+    throw new AttachmentApiError('ATTACHMENT_BATCH_INVALID', 'Chỉ có thể đính kèm từ 1 đến 5 tệp.', 400)
+  }
+  for (const file of selected) {
+    const validation = validateAttachmentFile(file)
+    if (!validation.valid) throw new AttachmentApiError(validation.error.code, validation.error.message, 400)
+  }
+
+  const formData = new FormData()
+  selected.forEach((file) => formData.append('files', file))
+  formData.append('conversationId', conversationId)
+  const response = await fetch('/api/ai/attachments', {
+    method: 'POST',
+    headers: { ...getAuthHeader(), ...options.headers },
+    body: formData,
+    signal: options.signal,
+  })
+  const payload = await response.json().catch(() => null)
+  if (!response.ok) {
+    const code = payload?.error?.code ?? (response.status === 401 ? 'AUTH_REQUIRED' : 'ATTACHMENT_UPLOAD_FAILED')
+    const message = payload?.error?.message ?? 'Tải tệp đính kèm thất bại.'
+    throw new AttachmentApiError(code, message, response.status)
+  }
+  const records = Array.isArray(payload?.attachments)
+    ? payload.attachments
+    : Array.isArray(payload) ? payload : payload?.id ? [payload] : []
+  return records
+}
+
 export async function getAttachment(id, options = {}) {
   const headers = {
     ...getAuthHeader(),

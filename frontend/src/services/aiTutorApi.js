@@ -1,5 +1,6 @@
 import { normalizeTutorReferences } from '../features/tutor/tutorReferenceSchema'
 import { ASSISTANT_NAME } from '../features/tutor/assistantIdentity'
+import { normalizeAttachmentSources } from '../features/tutor/attachmentSourceSchema'
 
 export const MAX_HISTORY_MESSAGES = 8
 
@@ -49,12 +50,20 @@ export async function loadLatestTutorConversation(options = {}) {
       role: String(message.role || '').toUpperCase() === 'USER' ? 'user' : 'assistant',
       content: typeof message.content === 'string' ? message.content : '',
       status: message.responseStatus || undefined,
+      attachments: normalizeAttachmentSources(message.attachments),
     })).filter((message) => message.content)
     : []
   return { conversationId: latest.id, messages }
 }
 
-export async function sendTutorMessage({ message, context = { skill: 'GENERAL' }, history = [], conversationId = null }, options = {}) {
+export async function sendTutorMessage({ message, context = { skill: 'GENERAL' }, history = [], conversationId = null, attachmentIds = [] }, options = {}) {
+  const normalizedAttachmentIds = Array.from(attachmentIds || [])
+  if (new Set(normalizedAttachmentIds).size !== normalizedAttachmentIds.length) {
+    throw new AiTutorApiError('ATTACHMENT_IDS_DUPLICATED', 'Danh sách tệp đính kèm bị trùng.', 400)
+  }
+  if (normalizedAttachmentIds.length > 5) {
+    throw new AiTutorApiError('ATTACHMENT_LIMIT_EXCEEDED', 'Chỉ được đính kèm tối đa 5 tệp.', 400)
+  }
   const controller = new AbortController()
   const timeout = options.timeoutMs ?? 20000
   const timeoutId = window.setTimeout(() => controller.abort(), timeout)
@@ -76,6 +85,7 @@ export async function sendTutorMessage({ message, context = { skill: 'GENERAL' }
         ...(conversationId
           ? { conversationId }
           : { history: history.slice(-MAX_HISTORY_MESSAGES) }),
+        ...(normalizedAttachmentIds.length ? { attachmentIds: normalizedAttachmentIds } : {}),
       }),
       signal: controller.signal,
     })
@@ -100,6 +110,7 @@ export async function sendTutorMessage({ message, context = { skill: 'GENERAL' }
       sources: normalizeSources(payload.sources),
       grounding: normalizeGrounding(payload.grounding),
       references: normalizeTutorReferences(payload.references),
+      attachmentSources: normalizeAttachmentSources(payload.attachmentSources),
       conversationId: typeof payload.meta?.conversationId === 'string' ? payload.meta.conversationId : null,
       meta: payload.meta,
       timestamp: payload.timestamp,
