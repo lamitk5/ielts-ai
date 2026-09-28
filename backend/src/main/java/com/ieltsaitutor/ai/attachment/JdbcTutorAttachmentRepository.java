@@ -49,6 +49,12 @@ public class JdbcTutorAttachmentRepository implements TutorAttachmentRepository 
     }
 
     @Override
+    public Optional<TutorAttachment> findById(UUID attachmentId) {
+        return jdbc.query("SELECT * FROM ai_attachments WHERE id=:id", new MapSqlParameterSource("id", attachmentId), MAPPER)
+                .stream().findFirst();
+    }
+
+    @Override
     public List<TutorAttachment> findOwnedByIds(UUID userId, UUID conversationId, List<UUID> ids) {
         if (ids == null || ids.isEmpty()) return List.of();
         return jdbc.query("SELECT * FROM ai_attachments WHERE owner_user_id=:userId AND conversation_id=:conversationId AND id IN (:ids)",
@@ -65,6 +71,15 @@ public class JdbcTutorAttachmentRepository implements TutorAttachmentRepository 
     public List<TutorAttachment> findStaleProcessing(Instant cutoff) {
         return jdbc.query("SELECT * FROM ai_attachments WHERE status='PROCESSING' AND processing_started_at < :cutoff",
                 new MapSqlParameterSource("cutoff", Timestamp.from(cutoff)), MAPPER);
+    }
+
+    @Override
+    public List<TutorAttachment> findRemovable() {
+        return jdbc.query("""
+                SELECT a.* FROM ai_attachments a
+                LEFT JOIN ai_message_attachments ma ON ma.attachment_id = a.id
+                WHERE a.status IN ('REMOVED', 'EXPIRED') AND ma.attachment_id IS NULL
+                """, new MapSqlParameterSource(), MAPPER);
     }
 
     private static MapSqlParameterSource params(TutorAttachment a) {
