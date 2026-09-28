@@ -5,6 +5,8 @@ const MAX_FILES = 5
 const MAX_PROCESSING_POLLS = 40
 const PROCESSING_POLL_MS = 100
 const PENDING_STATUSES = ['STORED', 'PROCESSING']
+const DEFAULT_VALIDATION_TIMEOUT_MS = 15000
+const VALIDATION_TIMEOUT_ERROR = 'Không thể kiểm tra tệp. Thử lại.'
 
 function wait(ms, signal) {
   return new Promise((resolve) => {
@@ -24,13 +26,14 @@ function wait(ms, signal) {
   })
 }
 
-export function useTutorAttachmentQueue({ conversationId, onError } = {}) {
+export function useTutorAttachmentQueue({ conversationId, onError, validationTimeoutMs = DEFAULT_VALIDATION_TIMEOUT_MS } = {}) {
   const [attachments, setAttachments] = useState([])
   const pendingRef = useRef([])
   const runningRef = useRef(0)
   const mountedRef = useRef(true)
   const attachmentsRef = useRef([])
   const processingControllersRef = useRef(new Map())
+  const validationTimeoutsRef = useRef(new Map())
   const onErrorRef = useRef(onError)
   useEffect(() => {
     attachmentsRef.current = attachments
@@ -45,6 +48,26 @@ export function useTutorAttachmentQueue({ conversationId, onError } = {}) {
       item.localId === localId ? { ...item, ...patch } : item
     )))
   }, [])
+
+  const clearValidationTimeout = useCallback((localId) => {
+    const timeoutId = validationTimeoutsRef.current.get(localId)
+    if (timeoutId) window.clearTimeout(timeoutId)
+    validationTimeoutsRef.current.delete(localId)
+  }, [])
+
+  const scheduleValidationTimeout = useCallback((entry) => {
+    if (entry.conversationId || validationTimeoutMs <= 0) return
+    clearValidationTimeout(entry.localId)
+    const timeoutId = window.setTimeout(() => {
+      validationTimeoutsRef.current.delete(entry.localId)
+      const pendingIndex = pendingRef.current.findIndex((pending) => pending.localId === entry.localId)
+      if (pendingIndex < 0 || !mountedRef.current) return
+      pendingRef.current.splice(pendingIndex, 1)
+      updateAttachment(entry.localId, { status: 'FAILED', errorMessage: VALIDATION_TIMEOUT_ERROR })
+      onErrorRef.current?.({ code: 'ATTACHMENT_VALIDATION_TIMEOUT', message: VALIDATION_TIMEOUT_ERROR })
+    }, validationTimeoutMs)
+    validationTimeoutsRef.current.set(entry.localId, timeoutId)
+  }, [clearValidationTimeout, updateAttachment, validationTimeoutMs])
 
   const pollUntilReady = useCallback(async (localId, id, signal) => {
     for (let attempt = 0; attempt < MAX_PROCESSING_POLLS; attempt += 1) {
@@ -62,6 +85,7 @@ export function useTutorAttachmentQueue({ conversationId, onError } = {}) {
   }, [updateAttachment])
 
   const processEntry = useCallback(async (entry) => {
+    clearValidationTimeout(entry.localId)
     const controller = new AbortController()
     processingControllersRef.current.set(entry.localId, controller)
     updateAttachment(entry.localId, { status: 'UPLOADING' })
@@ -85,7 +109,7 @@ export function useTutorAttachmentQueue({ conversationId, onError } = {}) {
     } finally {
       processingControllersRef.current.delete(entry.localId)
     }
-  }, [conversationId, pollUntilReady, updateAttachment])
+  }, [clearValidationTimeout, conversationId, pollUntilReady, updateAttachment])
 
   const drain = useCallback(() => {
     function runQueue() {
@@ -142,44 +166,51 @@ export function useTutorAttachmentQueue({ conversationId, onError } = {}) {
     })
     setAttachments((current) => [...current, ...entries])
     pendingRef.current.push(...entries)
+    entries.forEach(scheduleValidationTimeout)
     drain()
-  }, [attachments.length, conversationId, drain])
+  }, [attachments.length, conversationId, drain, scheduleValidationTimeout])
 
   const retry = useCallback((localId) => {
     const entry = attachments.find((item) => item.localId === localId)
     if (!entry || entry.status !== 'FAILED') return
-    pendingRef.current.push({ ...entry, status: 'SELECTED', conversationId: entry.conversationId || conversationId })
+    const retryEntry = { ...entry, status: 'SELECTED', conversationId: entry.conversationId || conversationId }
+    pendingRef.current.push(retryEntry)
     setAttachments((current) => current.map((item) => item.localId === localId
       ? { ...item, status: 'UPLOADING', errorMessage: null }
       : item))
+    scheduleValidationTimeout(retryEntry)
     drain()
-  }, [attachments, conversationId, drain])
+  }, [attachments, conversationId, drain, scheduleValidationTimeout])
 
   const failPending = useCallback((error) => {
     const pendingIds = new Set(pendingRef.current.map((entry) => entry.localId))
     pendingRef.current = []
+    pendingIds.forEach(clearValidationTimeout)
     if (pendingIds.size > 0) {
       setAttachments((current) => current.map((item) => pendingIds.has(item.localId)
         ? { ...item, status: 'FAILED', errorMessage: error?.message || 'Không thể tạo cuộc hội thoại.' }
         : item))
     }
     onErrorRef.current?.(error)
-  }, [])
+  }, [clearValidationTimeout])
 
   const remove = useCallback((localId) => {
     const entry = attachments.find((item) => item.localId === localId)
     if (!entry) return
     pendingRef.current = pendingRef.current.filter((item) => item.localId !== localId)
+    clearValidationTimeout(localId)
     processingControllersRef.current.get(localId)?.abort()
     processingControllersRef.current.delete(localId)
     if (entry.previewUrl && typeof URL.revokeObjectURL === 'function') URL.revokeObjectURL(entry.previewUrl)
     setAttachments((current) => current.filter((item) => item.localId !== localId))
     if (entry.id && !String(entry.id).startsWith('att-temp-')) Promise.resolve(deleteAttachment(entry.id)).catch(() => {})
-  }, [attachments])
+  }, [attachments, clearValidationTimeout])
 
   useEffect(() => () => {
     mountedRef.current = false
     pendingRef.current = []
+    validationTimeoutsRef.current.forEach((timeoutId) => window.clearTimeout(timeoutId))
+    validationTimeoutsRef.current.clear()
     processingControllersRef.current.forEach((controller) => controller.abort())
     processingControllersRef.current.clear()
     attachmentsRef.current.forEach((entry) => {

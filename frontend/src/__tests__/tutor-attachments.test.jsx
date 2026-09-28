@@ -41,6 +41,15 @@ describe('bounded Tutor attachments client validation & API', () => {
     expect(validateAttachmentFile(validWebp)).toEqual({ valid: true, error: null })
   })
 
+  test('accepts a oneMiB DOCX when browser MIME is empty or generic', () => {
+    const bytes = new Uint8Array(1024 * 1024)
+    const emptyMime = new File([bytes], 'Câu 1.docx', { type: '' })
+    const genericMime = new File([bytes], 'Câu 1.docx', { type: 'application/octet-stream' })
+
+    expect(validateAttachmentFile(emptyMime)).toEqual({ valid: true, error: null })
+    expect(validateAttachmentFile(genericMime)).toEqual({ valid: true, error: null })
+  })
+
   test('exposes one shared contract and presentation metadata for images/documents', () => {
     expect(ATTACHMENT_CONTRACT.maxSizeBytes).toBe(10 * 1024 * 1024)
     expect(ATTACHMENT_CONTRACT.extensions).toEqual(expect.arrayContaining(['.pdf', '.docx', '.txt', '.png', '.jpg', '.jpeg', '.webp']))

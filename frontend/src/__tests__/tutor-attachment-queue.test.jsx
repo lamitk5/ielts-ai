@@ -13,6 +13,10 @@ function file(name) {
   return new File([name], name, { type: 'text/plain' })
 }
 
+function realisticDocx(name = 'Câu 1.docx', type = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+  return new File([new Uint8Array(1024 * 1024)], name, { type })
+}
+
 describe('bounded Tutor attachment queue', () => {
   beforeEach(() => vi.clearAllMocks())
 
@@ -30,6 +34,40 @@ describe('bounded Tutor attachment queue', () => {
 
     rerender({ conversationId: 'c1' })
     await waitFor(() => expect(result.current.readyIds).toEqual(['a-pending']))
+  })
+
+  test('uploads a realistic oneMiBDocx after validation prerequisite becomes available', async () => {
+    api.uploadAttachments.mockResolvedValue([{ id: 'docx-ready', filename: 'Câu 1.docx', status: 'READY', sizeBytes: 1024 * 1024 }])
+    const { result } = renderHook(() => useTutorAttachmentQueue({ conversationId: 'c1' }))
+
+    act(() => result.current.addFiles([realisticDocx()]))
+
+    await waitFor(() => expect(api.uploadAttachments).toHaveBeenCalledWith(
+      [expect.objectContaining({ name: 'Câu 1.docx', size: 1024 * 1024 })],
+      'c1',
+      expect.any(Object),
+    ))
+    await waitFor(() => expect(result.current.readyIds).toEqual(['docx-ready']))
+  })
+
+  test('fails a selected file when the validation prerequisite never resolves', async () => {
+    vi.useFakeTimers()
+    try {
+      const { result } = renderHook(() => useTutorAttachmentQueue({ conversationId: null, validationTimeoutMs: 100 }))
+
+      act(() => result.current.addFiles([realisticDocx()]))
+      expect(result.current.attachments[0].status).toBe('SELECTED')
+
+      await act(async () => { await vi.advanceTimersByTimeAsync(100) })
+
+      expect(result.current.attachments[0]).toMatchObject({
+        status: 'FAILED',
+        errorMessage: 'Không thể kiểm tra tệp. Thử lại.',
+      })
+      expect(api.uploadAttachments).not.toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   test('limitsConcurrencyToTwo', async () => {
