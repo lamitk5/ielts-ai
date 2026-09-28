@@ -78,12 +78,15 @@ describe('final Academic Luxury restore', () => {
     expect(screen.getAllByRole('button', { name: /Hiện mật khẩu/ })).toHaveLength(2)
   })
 
-  test('keeps the auth form keyboard reachable while the lamp is off', async () => {
+  test('keeps the auth form locked until the lamp is on', async () => {
     const user = userEvent.setup()
     renderAuth(LoginPage)
     const pullCord = screen.getByRole('button', { name: 'Bật đèn bàn học' })
     await user.tab()
     expect(document.activeElement).toBe(pullCord)
+    await user.tab()
+    expect(document.activeElement).not.toBe(screen.getByLabelText('Email'))
+    await user.click(pullCord)
     await user.tab()
     expect(document.activeElement).toBe(screen.getByLabelText('Email'))
   })
@@ -94,6 +97,7 @@ describe('final Academic Luxury restore', () => {
     const password = screen.getByLabelText('Mật khẩu')
     const eye = screen.getByRole('button', { name: 'Hiện mật khẩu' })
     expect(password).toHaveAttribute('type', 'password')
+    await user.click(screen.getByRole('button', { name: 'Bật đèn bàn học' }))
     await user.click(eye)
     expect(password).toHaveAttribute('type', 'text')
     expect(screen.getByTestId('password-flashlight-beam')).toHaveAttribute('data-active', 'true')

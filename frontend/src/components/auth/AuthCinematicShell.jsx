@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 function AuthCinematicShell({ children, labelledBy }) {
   const [isLampOn, setIsLampOn] = useState(false)
@@ -8,6 +8,7 @@ function AuthCinematicShell({ children, labelledBy }) {
   const pullDistanceRef = useRef(0)
   const pullDragRef = useRef(false)
   const suppressClickRef = useRef(false)
+  const contentRef = useRef(null)
 
   const toggleLamp = () => setIsLampOn((on) => !on)
 
@@ -49,8 +50,21 @@ function AuthCinematicShell({ children, labelledBy }) {
     toggleLamp()
   }
 
+  const content = typeof children === 'function' ? children({ isLampOn }) : children
+
+  useEffect(() => {
+    if (contentRef.current) contentRef.current.inert = !isLampOn
+  }, [isLampOn])
+
   return (
     <section className={`auth-page auth-cinematic auth-full-bleed ${isLampOn ? 'auth-lamp-on' : 'auth-lamp-off'}`.trim()} aria-labelledby={labelledBy}>
+      <div className="auth-light-motes" aria-hidden="true">
+        <span className="auth-light-mote auth-light-mote-one" />
+        <span className="auth-light-mote auth-light-mote-two" />
+        <span className="auth-light-mote auth-light-mote-three" />
+        <span className="auth-light-mote auth-light-mote-four" />
+        <span className="auth-light-mote auth-light-mote-five" />
+      </div>
       <div className="auth-lamp-column">
         <div className="auth-lamp-scene">
           <span className="auth-light-cone" data-testid="auth-light-cone" aria-hidden="true" />
@@ -112,8 +126,17 @@ function AuthCinematicShell({ children, labelledBy }) {
         className="auth-cinematic-card glass-card"
         data-testid="auth-form-card"
         data-visibility={isLampOn ? 'visible' : 'hidden'}
+        data-locked={!isLampOn}
+        aria-disabled={!isLampOn}
       >
-        {children}
+        {!isLampOn ? (
+          <p className="auth-lamp-lock-notice" data-testid="auth-lamp-lock-message" role="status">
+            Bật đèn bàn học để mở khóa biểu mẫu.
+          </p>
+        ) : null}
+        <div ref={contentRef} className="auth-cinematic-content">
+          {content}
+        </div>
       </div>
     </section>
   )

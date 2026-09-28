@@ -4118,6 +4118,15 @@ input:focus-visible {
 .auth-cinematic::before { position: absolute; z-index: -1; inset: 12% 16% 10%; border: 1px solid rgba(229, 201, 130, 0.08); border-radius: 50%; content: ''; opacity: .55; transform: rotate(-8deg); }
 .auth-cinematic::after { position: absolute; z-index: -2; inset: 0; background: radial-gradient(ellipse 42% 36% at 25% 28%, rgba(229, 201, 130, 0.12), transparent 72%), radial-gradient(ellipse 30% 52% at 51% 44%, rgba(229, 201, 130, 0.06), transparent 74%); content: ''; opacity: 0; pointer-events: none; transition: opacity 420ms ease; }
 .auth-lamp-on::after { opacity: 1; }
+.auth-light-motes { position: absolute; z-index: 1; inset: 8% 4% 10% 34%; pointer-events: none; opacity: 0; transition: opacity 560ms ease; }
+.auth-light-mote { position: absolute; display: block; width: .28rem; height: .28rem; border-radius: 50%; background: var(--lamp-core); box-shadow: 0 0 .8rem .16rem rgba(255, 226, 154, .32); opacity: .7; }
+.auth-lamp-on .auth-light-motes { opacity: 1; }
+.auth-lamp-on .auth-light-mote { animation: auth-mote-float 6.5s ease-in-out infinite; }
+.auth-light-mote-one { top: 20%; left: 14%; animation-delay: -1.5s; }
+.auth-light-mote-two { top: 42%; left: 48%; width: .2rem; height: .2rem; animation-delay: -4.2s; }
+.auth-light-mote-three { top: 67%; left: 22%; width: .18rem; height: .18rem; animation-delay: -2.8s; }
+.auth-light-mote-four { top: 32%; left: 76%; width: .22rem; height: .22rem; animation-delay: -5.1s; }
+.auth-light-mote-five { top: 78%; left: 63%; width: .16rem; height: .16rem; animation-delay: -.7s; }
 .auth-lamp-column { position: relative; display: grid; width: 100%; min-height: 27rem; place-items: center; }
 .auth-lamp-scene { position: relative; z-index: 0; width: min(26rem, 100%); height: 25rem; transform: translateY(-2.25rem); }
 .auth-desk-lamp { position: absolute; top: 0; left: 50%; width: 16rem; height: 18.9rem; overflow: visible; pointer-events: none; transform: translateX(-50%); }
@@ -4158,6 +4167,10 @@ input:focus-visible {
 .auth-lamp-pull-control.is-pulling .auth-lamp-cord { height: 2.05rem; }
 .auth-cinematic-card { position: relative; z-index: 2; width: min(100%, 31rem); margin: 0; padding: clamp(1.5rem, 5vw, 3rem); overflow: hidden; background: color-mix(in srgb, var(--surface) 91%, transparent); box-shadow: 0 2rem 5rem rgba(0, 0, 0, .42), 0 0 2.5rem rgba(229, 201, 130, .025); opacity: .34; transform: translateY(.65rem) scale(.975); filter: blur(.22rem) brightness(.55) saturate(.55); transition: opacity 560ms ease, box-shadow 560ms ease, transform 560ms ease, filter 560ms ease, background 560ms ease, border-color 560ms ease; }
 .auth-cinematic-card::before { position: absolute; z-index: -1; top: -20%; left: -15%; width: 72%; height: 145%; border-radius: 50%; background: radial-gradient(ellipse, var(--lamp-reflection), transparent 70%); content: ''; filter: blur(1.5rem); opacity: 0; pointer-events: none; transform: rotate(-12deg); transition: opacity 420ms ease; }
+.auth-cinematic-content { position: relative; z-index: 1; }
+.auth-lamp-lock-notice { margin: 0 0 1rem; color: var(--gold-light); font-size: .78rem; font-weight: 700; letter-spacing: .04em; text-align: center; }
+.auth-form fieldset { min-inline-size: 0; margin: 0; padding: 0; border: 0; }
+.auth-lamp-off .auth-cinematic-content { pointer-events: none; user-select: none; }
 .auth-lamp-on .auth-cinematic-card { opacity: 1; border-color: rgba(229, 201, 130, .4); background: color-mix(in srgb, var(--surface) 87%, rgba(229, 201, 130, .13)); box-shadow: 0 2rem 5rem rgba(0, 0, 0, .3), 0 0 3rem rgba(229, 201, 130, .22), inset 0 1px 0 rgba(255, 239, 192, .2); filter: saturate(1) brightness(1); transform: translateY(0) scale(1); }
 .auth-lamp-on .auth-cinematic-card::before { opacity: 1; }
 .auth-cinematic-card .auth-card { width: 100%; padding: 0; }
@@ -4171,6 +4184,11 @@ input:focus-visible {
 .password-flashlight-beam { position: absolute; z-index: 2; top: .18rem; right: 2.1rem; left: .45rem; height: calc(100% - .36rem); border-radius: 48% 14% 14% 48% / 50%; background: radial-gradient(ellipse at 100% 50%, var(--flashlight-core) 0 5%, var(--flashlight-inner) 19%, var(--flashlight-edge) 38%, transparent 74%), linear-gradient(90deg, transparent 0%, rgba(229, 201, 130, .08) 28%, rgba(255, 239, 192, .22) 72%, rgba(255, 239, 192, .46) 100%); filter: blur(.32rem); opacity: 0; pointer-events: none; transform: scaleX(.05); transform-origin: 100% 50%; transition: opacity 260ms ease, transform 420ms ease, filter 420ms ease; }
 .password-flashlight-on .password-flashlight-beam { filter: blur(.22rem); opacity: .92; transform: scaleX(1); }
 .password-flashlight-on .password-flashlight-control input { border-color: rgba(229, 201, 130, .58); box-shadow: 0 0 1.4rem rgba(229, 201, 130, .1), inset 0 0 1.25rem rgba(229, 201, 130, .06); }
+
+@keyframes auth-mote-float {
+  0%, 100% { opacity: .35; transform: translate3d(0, .35rem, 0) scale(.82); }
+  50% { opacity: .9; transform: translate3d(.45rem, -.65rem, 0) scale(1); }
+}
 
 /* Semantic density consumers */
 :root { --density-gap: 1rem; --density-section-space: 1; }

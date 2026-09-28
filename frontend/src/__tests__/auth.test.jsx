@@ -61,6 +61,7 @@ describe('authentication foundation', () => {
       </MemoryRouter>,
     )
 
+    await user.click(screen.getByRole('button', { name: 'Bật đèn bàn học' }))
     await user.type(screen.getByLabelText('Email'), 'student@example.com')
     await user.type(screen.getByLabelText('Mật khẩu'), 'password-123')
     await user.click(screen.getByRole('button', { name: 'Đăng nhập' }))

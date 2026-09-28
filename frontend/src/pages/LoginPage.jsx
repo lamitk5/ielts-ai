@@ -17,8 +17,9 @@ function LoginPage() {
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  async function handleSubmit(event) {
+  async function handleSubmit(event, isLampOn) {
     event.preventDefault()
+    if (!isLampOn) return
     setError('')
     setIsSubmitting(true)
     try {
@@ -33,13 +34,14 @@ function LoginPage() {
 
   return (
     <AuthCinematicShell labelledBy="login-title">
-      <div className="auth-card">
+      {({ isLampOn }) => <div className="auth-card">
         <p className="eyebrow">LUMEN IELTS · AI TUTOR</p>
         <h1 id="login-title" className="font-display">{translate('login', 'Đăng nhập')}</h1>
         <p className="foundation-copy">{translate('loginCopy', 'Tiếp tục lộ trình bốn kỹ năng và xem tiến bộ của bạn.')}</p>
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <label htmlFor="login-email">Email</label>
-          <input id="login-email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
+        <form className="auth-form" aria-describedby={!isLampOn ? 'auth-lamp-lock-message' : undefined} onSubmit={(event) => handleSubmit(event, isLampOn)}>
+          <fieldset disabled={!isLampOn}>
+            <label htmlFor="login-email">Email</label>
+            <input id="login-email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
           <PasswordFlashlightField
             id="login-password"
             label={translate('password', 'Mật khẩu')}
@@ -48,14 +50,16 @@ function LoginPage() {
             autoComplete="current-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
+            disabled={!isLampOn}
           />
           {error ? <p className="auth-error" role="alert">{error}</p> : null}
-          <Button type="submit" variant="primary" size="lg" disabled={isSubmitting}>
+          <Button type="submit" variant="primary" size="lg" disabled={!isLampOn || isSubmitting}>
             {isSubmitting ? 'Đang xử lý…' : translate('login', 'Đăng nhập')}
           </Button>
+          </fieldset>
         </form>
         <p className="auth-footer-copy">{translate('noAccount', 'Chưa có tài khoản?')} <Link to="/register">{translate('createAccount', 'Tạo tài khoản')}</Link></p>
-      </div>
+      </div>}
     </AuthCinematicShell>
   )
 }

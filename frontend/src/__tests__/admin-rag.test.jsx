@@ -119,6 +119,7 @@ describe('temporary RAG admin CMS', () => {
   test('keeps unlock controls keyboard reachable', async () => {
     const user = userEvent.setup()
     renderApp('/admin/rag', null)
+    await user.click(screen.getByRole('button', { name: 'Bật đèn bàn học' }))
     for (let index = 0; index < 12 && !screen.getByRole('textbox', { name: 'Email' }).matches(':focus'); index += 1) await user.tab()
     expect(screen.getByRole('textbox', { name: 'Email' })).toHaveFocus()
   })
