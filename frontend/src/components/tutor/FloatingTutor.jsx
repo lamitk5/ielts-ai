@@ -7,8 +7,8 @@ import { SHELL_STATES } from './TutorShell'
 import AuthGate from '../auth/AuthGate'
 import { useOptionalAuth } from '../../features/auth/AuthProvider'
 import { useOptionalPreferences } from '../../features/preferences/PreferenceProvider'
-import { loadLatestTutorConversation, sendTutorMessage } from '../../services/aiTutorApi'
-import { uploadAttachment } from '../../services/tutorAttachmentsApi'
+import { createTutorConversation, loadLatestTutorConversation, sendTutorMessage } from '../../services/aiTutorApi'
+import { useTutorAttachmentQueue } from '../../features/tutor/useTutorAttachmentQueue'
 import { ASSISTANT_NAME } from '../../features/tutor/assistantIdentity'
 
 const welcomeMessage = {
@@ -35,7 +35,6 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
   const [loading, setLoading] = useState(false)
   const [sessionExpired, setSessionExpired] = useState(false)
   const [activeContext, setActiveContext] = useState(context)
-  const [attachment, setAttachment] = useState(null)
   const [conversationId, setConversationId] = useState(null)
   const buttonRef = useRef(null)
   const inputRef = useRef(null)
@@ -46,6 +45,8 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
   const initialPathRef = useRef(location?.pathname ?? '/')
   const accountKey = auth?.isAuthenticated ? auth.session?.user?.id ?? 'member' : 'guest'
   const proactiveSuggestionsEnabled = preferenceContext?.preferences.proactiveAiEnabled ?? true
+  const attachmentQueue = useTutorAttachmentQueue({ conversationId })
+  const attachment = attachmentQueue.attachments[0] ?? null
 
   useEffect(() => {
     setMessages([welcomeMessage])
@@ -130,67 +131,25 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
   }
 
   async function handleAttachmentSelected(file) {
-    const previewUrl = file.type?.startsWith('image/') ? URL.createObjectURL(file) : null
-    const tempAttachment = {
-      id: `att-temp-${Date.now()}`,
-      filename: file.name,
-      sizeBytes: file.size,
-      status: 'UPLOADING',
-      file,
-      previewUrl,
+    let selectedConversationId = conversationId
+    if (!selectedConversationId && auth?.isAuthenticated) {
+      const conversation = await createTutorConversation(activeContext?.skill || 'general')
+      selectedConversationId = conversation.id
+      setConversationId(selectedConversationId)
     }
-    setAttachment(tempAttachment)
-
-    try {
-      const result = await uploadAttachment(file)
-      if (!mountedRef.current) return
-      setAttachment((current) =>
-        current && current.file === file
-          ? {
-              ...current,
-              id: result.id || current.id,
-              filename: result.filename || current.filename,
-              sizeBytes: result.sizeBytes || current.sizeBytes,
-              status: result.status || 'READY',
-              capability: result.capability || current.capability,
-            }
-          : current,
-      )
-    } catch (error) {
-      if (!mountedRef.current) return
-      setAttachment((current) =>
-        current && current.file === file
-          ? {
-              ...current,
-              status: 'FAILED',
-              errorMessage: error.message || 'Tải tệp đính kèm thất bại.',
-            }
-          : current,
-      )
-    }
+    if (selectedConversationId) attachmentQueue.addFiles([file], selectedConversationId)
   }
 
   function handleAttachmentError(error) {
-    setAttachment({
-      id: `att-err-${Date.now()}`,
-      filename: 'Tệp không hợp lệ',
-      sizeBytes: 0,
-      status: 'FAILED',
-      errorMessage: error?.message || 'Định dạng tệp không được hỗ trợ.',
-    })
+    attachmentQueue.onError?.(error)
   }
 
   function handleRemoveAttachment() {
-    if (attachment?.previewUrl) {
-      URL.revokeObjectURL(attachment.previewUrl)
-    }
-    setAttachment(null)
+    if (attachment?.localId) attachmentQueue.remove(attachment.localId)
   }
 
   function handleRetryAttachment() {
-    if (attachment?.file) {
-      handleAttachmentSelected(attachment.file)
-    }
+    if (attachment?.localId) attachmentQueue.retry(attachment.localId)
   }
 
   function handleOpenTutor() {
@@ -227,16 +186,10 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
           context: activeContext,
           history,
           conversationId,
-          attachmentId: options?.attachmentId,
+          attachmentIds: options?.attachmentId ? [options.attachmentId] : attachmentQueue.readyIds,
         },
         { signal: controller.signal },
       )
-      if (attachment) {
-        if (attachment.previewUrl) {
-          URL.revokeObjectURL(attachment.previewUrl)
-        }
-        setAttachment(null)
-      }
       if (!mountedRef.current) return
       if (response.conversationId) setConversationId(response.conversationId)
       setMessages((current) => [

@@ -56,6 +56,20 @@ export async function loadLatestTutorConversation(options = {}) {
   return { conversationId: latest.id, messages }
 }
 
+export async function createTutorConversation(skill = 'general', options = {}) {
+  const response = await fetch(`/api/ai/conversations?skill=${encodeURIComponent(String(skill).toLowerCase())}`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    signal: options.signal,
+  })
+  const payload = await response.json().catch(() => null)
+  if (!response.ok || !payload?.id) {
+    throw new AiTutorApiError(response.status === 401 ? 'AUTH_REQUIRED' : 'AI_TEMPORARILY_UNAVAILABLE',
+      'Không thể tạo cuộc hội thoại lúc này.', response.status)
+  }
+  return payload
+}
+
 export async function sendTutorMessage({ message, context = { skill: 'GENERAL' }, history = [], conversationId = null, attachmentIds = [] }, options = {}) {
   const normalizedAttachmentIds = Array.from(attachmentIds || [])
   if (new Set(normalizedAttachmentIds).size !== normalizedAttachmentIds.length) {
