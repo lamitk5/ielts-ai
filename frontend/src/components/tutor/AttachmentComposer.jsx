@@ -4,31 +4,40 @@ import { getAttachmentAcceptAttribute, validateAttachmentFile } from '../../feat
 
 export function AttachmentComposer({
   onFileSelected,
+  onFilesSelected,
   onError,
   disabled = false,
   hasActiveAttachment = false,
+  maxFiles = 5,
   className = '',
 }) {
   const fileInputRef = useRef(null)
 
   function handleTriggerClick() {
-    if (disabled || hasActiveAttachment) return
+    if (disabled || (hasActiveAttachment && !onFilesSelected)) return
     fileInputRef.current?.click()
   }
 
   function handleFileChange(event) {
-    const file = event.target.files?.[0]
-    if (!file) return
+    const selectedFiles = Array.from(event.target.files || [])
+    if (!selectedFiles.length) return
 
-    const validation = validateAttachmentFile(file)
-    if (!validation.valid) {
+    if (selectedFiles.length > maxFiles) {
       if (fileInputRef.current) fileInputRef.current.value = ''
-      onError?.(validation.error)
+      onError?.({ code: 'ATTACHMENT_LIMIT_EXCEEDED', message: `Chỉ được đính kèm tối đa ${maxFiles} tệp.` })
+      return
+    }
+
+    const invalid = selectedFiles.map((file) => validateAttachmentFile(file)).find((result) => !result.valid)
+    if (invalid) {
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      onError?.(invalid.error)
       return
     }
 
     if (fileInputRef.current) fileInputRef.current.value = ''
-    onFileSelected?.(file)
+    if (onFilesSelected) onFilesSelected(selectedFiles)
+    else onFileSelected?.(selectedFiles[0])
   }
 
   return (
@@ -40,8 +49,9 @@ export function AttachmentComposer({
         className="sr-only"
         aria-label="Chọn tệp tải lên"
         accept={getAttachmentAcceptAttribute()}
+        multiple
         onChange={handleFileChange}
-        disabled={disabled || hasActiveAttachment}
+        disabled={disabled || (hasActiveAttachment && !onFilesSelected)}
       />
       <button
         type="button"
@@ -49,7 +59,7 @@ export function AttachmentComposer({
         aria-label="Thêm tệp đính kèm"
         title="Đính kèm tài liệu hoặc hình ảnh (tối đa 10MB)"
         onClick={handleTriggerClick}
-        disabled={disabled || hasActiveAttachment}
+        disabled={disabled || (hasActiveAttachment && !onFilesSelected)}
       >
         <Plus size={16} aria-hidden="true" />
       </button>
