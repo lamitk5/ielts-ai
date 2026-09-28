@@ -37,7 +37,8 @@ public class TikaDocumentExtractor implements DocumentExtractor {
                 return pdf ? ExtractionResult.needsOcr("PDF không có văn bản có thể trích xuất; cần OCR ở phase sau.")
                         : ExtractionResult.failed("Tài liệu không có văn bản có thể trích xuất.");
             }
-            ExtractedSection section = new ExtractedSection(null, text, null, Map.of("mimeType", storedDocument.mimeType()));
+            ExtractedSection section = new ExtractedSection(null, text, pdf ? 1 : null,
+                    Map.of("mimeType", storedDocument.mimeType()));
             return ExtractionResult.ready(new ExtractedDocument(text, List.of(section), Map.of("mimeType", storedDocument.mimeType())));
         } catch (Exception exception) {
             if (pdf && startsWithPdf(storedDocument)) {
@@ -46,7 +47,8 @@ public class TikaDocumentExtractor implements DocumentExtractor {
             if (docx) {
                 String text = extractDocxXml(storedDocument);
                 if (!text.isBlank()) {
-                    ExtractedSection section = new ExtractedSection(null, text, null, Map.of("mimeType", storedDocument.mimeType()));
+                    ExtractedSection section = new ExtractedSection(null, text, null,
+                            Map.of("mimeType", storedDocument.mimeType()));
                     return ExtractionResult.ready(new ExtractedDocument(text, List.of(section), Map.of("mimeType", storedDocument.mimeType())));
                 }
             }
