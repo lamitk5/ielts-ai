@@ -10,16 +10,23 @@ public record AiChatResponse(
         List<AiSource> sources,
         AiGrounding grounding,
         List<AiTutorReference> references,
+        List<AiAttachmentSource> attachmentSources,
         Meta meta,
         Instant timestamp
 ) {
     public AiChatResponse {
         sources = sources == null ? List.of() : List.copyOf(sources);
         references = references == null ? List.of() : List.copyOf(references);
+        attachmentSources = attachmentSources == null ? List.of() : List.copyOf(attachmentSources);
     }
 
     public AiChatResponse(String status, String answer, List<AiSource> sources, AiGrounding grounding, Meta meta, Instant timestamp) {
-        this(status, answer, sources, grounding, List.of(), meta, timestamp);
+        this(status, answer, sources, grounding, List.of(), List.of(), meta, timestamp);
+    }
+
+    public AiChatResponse(String status, String answer, List<AiSource> sources, AiGrounding grounding,
+            List<AiTutorReference> references, Meta meta, Instant timestamp) {
+        this(status, answer, sources, grounding, references, List.of(), meta, timestamp);
     }
 
     public record Meta(String requestId, UUID conversationId) {

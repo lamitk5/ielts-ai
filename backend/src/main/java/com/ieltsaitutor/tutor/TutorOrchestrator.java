@@ -1,12 +1,19 @@
 package com.ieltsaitutor.tutor;
 
 import com.ieltsaitutor.ai.dto.AiChatResponse;
+import com.ieltsaitutor.ai.dto.AiAttachmentSource;
 import com.ieltsaitutor.ai.dto.ChatHistoryItem;
 import com.ieltsaitutor.ai.dto.AiGrounding;
 import com.ieltsaitutor.ai.dto.AiSource;
 import com.ieltsaitutor.ai.model.AiChatCommand;
 import com.ieltsaitutor.ai.model.AiChatResult;
+import com.ieltsaitutor.ai.model.AiAttachmentPart;
 import com.ieltsaitutor.ai.provider.AiProvider;
+import com.ieltsaitutor.ai.provider.ProviderCapability;
+import com.ieltsaitutor.ai.attachment.AttachmentContext;
+import com.ieltsaitutor.ai.attachment.TutorAttachmentChatContext;
+import com.ieltsaitutor.ai.attachment.TutorAttachmentContextBuilder;
+import com.ieltsaitutor.ai.attachment.TutorAttachmentResolutionService;
 import com.ieltsaitutor.ai.exception.AiProviderException;
 import com.ieltsaitutor.auth.AuthPrincipal;
 import com.ieltsaitutor.rag.chat.RagChatResult;
@@ -28,6 +35,8 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.EnumSet;
+import java.util.Set;
 import java.util.UUID;
 
 import com.ieltsaitutor.tutor.memory.AiConversation;
@@ -45,11 +54,20 @@ public class TutorOrchestrator {
     private final DeterministicTutorTools tools;
     private final TutorRateLimiter rateLimiter;
     private final ConversationService conversations;
+    private final TutorAttachmentResolutionService attachmentResolution;
+    private final TutorAttachmentContextBuilder attachmentContexts;
+
+    public TutorOrchestrator(AiProvider provider, RagChatService rag, TutorContextService contexts,
+            TutorIntentRouter intents, DeterministicTutorTools tools, TutorRateLimiter rateLimiter,
+            ConversationService conversations) {
+        this(provider, rag, contexts, intents, tools, rateLimiter, conversations, null, null);
+    }
 
     @Autowired
     public TutorOrchestrator(AiProvider provider, RagChatService rag, TutorContextService contexts,
             TutorIntentRouter intents, DeterministicTutorTools tools, TutorRateLimiter rateLimiter,
-            ConversationService conversations) {
+            ConversationService conversations, TutorAttachmentResolutionService attachmentResolution,
+            TutorAttachmentContextBuilder attachmentContexts) {
         this.provider = provider;
         this.rag = rag;
         this.contexts = contexts;
@@ -57,6 +75,8 @@ public class TutorOrchestrator {
         this.tools = tools;
         this.rateLimiter = rateLimiter;
         this.conversations = conversations;
+        this.attachmentResolution = attachmentResolution;
+        this.attachmentContexts = attachmentContexts;
     }
 
     public TutorOrchestrator(AiProvider provider, RagChatService rag, TutorContextService contexts,
@@ -100,8 +120,40 @@ public class TutorOrchestrator {
             throw new AiProviderException("AI_RATE_LIMITED", HttpStatus.TOO_MANY_REQUESTS,
                     "Trợ giảng AI đang nhận nhiều yêu cầu. Hãy thử lại sau một chút.");
         }
+        TutorAttachmentChatContext attachmentChat = null;
+        AttachmentContext attachmentContext = null;
+        if (!request.attachmentIds().isEmpty()) {
+            if (attachmentResolution == null || attachmentContexts == null) {
+                throw new AiProviderException("AI_CAPABILITY_UNAVAILABLE", HttpStatus.SERVICE_UNAVAILABLE,
+                        "Tệp đính kèm hiện chưa sẵn sàng.");
+            }
+            attachmentChat = attachmentResolution.resolve(principal, request.conversationId(), request.attachmentIds());
+            attachmentContext = attachmentContexts.build(attachmentChat.scope(), request.message());
+            if (isDocumentOnly(attachmentChat) && attachmentContext.evidence().isBlank()) {
+                return persist(principal, request, response("INSUFFICIENT_CONTEXT", INSUFFICIENT, List.of(),
+                        new AiGrounding("INSUFFICIENT_CONTEXT", false), requestId, attachmentChat.sources()), context);
+            }
+        }
+        String evidence = compactContext(context);
+        Set<ProviderCapability> capabilities = EnumSet.of(ProviderCapability.CHAT);
+        List<AiAttachmentPart> parts = List.of();
+        List<AiAttachmentSource> attachmentSources = List.of();
+        if (attachmentChat != null) {
+            parts = attachmentChat.parts();
+            attachmentSources = attachmentChat.sources();
+            if (!parts.isEmpty()) capabilities.add(ProviderCapability.VISION_IMAGE);
+            if (attachmentContext != null && !attachmentContext.evidence().isBlank()) {
+                capabilities.add(ProviderCapability.DOCUMENT_CONTEXT);
+                evidence = joinEvidence(evidence, attachmentContext.evidence());
+            }
+        }
         AiChatCommand command = new AiChatCommand(request.message().trim(), request.context(), boundedHistory(principal, request),
-                requestId, compactContext(context));
+                requestId, evidence, parts, capabilities);
+        if (attachmentChat != null) {
+            AiChatResult result = provider.chat(command);
+            return persist(principal, request, response(result.status(), result.answer(), List.of(),
+                    new AiGrounding("NOT_ENABLED", false), requestId, attachmentSources), context);
+        }
         if (route.ragAllowed()) {
             RagChatResult result = rag.chat(command);
             return persist(principal, request, response(result.status(), result.answer(), result.sources(), result.grounding(), requestId), context);
@@ -138,7 +190,7 @@ public class TutorOrchestrator {
                 next + 1, AiMessageRole.ASSISTANT, bounded(result.answer(), 12_000), result.status(),
                 result.grounding() == null ? null : result.grounding().status(), result.sources(), Map.of(), result.timestamp()));
         return new AiChatResponse(result.status(), result.answer(), result.sources(), result.grounding(), result.references(),
-                new AiChatResponse.Meta(result.meta() == null ? null : result.meta().requestId(), conversation.id()), result.timestamp());
+                result.attachmentSources(), new AiChatResponse.Meta(result.meta() == null ? null : result.meta().requestId(), conversation.id()), result.timestamp());
     }
 
     private String bounded(String value, int max) {
@@ -197,6 +249,22 @@ public class TutorOrchestrator {
 
     private AiChatResponse response(String status, String answer, List<AiSource> sources, AiGrounding grounding,
             String requestId) {
-        return new AiChatResponse(status, answer, sources, grounding, new AiChatResponse.Meta(requestId), Instant.now());
+        return response(status, answer, sources, grounding, requestId, List.of());
     }
+
+    private AiChatResponse response(String status, String answer, List<AiSource> sources, AiGrounding grounding,
+            String requestId, List<AiAttachmentSource> attachmentSources) {
+        return new AiChatResponse(status, answer, sources, grounding, List.of(), attachmentSources,
+                new AiChatResponse.Meta(requestId), Instant.now());
+    }
+
+    private boolean isDocumentOnly(TutorAttachmentChatContext attachmentChat) {
+        return attachmentChat.parts().isEmpty();
+    }
+
+    private String joinEvidence(String existing, String attachmentEvidence) {
+        if (existing == null || existing.isBlank()) return "ATTACHMENT EVIDENCE:\n" + attachmentEvidence;
+        return existing + "\nATTACHMENT EVIDENCE:\n" + attachmentEvidence;
+    }
+
 }
