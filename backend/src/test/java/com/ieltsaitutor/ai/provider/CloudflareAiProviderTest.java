@@ -60,6 +60,11 @@ class CloudflareAiProviderTest {
     }
 
     @Test
+    void advertisesTextDocumentContextCapability() {
+        assertThat(provider.capabilities()).contains(ProviderCapability.CHAT, ProviderCapability.DOCUMENT_CONTEXT);
+    }
+
+    @Test
     void mapsTemporaryFailureWithoutExposingProviderBody() {
         server.createContext("/client/v4/accounts/account-test/ai/run/@cf/test-model", exchange -> respond(exchange, 503,
                 "secret provider body"));

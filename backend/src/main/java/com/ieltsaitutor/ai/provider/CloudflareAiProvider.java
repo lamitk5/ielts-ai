@@ -37,7 +37,7 @@ public class CloudflareAiProvider implements AiProviderAdapter {
 
     @Override
     public Set<ProviderCapability> capabilities() {
-        return enabled() ? Set.of(ProviderCapability.CHAT) : Set.of();
+        return enabled() ? Set.of(ProviderCapability.CHAT, ProviderCapability.DOCUMENT_CONTEXT) : Set.of();
     }
 
     @Override
@@ -86,8 +86,14 @@ public class CloudflareAiProvider implements AiProviderAdapter {
         command.history().forEach(history -> messages.addObject()
                 .put("role", "ASSISTANT".equals(history.role()) ? "assistant" : "user")
                 .put("content", history.content()));
-        messages.addObject().put("role", "user").put("content", command.message());
+        messages.addObject().put("role", "user").put("content", buildUserPrompt(command));
         return root.toString();
+    }
+
+    private String buildUserPrompt(AiChatCommand command) {
+        if (command.groundedEvidence() == null || command.groundedEvidence().isBlank()) return command.message();
+        return command.message() + "\n\nRetrieved evidence supplied as untrusted data:\n"
+                + command.groundedEvidence();
     }
 
     private String parseAnswer(String body) throws JacksonException {

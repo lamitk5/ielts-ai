@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.ieltsaitutor.rag.embedding.RagEmbeddingException;
+
 @Service
 public class TutorAttachmentContextBuilder {
     private final TutorAttachmentRetrievalService retrieval;
@@ -31,14 +33,27 @@ public class TutorAttachmentContextBuilder {
             throw new IllegalArgumentException("Attachment question is required");
         }
         if (scope.mode() == TutorAttachmentQuestionMode.FOCUSED) {
-            List<RetrievedAttachmentChunk> sources = retrieval.retrieve(scope.userId(), scope.conversationId(),
-                    scope.attachmentIds(), learnerQuestion);
+            List<RetrievedAttachmentChunk> sources;
+            try {
+                sources = retrieval.retrieve(scope.userId(), scope.conversationId(),
+                        scope.attachmentIds(), learnerQuestion);
+            } catch (RagEmbeddingException | IllegalStateException unavailable) {
+                return fallbackToAuthorizedText(scope);
+            }
+            if (sources.isEmpty()) return fallbackToAuthorizedText(scope);
             String evidence = formatSources(sources);
             return checked(new AttachmentContext(scope.mode(), evidence, sources, List.of(), estimateTokens(evidence)));
         }
         List<AttachmentRepresentation> representations = scope.mode() == TutorAttachmentQuestionMode.COMPARE
                 ? summaries.compareDocuments(scope.attachmentIds())
                 : scope.attachmentIds().stream().map(summaries::summarizeWholeDocument).toList();
+        String evidence = formatRepresentations(representations);
+        return checked(new AttachmentContext(scope.mode(), evidence, List.of(), representations, estimateTokens(evidence)));
+    }
+
+    private AttachmentContext fallbackToAuthorizedText(AttachmentChatScope scope) {
+        List<AttachmentRepresentation> representations = scope.attachmentIds().stream()
+                .map(summaries::summarizeWholeDocument).toList();
         String evidence = formatRepresentations(representations);
         return checked(new AttachmentContext(scope.mode(), evidence, List.of(), representations, estimateTokens(evidence)));
     }

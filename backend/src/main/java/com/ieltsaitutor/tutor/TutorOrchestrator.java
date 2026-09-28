@@ -151,8 +151,11 @@ public class TutorOrchestrator {
                 requestId, evidence, parts, capabilities);
         if (attachmentChat != null) {
             AiChatResult result = provider.chat(command);
-            return persist(principal, request, response(result.status(), result.answer(), List.of(),
-                    new AiGrounding("NOT_ENABLED", false), requestId, attachmentSources), context);
+            boolean grounded = attachmentContext != null && !attachmentContext.evidence().isBlank();
+            return persist(principal, request, response(result.status(), result.answer(),
+                    attachmentCitations(attachmentContext, attachmentSources),
+                    grounded ? new AiGrounding("GROUNDED", true) : new AiGrounding("NOT_ENABLED", false),
+                    requestId, attachmentSources), context);
         }
         if (route.ragAllowed()) {
             RagChatResult result = rag.chat(command);
@@ -261,6 +264,19 @@ public class TutorOrchestrator {
             String requestId, List<AiAttachmentSource> attachmentSources) {
         return new AiChatResponse(status, answer, sources, grounding, List.of(), attachmentSources,
                 new AiChatResponse.Meta(requestId), Instant.now());
+    }
+
+    private List<AiSource> attachmentCitations(AttachmentContext context, List<AiAttachmentSource> attachments) {
+        if (context != null && !context.sources().isEmpty()) {
+            return context.sources().stream()
+                    .map(source -> new AiSource(source.attachmentId().toString(), source.filename(),
+                            source.sectionLabel(), "attachment", source.pageNumber(),
+                            source.attachmentId() + ":" + source.chunkIndex()))
+                    .toList();
+        }
+        return attachments.stream()
+                .map(source -> new AiSource(source.attachmentId().toString(), source.filename(), "attachment"))
+                .toList();
     }
 
     private boolean isDocumentOnly(TutorAttachmentChatContext attachmentChat) {

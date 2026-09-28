@@ -11,6 +11,8 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
+import com.ieltsaitutor.rag.embedding.RagEmbeddingException;
+
 class TutorAttachmentContextBuilderTest {
     private final TutorAttachmentRetrievalService retrieval = mock(TutorAttachmentRetrievalService.class);
     private final TutorAttachmentSummaryService summary = mock(TutorAttachmentSummaryService.class);
@@ -70,6 +72,21 @@ class TutorAttachmentContextBuilderTest {
         AttachmentContext context = builder.build(scope, "question");
 
         assertThat(context.evidence()).contains(chunk.filename(), "chunk 3", "source text");
+    }
+
+    @Test
+    void fallsBackToAuthorizedAttachmentTextWhenVectorRetrievalIsUnavailable() {
+        UUID id = UUID.randomUUID();
+        AttachmentChatScope scope = scope(TutorAttachmentQuestionMode.FOCUSED, List.of(id));
+        when(retrieval.retrieve(scope.userId(), scope.conversationId(), scope.attachmentIds(), "Which code?"))
+                .thenThrow(new RagEmbeddingException("RAG_EMBEDDING_UNAVAILABLE", 503, "embedding unavailable"));
+        when(summary.summarizeWholeDocument(id)).thenReturn(new AttachmentRepresentation(id, "notes.txt",
+                List.of("SECRET_CODE=LUMEN-TXT-92841"), 1));
+
+        AttachmentContext context = builder.build(scope, "Which code?");
+
+        assertThat(context.evidence()).contains("LUMEN-TXT-92841");
+        assertThat(context.representations()).hasSize(1);
     }
 
     @Test

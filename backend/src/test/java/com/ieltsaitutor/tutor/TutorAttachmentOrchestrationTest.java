@@ -152,6 +152,26 @@ class TutorAttachmentOrchestrationTest {
         verify(repository, never()).updateStatus(any(), any(), any());
     }
 
+    @Test
+    void marksSuccessfulDocumentAttachmentAnswerAsGrounded() {
+        UUID id = UUID.randomUUID();
+        UUID conversation = UUID.randomUUID();
+        TutorAttachmentChatContext resolved = new TutorAttachmentChatContext(
+                new AttachmentChatScope(principal.userId(), conversation, List.of(id),
+                        com.ieltsaitutor.ai.attachment.TutorAttachmentQuestionMode.FOCUSED), List.of(), List.of());
+        when(resolution.resolve(principal, conversation, List.of(id))).thenReturn(resolved);
+        when(contextBuilder.build(any(), any())).thenReturn(new AttachmentContext(
+                com.ieltsaitutor.ai.attachment.TutorAttachmentQuestionMode.FOCUSED,
+                "[notes.txt, chunk 0]\\nSECRET_CODE=LUMEN-TXT-92841", List.of(), List.of(), 1));
+        when(provider.chat(any())).thenReturn(AiChatResult.answered("LUMEN-TXT-92841"));
+        givenGenericRoute();
+
+        var response = orchestrator().handle(principal, request("Which code?", conversation, List.of(id)));
+
+        assertThat(response.grounding().status()).isEqualTo("GROUNDED");
+        assertThat(response.grounding().ragEnabled()).isTrue();
+    }
+
     private TutorOrchestrator orchestrator() { return orchestrator(resolution, contextBuilder); }
 
     private TutorOrchestrator orchestrator(TutorAttachmentResolutionService resolved, TutorAttachmentContextBuilder builder) {

@@ -17,6 +17,7 @@ import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,6 +55,24 @@ class GroqAiProviderTest {
         assertThat(authorization.get()).isEqualTo("Bearer groq-test-key");
         assertThat(body.get()).contains("\"model\":\"groq-test-model\"");
         assertThat(body.get()).contains("Explain this");
+    }
+
+    @Test
+    void sendsTrustedGroundedEvidenceForDocumentContext() {
+        server.createContext("/openai/v1/chat/completions", exchange -> respond(exchange, 200,
+                "{\"choices\":[{\"message\":{\"role\":\"assistant\",\"content\":\"LUMEN-TXT-92841\"}}]}"));
+        server.start();
+
+        provider.chat(new AiChatCommand("Which code?", new AiChatContext("GENERAL", null, null, null, null, null, null),
+                List.of(), "request-1", "[notes.txt, chunk 0]\\nSECRET_CODE=LUMEN-TXT-92841", List.of(),
+                Set.of(ProviderCapability.DOCUMENT_CONTEXT)));
+
+        assertThat(body.get()).contains("LUMEN-TXT-92841");
+    }
+
+    @Test
+    void advertisesTextDocumentContextCapability() {
+        assertThat(provider.capabilities()).contains(ProviderCapability.CHAT, ProviderCapability.DOCUMENT_CONTEXT);
     }
 
     @Test
