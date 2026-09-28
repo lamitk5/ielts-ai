@@ -27,7 +27,10 @@ describe('ambient golden particles', () => {
     const layer = screen.getByTestId('ambient-golden-particles')
     expect(layer).toHaveAttribute('aria-hidden', 'true')
     expect(layer).toHaveStyle({ pointerEvents: 'none' })
-    expect(layer.querySelectorAll('.ambient-golden-particle')).toHaveLength(14)
+    const particles = layer.querySelectorAll('.ambient-golden-particle')
+    expect(particles).toHaveLength(20)
+    expect([...particles].some((particle) => Number.parseFloat(particle.style.getPropertyValue('--particle-size')) >= 5)).toBe(true)
+    expect([...particles].some((particle) => Number.parseFloat(particle.style.getPropertyValue('--particle-opacity')) >= 0.5)).toBe(true)
   })
 
   test('repels nearby particles from a fine pointer without changing layout', async () => {

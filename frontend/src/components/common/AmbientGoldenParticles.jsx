@@ -16,6 +16,12 @@ const PARTICLES = [
   { left: 7, top: 79, size: 3, opacity: 0.18, blur: 2, delay: '-11s', duration: '20s', driftX: '-11px', driftY: '8px' },
   { left: 47, top: 84, size: 2, opacity: 0.28, blur: 0, delay: '-3s', duration: '16s', driftX: '9px', driftY: '-9px' },
   { left: 76, top: 91, size: 3, opacity: 0.2, blur: 1, delay: '-9s', duration: '21s', driftX: '-8px', driftY: '-11px' },
+  { left: 31, top: 14, size: 5, opacity: 0.5, blur: 4, delay: '-13s', duration: '24s', driftX: '10px', driftY: '-7px' },
+  { left: 67, top: 34, size: 6, opacity: 0.42, blur: 5, delay: '-18s', duration: '26s', driftX: '-12px', driftY: '8px' },
+  { left: 12, top: 38, size: 2, opacity: 0.46, blur: 0, delay: '-15s', duration: '19s', driftX: '8px', driftY: '9px' },
+  { left: 57, top: 70, size: 5, opacity: 0.54, blur: 3, delay: '-6s', duration: '25s', driftX: '-9px', driftY: '-10px' },
+  { left: 94, top: 82, size: 7, opacity: 0.38, blur: 6, delay: '-20s', duration: '28s', driftX: '-10px', driftY: '6px' },
+  { left: 39, top: 96, size: 2, opacity: 0.44, blur: 0, delay: '-17s', duration: '18s', driftX: '7px', driftY: '-8px' },
 ]
 
 function AmbientGoldenParticles() {
@@ -84,7 +90,7 @@ function AmbientGoldenParticles() {
         return
       }
 
-      const radius = 180
+      const radius = 128
       particleRefs.current.forEach((particle, index) => {
         const item = PARTICLES[index]
         const x = window.innerWidth * item.left / 100
@@ -97,7 +103,7 @@ function AmbientGoldenParticles() {
           return
         }
         const force = 1 - distance / radius
-        particle.dataset.repelTarget = `${(-distanceX / distance * force * 18).toFixed(2)},${(-distanceY / distance * force * 18).toFixed(2)}`
+        particle.dataset.repelTarget = `${(-distanceX / distance * force * 22).toFixed(2)},${(-distanceY / distance * force * 22).toFixed(2)}`
       })
       setPointerMode('fine')
       scheduleUpdate()
