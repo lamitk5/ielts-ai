@@ -41,6 +41,11 @@ public class ConversationController {
         if (!service.archive(user(principal), id)) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "conversation not found");
         return new ArchiveResponse(true);
     }
+    @org.springframework.web.bind.annotation.DeleteMapping("/{id}")
+    public ArchiveResponse delete(@PathVariable UUID id, @RequestAttribute(value = AuthInterceptor.PRINCIPAL_ATTRIBUTE, required = false) AuthPrincipal principal) {
+        if (!service.delete(user(principal), id)) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "conversation not found");
+        return new ArchiveResponse(true);
+    }
     private UUID user(AuthPrincipal principal) { if (principal == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Đăng nhập để xem hội thoại."); return principal.userId(); }
     public record ConversationDetail(AiConversation conversation, List<AiMessage> messages) {}
     public record ArchiveResponse(boolean archived) {}

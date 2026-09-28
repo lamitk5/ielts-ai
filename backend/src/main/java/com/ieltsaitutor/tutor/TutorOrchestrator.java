@@ -184,8 +184,13 @@ public class TutorOrchestrator {
         }
         if (conversation == null) return result;
         int next = conversations.messages(principal.userId(), conversation.id()).size() + 1;
-        conversations.appendMessage(principal.userId(), conversation.id(), new AiMessage(UUID.randomUUID(), conversation.id(),
-                next, AiMessageRole.USER, bounded(request.message(), 4_000), "USER_MESSAGE", null, List.of(), Map.of(), Instant.now()));
+        AiMessage userMessage = new AiMessage(UUID.randomUUID(), conversation.id(), next, AiMessageRole.USER,
+                bounded(request.message(), 4_000), "USER_MESSAGE", null, List.of(), Map.of(), Instant.now());
+        if (request.attachmentIds().isEmpty()) {
+            conversations.appendMessage(principal.userId(), conversation.id(), userMessage);
+        } else {
+            conversations.appendMessageWithAttachments(principal.userId(), conversation.id(), userMessage, request.attachmentIds());
+        }
         conversations.appendMessage(principal.userId(), conversation.id(), new AiMessage(UUID.randomUUID(), conversation.id(),
                 next + 1, AiMessageRole.ASSISTANT, bounded(result.answer(), 12_000), result.status(),
                 result.grounding() == null ? null : result.grounding().status(), result.sources(), Map.of(), result.timestamp()));
