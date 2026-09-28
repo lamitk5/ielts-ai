@@ -103,4 +103,19 @@ describe('bounded Tutor attachment queue', () => {
     act(() => result.current.markChatRetry())
     expect(api.uploadAttachments).toHaveBeenCalledTimes(uploadCount)
   })
+
+  test('stopsPollingWhenAnAttachmentIsRemoved', async () => {
+    api.uploadAttachments.mockResolvedValue([{ id: 'a-processing', filename: 'guide.txt', status: 'STORED', sizeBytes: 1 }])
+    api.getAttachment.mockResolvedValue({ id: 'a-processing', filename: 'guide.txt', status: 'PROCESSING', sizeBytes: 1 })
+    const { result } = renderHook(() => useTutorAttachmentQueue({ conversationId: 'c1' }))
+
+    act(() => result.current.addFiles([file('guide.txt')]))
+    await waitFor(() => expect(api.getAttachment).toHaveBeenCalledTimes(1))
+    const localId = result.current.attachments[0].localId
+
+    act(() => result.current.remove(localId))
+    await new Promise((resolve) => setTimeout(resolve, 250))
+
+    expect(api.getAttachment).toHaveBeenCalledTimes(1)
+  })
 })
