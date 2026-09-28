@@ -1,6 +1,7 @@
 package com.ieltsaitutor.ai.attachment;
 
 import java.util.UUID;
+import java.util.List;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -30,11 +31,23 @@ public class TutorAttachmentController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<TutorAttachment> upload(
+    public ResponseEntity<?> upload(
             HttpServletRequest request,
-            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            @RequestParam(value = "files", required = false) List<MultipartFile> files,
+            @RequestParam(value = "conversationId", required = false) UUID conversationId,
             @RequestParam(value = "requestId", required = false) String requestId) {
         AuthPrincipal principal = principal(request);
+        if (conversationId != null) {
+            List<MultipartFile> selected = files == null ? (file == null ? List.of() : List.of(file)) : files;
+            if (selected.size() > 5 || selected.isEmpty()) {
+                throw new AuthException("ATTACHMENT_BATCH_INVALID", HttpStatus.BAD_REQUEST, "Chỉ có thể đính kèm từ 1 đến 5 tệp.");
+            }
+            return ResponseEntity.status(HttpStatus.CREATED).body(new TutorAttachmentBatchResponse(
+                    service.uploadBatch(principal.userId(), conversationId, selected).stream()
+                            .map(TutorAttachmentBatchResponse.AttachmentView::from).toList()));
+        }
+        if (file == null) throw new AuthException("ATTACHMENT_EMPTY", HttpStatus.BAD_REQUEST, "Tệp đính kèm không có nội dung.");
         TutorAttachment attachment = requestId == null
                 ? service.upload(principal.userId(), file)
                 : service.upload(principal.userId(), file, requestId);

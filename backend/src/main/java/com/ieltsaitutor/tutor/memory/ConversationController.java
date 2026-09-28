@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -22,6 +23,15 @@ public class ConversationController {
     public ConversationController(ConversationService service) { this.service = service; }
 
     @GetMapping public List<AiConversation> list(@RequestAttribute(value = AuthInterceptor.PRINCIPAL_ATTRIBUTE, required = false) AuthPrincipal principal) { return service.listOwned(user(principal)); }
+    @PostMapping
+    public org.springframework.http.ResponseEntity<AiConversation> create(
+            @RequestAttribute(value = AuthInterceptor.PRINCIPAL_ATTRIBUTE, required = false) AuthPrincipal principal,
+            @RequestParam(value = "skill", required = false) String skill,
+            @RequestParam(value = "practiceSetId", required = false) String practiceSetId,
+            @RequestParam(value = "title", required = false) String title) {
+        return org.springframework.http.ResponseEntity.status(HttpStatus.CREATED)
+                .body(service.create(user(principal), skill, practiceSetId, null, null, title));
+    }
     @GetMapping("/{id}") public ConversationDetail detail(@PathVariable UUID id, @RequestAttribute(value = AuthInterceptor.PRINCIPAL_ATTRIBUTE, required = false) AuthPrincipal principal) {
         UUID userId = user(principal);
         AiConversation conversation = service.findOwned(userId, id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "conversation not found"));

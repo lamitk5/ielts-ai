@@ -1,11 +1,16 @@
 package com.ieltsaitutor.ai.attachment;
 
 import java.time.Instant;
+import java.io.ByteArrayInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,6 +22,68 @@ public class TutorAttachmentService {
     public static final long MAX_FILE_SIZE_BYTES = TutorAttachmentContract.MAX_FILE_SIZE_BYTES;
 
     private final Map<UUID, Map<UUID, TutorAttachment>> store = new ConcurrentHashMap<>();
+    private final TutorAttachmentRepository repository;
+    private final TutorAttachmentStorage storage;
+    private final TutorAttachmentValidator validator;
+
+    public TutorAttachmentService() {
+        this.repository = null;
+        this.storage = null;
+        this.validator = null;
+    }
+
+    @Autowired
+    public TutorAttachmentService(TutorAttachmentRepository repository, TutorAttachmentStorage storage,
+            TutorAttachmentValidator validator) {
+        this.repository = repository;
+        this.storage = storage;
+        this.validator = validator;
+    }
+
+    public List<TutorAttachment> uploadBatch(UUID userId, UUID conversationId, List<MultipartFile> files) {
+        if (conversationId == null || files == null || files.isEmpty() || files.size() > 5) {
+            throw new AuthException("ATTACHMENT_BATCH_INVALID", HttpStatus.BAD_REQUEST, "Chỉ có thể đính kèm từ 1 đến 5 tệp.");
+        }
+        return files.stream().map(file -> upload(userId, conversationId, file)).toList();
+    }
+
+    public TutorAttachment upload(UUID userId, UUID conversationId, MultipartFile file) {
+        if (repository == null || storage == null || validator == null) {
+            return upload(userId, file);
+        }
+        TutorAttachmentValidationResult result = validator.validate(file);
+        if (!result.valid()) {
+            throw validationError(result);
+        }
+        UUID id = UUID.randomUUID();
+        Instant now = Instant.now();
+        String storageKey = userId + "/" + conversationId + "/" + id + ".bin";
+        try {
+            storage.store(new ByteArrayInputStream(result.content()), storageKey, result.sizeBytes());
+            TutorAttachment attachment = new TutorAttachment(id, userId, conversationId, result.canonicalFilename(),
+                    result.canonicalFilename(), result.contentType(), result.kind(), result.sizeBytes(), sha256(result.content()),
+                    storageKey, AttachmentStatus.STORED, null, null, 0, now, now, null);
+            repository.save(attachment);
+            return attachment;
+        } catch (Exception exception) {
+            try { storage.delete(storageKey); } catch (Exception ignored) { }
+            throw new AuthException("ATTACHMENT_STORAGE_FAILED", HttpStatus.BAD_REQUEST, "Không thể lưu tệp đính kèm.");
+        }
+    }
+
+    public TutorAttachment get(UUID userId, UUID conversationId, UUID attachmentId) {
+        if (repository == null) return get(userId, attachmentId);
+        return repository.findOwned(userId, conversationId, attachmentId)
+                .orElseThrow(() -> new AuthException("ATTACHMENT_NOT_FOUND", HttpStatus.NOT_FOUND, "Không tìm thấy tệp đính kèm."));
+    }
+
+    public void delete(UUID userId, UUID conversationId, UUID attachmentId) {
+        if (repository == null) { delete(userId, attachmentId); return; }
+        if (repository.findOwned(userId, conversationId, attachmentId).isEmpty()) {
+            throw new AuthException("ATTACHMENT_NOT_FOUND", HttpStatus.NOT_FOUND, "Không tìm thấy tệp đính kèm.");
+        }
+        repository.updateStatus(attachmentId, AttachmentStatus.REMOVED, null);
+    }
 
     public TutorAttachment upload(UUID userId, MultipartFile file) {
         return upload(userId, file, null);
@@ -141,5 +208,21 @@ public class TutorAttachmentService {
     private AuthException unsupportedType() {
         return new AuthException("ATTACHMENT_TYPE_NOT_SUPPORTED", HttpStatus.BAD_REQUEST,
                 "Định dạng tệp không được hỗ trợ. Chỉ chấp nhận PDF, DOCX, TXT hoặc PNG/JPG/WEBP.");
+    }
+
+    private AuthException validationError(TutorAttachmentValidationResult result) {
+        HttpStatus status = result.errorCode().equals("ATTACHMENT_SIZE_EXCEEDED") ? HttpStatus.BAD_REQUEST : HttpStatus.BAD_REQUEST;
+        return new AuthException(result.errorCode(), status, result.errorMessage());
+    }
+
+    private static String sha256(byte[] bytes) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(bytes);
+            StringBuilder result = new StringBuilder(64);
+            for (byte value : digest) result.append(String.format("%02x", value));
+            return result.toString();
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 is required", exception);
+        }
     }
 }
