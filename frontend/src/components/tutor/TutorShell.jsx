@@ -49,7 +49,9 @@ export function TutorShell({
   inputRef,
   suggestions,
   attachment,
+  attachments,
   onAttachmentSelected,
+  onAttachmentsSelected,
   onAttachmentError,
   onRemoveAttachment,
   onRetryAttachment,
@@ -166,7 +168,9 @@ export function TutorShell({
             onCancel={onCancel}
             inputRef={inputRef}
             attachment={attachment}
+            attachments={attachments}
             onAttachmentSelected={onAttachmentSelected}
+            onAttachmentsSelected={onAttachmentsSelected}
             onAttachmentError={onAttachmentError}
             onRemoveAttachment={onRemoveAttachment}
             onRetryAttachment={onRetryAttachment}

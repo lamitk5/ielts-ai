@@ -12,22 +12,28 @@ export function TutorComposer({
   inputRef,
   initialDraft = '',
   attachment = null,
+  attachments: attachmentCollection = null,
   onAttachmentSelected,
+  onAttachmentsSelected,
   onAttachmentError,
   onRemoveAttachment,
   onRetryAttachment,
 }) {
   const [draft, setDraft] = useState(initialDraft)
+  const attachments = attachmentCollection ?? (attachment ? [attachment] : [])
+  const isCollectionMode = Array.isArray(attachmentCollection)
 
-  const isAttachmentInProgress =
-    attachment?.status === 'UPLOADING' || attachment?.status === 'PROCESSING'
+  const isAttachmentInProgress = attachments.some((item) => ['UPLOADING', 'PROCESSING'].includes(item.status))
+  const hasUnsendableAttachment = isCollectionMode && attachments.some((item) => item.status !== 'READY')
 
   function submitMessage(event) {
     event.preventDefault()
     const trimmed = draft.trim()
     if (!trimmed || loading || isAttachmentInProgress) return
 
-    if (attachment && attachment.status === 'READY') {
+    if (isCollectionMode && attachments.length > 0) {
+      onSend(trimmed, { attachmentIds: attachments.map((item) => item.id) })
+    } else if (attachment && attachment.status === 'READY') {
       onSend(trimmed, { attachmentId: attachment.id })
     } else {
       onSend(trimmed)
@@ -35,23 +41,25 @@ export function TutorComposer({
     setDraft('')
   }
 
-  const isSendDisabled = loading || !draft.trim() || isAttachmentInProgress
+  const isSendDisabled = loading || !draft.trim() || isAttachmentInProgress || hasUnsendableAttachment
 
   return (
     <div className="tutor-composer-container tutor-composer-viewport-safe">
-      {attachment ? (
+      {attachments.map((item) => (
         <AttachmentStatus
-          attachment={attachment}
-          onRemove={onRemoveAttachment}
-          onRetry={onRetryAttachment}
+          key={item.localId || item.id || item.filename}
+          attachment={item}
+          onRemove={() => onRemoveAttachment?.(item.localId || item.id)}
+          onRetry={() => onRetryAttachment?.(item.localId || item.id)}
         />
-      ) : null}
+      ))}
       <form className="tutor-input-form" onSubmit={submitMessage}>
         <AttachmentComposer
           onFileSelected={onAttachmentSelected}
+          onFilesSelected={onAttachmentsSelected}
           onError={onAttachmentError}
           disabled={loading || isAttachmentInProgress}
-          hasActiveAttachment={Boolean(attachment)}
+          hasActiveAttachment={Boolean(attachments.length)}
         />
         <label className="sr-only" htmlFor="tutor-input">
           Tin nhắn cho {ASSISTANT_NAME}

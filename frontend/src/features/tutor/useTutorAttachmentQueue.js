@@ -135,8 +135,9 @@ export function useTutorAttachmentQueue({ conversationId, onError } = {}) {
     .filter((item) => (item.status === 'READY' || item.status === 'IMAGE_READY') && item.id)
     .map((item) => item.id), [attachments])
   const isBusy = attachments.some((item) => ['UPLOADING', 'PROCESSING'].includes(item.status))
+  const reportError = useCallback((error) => onErrorRef.current?.(error), [])
 
-  return { attachments, addFiles, retry, remove, readyIds, isBusy, markChatRetry: () => {} }
+  return { attachments, addFiles, retry, remove, readyIds, isBusy, reportError, markChatRetry: () => {} }
 }
 
 export default useTutorAttachmentQueue

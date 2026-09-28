@@ -18,6 +18,26 @@ function TutorMessage({ message }) {
     <li className={`tutor-message ${isUser ? 'tutor-message-user' : 'tutor-message-assistant'} ${message.isError ? 'tutor-message-error' : ''}`.trim()}>
       <p>{message.content}</p>
 
+      {Array.isArray(message.attachments) && message.attachments.length > 0 ? (
+        <div className="tutor-attachment-history-list" aria-label="Tệp đính kèm trong tin nhắn">
+          {message.attachments.map((attachment) => (
+            <span key={attachment.id || attachment.filename} className="tutor-attachment-history-chip">
+              {attachment.filename}
+            </span>
+          ))}
+        </div>
+      ) : null}
+
+      {!isUser && Array.isArray(message.attachmentSources) && message.attachmentSources.length > 0 ? (
+        <div className="tutor-attachment-history-list" aria-label="Nguồn tệp đính kèm">
+          {message.attachmentSources.map((attachment) => (
+            <span key={attachment.id || attachment.filename} className="tutor-attachment-history-chip is-source">
+              {attachment.filename}
+            </span>
+          ))}
+        </div>
+      ) : null}
+
       {!isUser && Array.isArray(message.references) && message.references.length > 0 ? (
         <div className="tutor-reference-list" aria-label="Tham chiếu bài học">
           {message.references.map((ref, idx) => {

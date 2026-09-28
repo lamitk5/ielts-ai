@@ -130,18 +130,31 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
     setActiveContext({ skill: 'GENERAL' })
   }
 
-  async function handleAttachmentSelected(file) {
+  async function ensureTutorConversation() {
     let selectedConversationId = conversationId
     if (!selectedConversationId && auth?.isAuthenticated) {
       const conversation = await createTutorConversation(activeContext?.skill || 'general')
       selectedConversationId = conversation.id
       setConversationId(selectedConversationId)
     }
-    if (selectedConversationId) attachmentQueue.addFiles([file], selectedConversationId)
+    return selectedConversationId
+  }
+
+  async function handleAttachmentsSelected(files) {
+    try {
+      const selectedConversationId = await ensureTutorConversation()
+      if (selectedConversationId) attachmentQueue.addFiles(files, selectedConversationId)
+    } catch (error) {
+      attachmentQueue.reportError(error)
+    }
+  }
+
+  async function handleAttachmentSelected(file) {
+    await handleAttachmentsSelected([file])
   }
 
   function handleAttachmentError(error) {
-    attachmentQueue.onError?.(error)
+    attachmentQueue.reportError(error)
   }
 
   function handleRemoveAttachment() {
@@ -199,6 +212,7 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
           role: 'assistant',
           status: response.status,
           content: response.answer,
+          attachmentSources: response.attachmentSources ?? [],
           references: response.references ?? [],
           grounding:
             response.status === 'INSUFFICIENT_CONTEXT'
@@ -283,7 +297,9 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
               onSend={sendMessage}
               inputRef={inputRef}
               attachment={attachment}
+              attachments={attachmentQueue.attachments}
               onAttachmentSelected={handleAttachmentSelected}
+              onAttachmentsSelected={handleAttachmentsSelected}
               onAttachmentError={handleAttachmentError}
               onRemoveAttachment={handleRemoveAttachment}
               onRetryAttachment={handleRetryAttachment}

@@ -2296,6 +2296,32 @@ input:focus-visible {
   gap: 0.4rem;
 }
 
+.tutor-attachment-history-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.55rem;
+}
+
+.tutor-attachment-history-chip {
+  display: inline-flex;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border: 1px solid rgba(229, 201, 130, 0.2);
+  border-radius: 999px;
+  padding: 0.28rem 0.5rem;
+  color: var(--text-secondary);
+  background: rgba(16, 39, 70, 0.38);
+  font-size: 0.68rem;
+}
+
+.tutor-attachment-history-chip.is-source {
+  border-color: rgba(229, 201, 130, 0.36);
+  color: var(--gold-light);
+}
+
 .tutor-source-chip {
   border: 1px solid rgba(229, 201, 130, 0.16);
   background: rgba(16, 39, 70, 0.48);
