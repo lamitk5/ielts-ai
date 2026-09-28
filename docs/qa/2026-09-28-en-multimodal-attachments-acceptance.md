@@ -15,8 +15,9 @@ Scope: approved Én multimodal attachments plan only. No push, merge, deploy, or
 - PASS — Frontend: `npm test -- --run`; 75 test files, 424 tests passed.
 - PASS — Frontend lint: `npm run lint` exited 0; existing non-blocking warnings remain.
 - PASS — Frontend production build: `npm run build` exited 0.
-- BLOCKED — Backend `cmd /c .\\mvnw.cmd test`: 495 tests, 0 failures, 5 errors, 1 skipped. The 5 errors are `AuthApplicationStartupTest` (1) and `AcademicLuxuryCompatibilityTest` (4), all caused by Flyway validation against legacy `ielts_ai_tutor` where resolved V9 and V10 are not applied. `RagPostgresIntegrationTest` has one expected Testcontainers skip.
-- BLOCKED — Backend `cmd /c .\\mvnw.cmd package`: test phase stops on the same five legacy-database context errors. `cmd /c .\\mvnw.cmd -DskipTests package` passed after the project backend process holding the target JAR was stopped.
+- PASS — QA-targeted backend `cmd /c .\\mvnw.cmd test` with `RAG_DB_NAME=ielts_ai_en_multimodal_qa_20260928`: 495 tests, 0 failures, 0 errors, 1 skipped. `RagPostgresIntegrationTest` has one expected Testcontainers skip.
+- PASS — QA-targeted backend `cmd /c .\\mvnw.cmd package` with `RAG_DB_NAME=ielts_ai_en_multimodal_qa_20260928`: package completed successfully.
+- BLOCKED BY LEGACY DB — The same default commands without the QA database still encounter the pre-existing Flyway validation anomaly in `ielts_ai_tutor` where resolved V9 and V10 are not applied. `cmd /c .\\mvnw.cmd -DskipTests package` also passed after the project backend process holding the target JAR was stopped.
 - PASS — Focused startup regression after the Task 20 wiring fix: `ApplicationStartupWithoutOptionalProvidersTest`, 4/4 passed.
 - PASS — `git diff --check`.
 
@@ -63,7 +64,7 @@ Scope: approved Én multimodal attachments plan only. No push, merge, deploy, or
 
 ## Final repository state
 
-- Task 20 acceptance record is ready to commit with the focused wiring and Tutor focus fixes.
+- Task 20 acceptance record and its focused wiring/Tutor focus fixes are committed.
 - Push: not performed.
 - Merge: not performed.
 - Deploy: not performed.
