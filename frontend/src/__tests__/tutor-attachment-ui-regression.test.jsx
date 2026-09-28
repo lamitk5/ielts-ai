@@ -130,4 +130,57 @@ describe('Én attachment upload lifecycle', () => {
     resolveConversation()
     await waitFor(() => expect(global.fetch).toHaveBeenCalledWith('/api/ai/attachments', expect.objectContaining({ method: 'POST' })))
   })
+
+  test('preserves a pending attachment when conversation creation fails and retries it', async () => {
+    const user = userEvent.setup()
+    let conversationAttempts = 0
+    global.fetch = vi.fn(async (input, options = {}) => {
+      const url = String(input)
+      if (url === '/api/ai/conversations') {
+        return { ok: true, status: 200, json: async () => [] }
+      }
+      if (url.startsWith('/api/ai/conversations?') && options.method === 'POST') {
+        conversationAttempts += 1
+        if (conversationAttempts === 1) {
+          return { ok: false, status: 503, json: async () => ({ error: { code: 'AI_TEMPORARILY_UNAVAILABLE' } }) }
+        }
+        return { ok: true, status: 201, json: async () => ({ id: 'conversation-attachment-retry' }) }
+      }
+      if (url === '/api/ai/attachments' && options.method === 'POST') {
+        return {
+          ok: true,
+          status: 201,
+          json: async () => ({ attachments: [{
+            id: 'attachment-retry',
+            conversationId: 'conversation-attachment-retry',
+            filename: 'queued-notes.txt',
+            contentType: 'text/plain',
+            kind: 'DOCUMENT',
+            sizeBytes: 4,
+            status: 'READY',
+            errorCode: null,
+          }] }),
+        }
+      }
+      throw new Error(`Unexpected request: ${url}`)
+    })
+
+    renderTutor()
+    await user.click(screen.getByRole('button', { name: 'Mở Én' }))
+    await waitFor(() => expect(screen.getByRole('dialog', { name: 'Én' })).toBeInTheDocument())
+    await user.upload(
+      screen.getByLabelText('Chọn tệp tải lên'),
+      new File(['test'], 'queued-notes.txt', { type: 'text/plain' }),
+    )
+
+    await waitFor(() => expect(screen.getByText('Không thể tạo cuộc hội thoại lúc này.')).toBeInTheDocument())
+    expect(screen.getByText('queued-notes.txt')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Thử lại tải tệp' })).toBeInTheDocument()
+    expect(global.fetch).not.toHaveBeenCalledWith('/api/ai/attachments', expect.anything())
+
+    await user.click(screen.getByRole('button', { name: 'Thử lại tải tệp' }))
+    await waitFor(() => expect(screen.getByText('Sẵn sàng')).toBeInTheDocument())
+    expect(conversationAttempts).toBe(2)
+    expect(global.fetch).toHaveBeenCalledWith('/api/ai/attachments', expect.objectContaining({ method: 'POST' }))
+  })
 })

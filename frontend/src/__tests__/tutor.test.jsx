@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import App from '../App'
 import FloatingTutor from '../components/tutor/FloatingTutor'
+import { AuthProvider } from '../features/auth/AuthProvider'
 
 const insufficientAnswer = 'Chưa đủ thông tin để trả lời chắc chắn. Hãy cung cấp câu hỏi, đoạn văn hoặc bài làm liên quan.'
 
@@ -27,6 +28,16 @@ function renderApp(initialEntry = '/') {
   )
 }
 
+function renderAuthenticatedTutor() {
+  return render(
+    <MemoryRouter>
+      <AuthProvider>
+        <FloatingTutor />
+      </AuthProvider>
+    </MemoryRouter>,
+  )
+}
+
 let originalFetch
 
 beforeEach(() => {
@@ -36,6 +47,7 @@ beforeEach(() => {
 
 afterEach(() => {
   global.fetch = originalFetch
+  localStorage.removeItem('ielts-ai-tutor.session')
   document.body.style.overflow = ''
 })
 
@@ -246,6 +258,88 @@ describe('floating AI tutor', () => {
     await user.click(screen.getByRole('button', { name: 'Thử lại' }))
     await waitFor(() => expect(screen.getByText('Retry answer')).toBeInTheDocument())
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  })
+
+  test('creates and stores a conversation before the first authenticated message', async () => {
+    const user = userEvent.setup()
+    localStorage.setItem('ielts-ai-tutor.session', JSON.stringify({
+      token: 'member-token',
+      user: { id: 'user-1', email: 'student@example.com', firstName: 'Mai' },
+    }))
+    global.fetch.mockImplementation(async (input, options = {}) => {
+      const url = String(input)
+      if (url === '/api/ai/conversations' && !options.method) {
+        return { ok: true, status: 200, json: async () => [] }
+      }
+      if (url.startsWith('/api/ai/conversations?') && options.method === 'POST') {
+        return { ok: true, status: 201, json: async () => ({ id: 'conversation-first' }) }
+      }
+      if (url === '/api/ai/chat' && options.method === 'POST') {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ ...answeredResponse('First answer'), meta: { requestId: 'request-first', conversationId: 'conversation-first' } }),
+        }
+      }
+      throw new Error(`Unexpected request: ${url}`)
+    })
+
+    renderAuthenticatedTutor()
+    await user.click(screen.getByRole('button', { name: 'Mở Én' }))
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Tin nhắn cho Én' })).toBeInTheDocument())
+    await user.type(screen.getByRole('textbox', { name: 'Tin nhắn cho Én' }), 'hi')
+    await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }))
+
+    await waitFor(() => expect(screen.getByText('First answer')).toBeInTheDocument())
+    const createCall = global.fetch.mock.calls.find(([input, options]) => (
+      String(input).startsWith('/api/ai/conversations?') && options.method === 'POST'
+    ))
+    const chatCall = global.fetch.mock.calls.find(([input]) => String(input) === '/api/ai/chat')
+    expect(createCall).toBeTruthy()
+    expect(chatCall).toBeTruthy()
+    expect(JSON.parse(chatCall[1].body).conversationId).toBe('conversation-first')
+  })
+
+  test('preserves the first message when conversation creation fails and retries it', async () => {
+    const user = userEvent.setup()
+    localStorage.setItem('ielts-ai-tutor.session', JSON.stringify({
+      token: 'member-token',
+      user: { id: 'user-1', email: 'student@example.com', firstName: 'Mai' },
+    }))
+    let createAttempts = 0
+    global.fetch.mockImplementation(async (input, options = {}) => {
+      const url = String(input)
+      if (url === '/api/ai/conversations' && !options.method) {
+        return { ok: true, status: 200, json: async () => [] }
+      }
+      if (url.startsWith('/api/ai/conversations?') && options.method === 'POST') {
+        createAttempts += 1
+        if (createAttempts === 1) return { ok: false, status: 503, json: async () => ({ error: { code: 'AI_TEMPORARILY_UNAVAILABLE' } }) }
+        return { ok: true, status: 201, json: async () => ({ id: 'conversation-retry' }) }
+      }
+      if (url === '/api/ai/chat' && options.method === 'POST') {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ ...answeredResponse('Retry answer'), meta: { requestId: 'request-retry', conversationId: 'conversation-retry' } }),
+        }
+      }
+      throw new Error(`Unexpected request: ${url}`)
+    })
+
+    renderAuthenticatedTutor()
+    await user.click(screen.getByRole('button', { name: 'Mở Én' }))
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Tin nhắn cho Én' })).toBeInTheDocument())
+    await user.type(screen.getByRole('textbox', { name: 'Tin nhắn cho Én' }), 'retry me')
+    await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Thử lại' })).toBeInTheDocument())
+
+    await user.click(screen.getByRole('button', { name: 'Thử lại' }))
+    await waitFor(() => expect(screen.getByText('Retry answer')).toBeInTheDocument())
+    expect(screen.getAllByText('retry me')).toHaveLength(1)
+    expect(createAttempts).toBe(2)
+    const chatCall = global.fetch.mock.calls.find(([input]) => String(input) === '/api/ai/chat')
+    expect(JSON.parse(chatCall[1].body).conversationId).toBe('conversation-retry')
   })
 
   test('retries the same failed turn without duplicating the user message or error card', async () => {

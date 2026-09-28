@@ -86,18 +86,27 @@ describe('deterministic practice routes', () => {
 
   test('Tutor receives stable practice references without the answer key', async () => {
     const user = userEvent.setup()
-    vi.stubGlobal('fetch', vi.fn()
-      .mockResolvedValueOnce({ ok: true, json: async () => [] })
-      .mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          status: 'ANSWERED',
-          answer: 'Hãy kiểm tra từ khóa trong câu hỏi.',
-          sources: [],
-          grounding: { status: 'NOT_ENABLED', ragEnabled: false },
-        }),
-      }))
+    vi.stubGlobal('fetch', vi.fn(async (url, options = {}) => {
+      if (url === '/api/ai/conversations' && !options.method) {
+        return { ok: true, status: 200, json: async () => [] }
+      }
+      if (String(url).startsWith('/api/ai/conversations?') && options.method === 'POST') {
+        return { ok: true, status: 201, json: async () => ({ id: 'conversation-practice' }) }
+      }
+      if (url === '/api/ai/chat' && options.method === 'POST') {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            status: 'ANSWERED',
+            answer: 'Hãy kiểm tra từ khóa trong câu hỏi.',
+            sources: [],
+            grounding: { status: 'NOT_ENABLED', ragEnabled: false },
+          }),
+        }
+      }
+      return { ok: true, status: 200, json: async () => [] }
+    }))
     window.localStorage.setItem('ielts-ai-tutor.session', JSON.stringify({ token: 'test-token', user: { id: 'user-1' } }))
 
     render(

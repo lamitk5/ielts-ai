@@ -211,12 +211,13 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
     abortControllerRef.current = controller
 
     try {
+      const selectedConversationId = await ensureTutorConversation()
       const response = await sendTutorMessage(
         {
           message: content,
           context: activeContext,
           history,
-          conversationId,
+          conversationId: selectedConversationId,
           attachmentIds,
         },
         { signal: controller.signal },
