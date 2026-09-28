@@ -118,11 +118,6 @@ input:focus-visible {
   min-height: 100vh;
 }
 
-.app-shell > *:not(.ambient-golden-particles) {
-  position: relative;
-  z-index: 1;
-}
-
 .ambient-golden-particles {
   position: fixed;
   z-index: 0;
