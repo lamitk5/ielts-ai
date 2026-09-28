@@ -75,6 +75,19 @@ public class JdbcTutorAttachmentChunkRepository implements TutorAttachmentChunkR
     }
 
     @Override
+    public List<RetrievedAttachmentChunk> findByAttachmentId(UUID attachmentId) {
+        return jdbc.query("""
+                SELECT c.attachment_id, a.original_filename, c.page_number, c.section_label, c.chunk_index,
+                       content, 0d AS similarity, embedding_provider, embedding_model, embedding_dimension,
+                       embedding_version
+                FROM ai_attachment_chunks c
+                JOIN ai_attachments a ON a.id = c.attachment_id
+                WHERE c.attachment_id = :attachmentId
+                ORDER BY c.chunk_index
+                """, new MapSqlParameterSource("attachmentId", attachmentId), MAPPER);
+    }
+
+    @Override
     public List<RetrievedAttachmentChunk> findCandidates(UUID userId, UUID conversationId, List<UUID> attachmentIds,
             List<Float> queryEmbedding, EmbeddingSpace space, int limit) {
         if (attachmentIds == null || attachmentIds.isEmpty()) return List.of();

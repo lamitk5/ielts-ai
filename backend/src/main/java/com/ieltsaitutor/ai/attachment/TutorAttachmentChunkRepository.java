@@ -9,6 +9,8 @@ public interface TutorAttachmentChunkRepository {
     void replace(UUID attachmentId, List<TutorAttachmentChunk> chunks, List<List<Float>> embeddings,
             EmbeddingSpace space);
 
+    List<RetrievedAttachmentChunk> findByAttachmentId(UUID attachmentId);
+
     List<RetrievedAttachmentChunk> findCandidates(UUID userId, UUID conversationId, List<UUID> attachmentIds,
             List<Float> queryEmbedding, EmbeddingSpace space, int limit);
 }
