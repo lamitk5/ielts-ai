@@ -20,6 +20,12 @@ import com.ieltsaitutor.ai.routing.AiProviderAdapter;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Base64;
+import java.util.EnumSet;
+import java.util.Set;
+
 @Component
 public class GeminiAiProvider implements AiProvider, AiProviderAdapter {
     private static final Logger log = LoggerFactory.getLogger(GeminiAiProvider.class);
@@ -40,9 +46,10 @@ public class GeminiAiProvider implements AiProvider, AiProviderAdapter {
 
     @Override
     public java.util.Set<ProviderCapability> capabilities() {
-        return properties.getApiKey().isBlank() || properties.getModel().isBlank()
-                ? java.util.Set.of()
-                : java.util.Set.of(ProviderCapability.CHAT);
+        if (properties.getApiKey().isBlank() || properties.getModel().isBlank()) return Set.of();
+        EnumSet<ProviderCapability> capabilities = EnumSet.of(ProviderCapability.CHAT, ProviderCapability.DOCUMENT_CONTEXT);
+        if (properties.isVisionEnabled()) capabilities.add(ProviderCapability.VISION_IMAGE);
+        return Set.copyOf(capabilities);
     }
 
     @Override
@@ -52,6 +59,10 @@ public class GeminiAiProvider implements AiProvider, AiProviderAdapter {
 
     @Override
     public AiChatResult chat(AiChatCommand command) {
+        if (!supports(command)) {
+            throw new AiProviderException("AI_CAPABILITY_UNAVAILABLE", HttpStatus.SERVICE_UNAVAILABLE,
+                    "Vision input is not enabled for the configured AI provider.");
+        }
         if (properties.getApiKey().isBlank()) {
             log.warn("Gemini provider unavailable requestId={} model={} endpoint={} reason=missing_api_key",
                     command.requestId(), properties.getModel(), sanitizedEndpointUri());
@@ -123,7 +134,7 @@ public class GeminiAiProvider implements AiProvider, AiProviderAdapter {
         for (ChatHistoryItem historyItem : command.history()) {
             addContent(contents, historyItem.role().equals("ASSISTANT") ? "model" : "user", historyItem.content());
         }
-        addContent(contents, "user", buildUserPrompt(command));
+        addContent(contents, "user", buildUserPrompt(command), command.attachments());
         ObjectNode generationConfig = root.putObject("generationConfig");
         generationConfig.putObject("thinkingConfig").put("thinkingLevel", "low");
         generationConfig.put("temperature", 0.4);
@@ -155,9 +166,36 @@ public class GeminiAiProvider implements AiProvider, AiProviderAdapter {
     }
 
     private void addContent(ArrayNode contents, String role, String text) {
+        addContent(contents, role, text, java.util.List.of());
+    }
+
+    private void addContent(ArrayNode contents, String role, String text,
+            java.util.List<com.ieltsaitutor.ai.model.AiAttachmentPart> attachments) {
         ObjectNode content = contents.addObject();
         content.put("role", role);
-        content.putArray("parts").addObject().put("text", text);
+        ArrayNode parts = content.putArray("parts");
+        parts.addObject().put("text", text);
+        for (var attachment : attachments) {
+            if (attachment.kind() != com.ieltsaitutor.ai.attachment.AttachmentKind.IMAGE) continue;
+            byte[] bytes;
+            try (InputStream input = attachment.openStream().get()) {
+                if (input == null) throw new IOException("missing attachment stream");
+                bytes = input.readAllBytes();
+            } catch (IOException | RuntimeException exception) {
+                throw new AiProviderException("AI_ATTACHMENT_READ_FAILED", HttpStatus.BAD_REQUEST,
+                        "Không thể đọc tệp đính kèm.", exception);
+            }
+            ObjectNode inline = parts.addObject().putObject("inlineData");
+            inline.put("mimeType", attachment.mediaType());
+            inline.put("data", Base64.getEncoder().encodeToString(bytes));
+        }
+    }
+
+    private boolean supports(AiChatCommand command) {
+        if (command == null) return false;
+        EnumSet<ProviderCapability> required = EnumSet.of(ProviderCapability.CHAT);
+        required.addAll(command.requiredCapabilities());
+        return capabilities().containsAll(required);
     }
 
     private ParsedResponse parseResponse(String responseBody) throws JacksonException {
