@@ -91,6 +91,10 @@ public class GeminiAiProvider implements AiProvider, AiProviderAdapter {
             } catch (WebClientRequestException exception) {
                 log.warn("Gemini network failure requestId={} model={} endpoint={} type={}",
                         command.requestId(), properties.getModel(), sanitizedEndpointUri(), exception.getClass().getSimpleName());
+                if (attempt < properties.getMaxRetries()) {
+                    pauseBeforeRetry(attempt);
+                    continue;
+                }
                 if (isTimeout(exception)) {
                     throw timeoutException(exception);
                 }
@@ -101,6 +105,10 @@ public class GeminiAiProvider implements AiProvider, AiProviderAdapter {
                 log.warn("Gemini client failure requestId={} model={} endpoint={} type={}",
                         command.requestId(), properties.getModel(), sanitizedEndpointUri(), exception.getClass().getSimpleName());
                 if (exception.getMessage() != null && exception.getMessage().contains("Timeout")) {
+                    if (attempt < properties.getMaxRetries()) {
+                        pauseBeforeRetry(attempt);
+                        continue;
+                    }
                     throw timeoutException(exception);
                 }
                 throw new AiProviderException(

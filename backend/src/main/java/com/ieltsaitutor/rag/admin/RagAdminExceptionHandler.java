@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.ieltsaitutor.rag.ingestion.RagInvalidStateException;
 import com.ieltsaitutor.rag.ingestion.RagValidationException;
 
-@RestControllerAdvice
+@RestControllerAdvice(assignableTypes = RagAdminController.class)
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class RagAdminExceptionHandler {
     @ExceptionHandler(RagInvalidStateException.class)

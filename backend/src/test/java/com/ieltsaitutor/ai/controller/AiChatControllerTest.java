@@ -3,10 +3,12 @@ package com.ieltsaitutor.ai.controller;
 import com.ieltsaitutor.ai.dto.AiChatResponse;
 import com.ieltsaitutor.ai.dto.AiGrounding;
 import com.ieltsaitutor.ai.dto.AiSource;
+import com.ieltsaitutor.ai.exception.AiProviderException;
 import com.ieltsaitutor.ai.service.AiChatService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -29,7 +31,9 @@ class AiChatControllerTest {
     void setUp() {
         service = mock(AiChatService.class);
         mvc = MockMvcBuilders.standaloneSetup(new AiChatController(service))
-                .setControllerAdvice(new com.ieltsaitutor.ai.exception.AiExceptionHandler())
+                .setControllerAdvice(
+                        new com.ieltsaitutor.ai.exception.AiExceptionHandler(),
+                        new com.ieltsaitutor.rag.admin.RagAdminExceptionHandler())
                 .build();
     }
 
@@ -66,6 +70,19 @@ class AiChatControllerTest {
                         .content("{\"message\":\"Hello\",\"context\":{\"skill\":\"GRAMMAR\"}}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.code").value("AI_INVALID_REQUEST"));
+    }
+
+    @Test
+    void providerFailureWithMalformedCauseDoesNotBecomeRagInvalidRequest() throws Exception {
+        when(service.chat(any())).thenThrow(new AiProviderException(
+                "AI_TEMPORARILY_UNAVAILABLE", HttpStatus.SERVICE_UNAVAILABLE,
+                "Trợ giảng AI tạm thời chưa sẵn sàng.", new IllegalArgumentException("provider payload")));
+
+        mvc.perform(post("/api/ai/chat")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"message\":\"hello\",\"context\":{\"skill\":\"GENERAL\"},\"history\":[]}"))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.error.code").value("AI_TEMPORARILY_UNAVAILABLE"));
     }
 
     private static AiChatResponse answered(String answer) {

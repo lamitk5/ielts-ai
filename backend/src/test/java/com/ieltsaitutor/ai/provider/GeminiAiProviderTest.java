@@ -90,6 +90,36 @@ class GeminiAiProviderTest {
     }
 
     @Test
+    void allowsAtMostTwoTransientRetries() {
+        properties.setMaxRetries(2);
+        server.createContext("/v1beta/models/gemini-test:generateContent", exchange -> {
+            requestCount.incrementAndGet();
+            respond(exchange, 503, "temporary");
+        });
+        server.start();
+
+        assertThatThrownBy(() -> provider.chat(command()))
+                .isInstanceOf(AiProviderException.class);
+        assertThat(requestCount).hasValue(3);
+    }
+
+    @Test
+    void recoversWhenATransientFailureClearsOnRetry() {
+        properties.setMaxRetries(2);
+        server.createContext("/v1beta/models/gemini-test:generateContent", exchange -> {
+            if (requestCount.incrementAndGet() == 1) {
+                respond(exchange, 503, "temporary");
+                return;
+            }
+            respond(exchange, 200, "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"LUMEN\"}]}}]}");
+        });
+        server.start();
+
+        assertThat(provider.chat(command()).answer()).isEqualTo("LUMEN");
+        assertThat(requestCount).hasValue(2);
+    }
+
+    @Test
     void mapsRateLimitSafely() {
         server.createContext("/v1beta/models/gemini-test:generateContent", exchange -> respond(exchange, 429, "secret provider body"));
         server.start();
@@ -117,8 +147,11 @@ class GeminiAiProviderTest {
 
     @Test
     void mapsAuthenticationErrorsAsProviderConfigurationFailures() {
-        server.createContext("/v1beta/models/gemini-test:generateContent", exchange -> respond(exchange, 403,
-                "{\"error\":{\"message\":\"invalid credentials\"}}"));
+        properties.setMaxRetries(2);
+        server.createContext("/v1beta/models/gemini-test:generateContent", exchange -> {
+            requestCount.incrementAndGet();
+            respond(exchange, 403, "{\"error\":{\"message\":\"invalid credentials\"}}");
+        });
         server.start();
 
         assertThatThrownBy(() -> provider.chat(command()))
@@ -128,6 +161,7 @@ class GeminiAiProviderTest {
                     assertThat(exception.getMessage()).isEqualTo(
                             "AI provider authentication is not configured correctly.");
                 });
+        assertThat(requestCount).hasValue(1);
     }
 
     @Test
@@ -149,8 +183,10 @@ class GeminiAiProviderTest {
 
     @Test
     void mapsTimeoutWithoutExposingProviderDetails() {
+        properties.setMaxRetries(2);
         properties.setResponseTimeout(Duration.ofMillis(40));
         server.createContext("/v1beta/models/gemini-test:generateContent", exchange -> {
+            requestCount.incrementAndGet();
             try {
                 Thread.sleep(200);
                 respond(exchange, 200, "{}");
@@ -165,6 +201,7 @@ class GeminiAiProviderTest {
                     assertThat(exception.code()).isEqualTo("AI_TIMEOUT");
                     assertThat(exception.status().value()).isEqualTo(504);
                 });
+        assertThat(requestCount.get()).isBetween(2, 3);
     }
 
     @Test
