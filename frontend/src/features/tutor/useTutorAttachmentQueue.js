@@ -64,6 +64,7 @@ export function useTutorAttachmentQueue({ conversationId, onError } = {}) {
   const processEntry = useCallback(async (entry) => {
     const controller = new AbortController()
     processingControllersRef.current.set(entry.localId, controller)
+    updateAttachment(entry.localId, { status: 'UPLOADING' })
     try {
       const result = await uploadAttachments([entry.file], entry.conversationId || conversationId, { signal: controller.signal })
       const uploaded = result?.[0]
@@ -89,7 +90,9 @@ export function useTutorAttachmentQueue({ conversationId, onError } = {}) {
   const drain = useCallback(() => {
     function runQueue() {
       while (runningRef.current < 2 && pendingRef.current.length > 0) {
-        const entry = pendingRef.current.shift()
+        const nextIndex = pendingRef.current.findIndex((entry) => entry.conversationId || conversationId)
+        if (nextIndex < 0) return
+        const [entry] = pendingRef.current.splice(nextIndex, 1)
         runningRef.current += 1
         processEntry(entry).finally(() => {
           runningRef.current -= 1
@@ -98,7 +101,21 @@ export function useTutorAttachmentQueue({ conversationId, onError } = {}) {
       }
     }
     runQueue()
-  }, [processEntry])
+  }, [conversationId, processEntry])
+
+  useEffect(() => {
+    if (!conversationId) return
+    const waitingEntries = pendingRef.current.some((entry) => !entry.conversationId)
+    if (waitingEntries) {
+      pendingRef.current = pendingRef.current.map((entry) => (
+        entry.conversationId ? entry : { ...entry, conversationId }
+      ))
+      setAttachments((current) => current.map((item) => (
+        item.conversationId ? item : { ...item, conversationId }
+      )))
+    }
+    drain()
+  }, [conversationId, drain])
 
   const addFiles = useCallback((files, conversationIdOverride = null) => {
     const selected = Array.from(files || [])
@@ -117,7 +134,7 @@ export function useTutorAttachmentQueue({ conversationId, onError } = {}) {
         id: null,
         filename: file.name,
         sizeBytes: file.size,
-        status: 'UPLOADING',
+        status: 'SELECTED',
         conversationId: conversationIdOverride || conversationId,
         file,
         previewUrl,
@@ -131,12 +148,23 @@ export function useTutorAttachmentQueue({ conversationId, onError } = {}) {
   const retry = useCallback((localId) => {
     const entry = attachments.find((item) => item.localId === localId)
     if (!entry || entry.status !== 'FAILED') return
-    pendingRef.current.push({ ...entry, status: 'UPLOADING' })
+    pendingRef.current.push({ ...entry, status: 'SELECTED', conversationId: entry.conversationId || conversationId })
     setAttachments((current) => current.map((item) => item.localId === localId
       ? { ...item, status: 'UPLOADING', errorMessage: null }
       : item))
     drain()
-  }, [attachments, drain])
+  }, [attachments, conversationId, drain])
+
+  const failPending = useCallback((error) => {
+    const pendingIds = new Set(pendingRef.current.map((entry) => entry.localId))
+    pendingRef.current = []
+    if (pendingIds.size > 0) {
+      setAttachments((current) => current.map((item) => pendingIds.has(item.localId)
+        ? { ...item, status: 'FAILED', errorMessage: error?.message || 'Không thể tạo cuộc hội thoại.' }
+        : item))
+    }
+    onErrorRef.current?.(error)
+  }, [])
 
   const remove = useCallback((localId) => {
     const entry = attachments.find((item) => item.localId === localId)
@@ -165,7 +193,7 @@ export function useTutorAttachmentQueue({ conversationId, onError } = {}) {
   const isBusy = attachments.some((item) => ['UPLOADING', ...PENDING_STATUSES].includes(item.status))
   const reportError = useCallback((error) => onErrorRef.current?.(error), [])
 
-  return { attachments, addFiles, retry, remove, readyIds, isBusy, reportError, markChatRetry: () => {} }
+  return { attachments, addFiles, retry, remove, readyIds, isBusy, reportError, failPending, markChatRetry: () => {} }
 }
 
 export default useTutorAttachmentQueue

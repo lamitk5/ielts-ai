@@ -19,23 +19,21 @@ export function AttachmentComposer({
   }
 
   function handleFileChange(event) {
-    const selectedFiles = Array.from(event.target.files || [])
+    const selectedFiles = Array.from(event.currentTarget.files ?? [])
+    event.currentTarget.value = ''
     if (!selectedFiles.length) return
 
     if (selectedFiles.length > maxFiles) {
-      if (fileInputRef.current) fileInputRef.current.value = ''
       onError?.({ code: 'ATTACHMENT_LIMIT_EXCEEDED', message: `Chỉ được đính kèm tối đa ${maxFiles} tệp.` })
       return
     }
 
     const invalid = selectedFiles.map((file) => validateAttachmentFile(file)).find((result) => !result.valid)
     if (invalid) {
-      if (fileInputRef.current) fileInputRef.current.value = ''
       onError?.(invalid.error)
       return
     }
 
-    if (fileInputRef.current) fileInputRef.current.value = ''
     if (onFilesSelected) onFilesSelected(selectedFiles)
     else onFileSelected?.(selectedFiles[0])
   }

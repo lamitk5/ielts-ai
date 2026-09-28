@@ -23,6 +23,30 @@ describe('Én multimodal picker and cards', () => {
     expect(onFilesSelected.mock.calls[0][0]).toHaveLength(5)
   })
 
+  test('acceptsEverySupportedDocumentAndImageType', async () => {
+    const onFilesSelected = vi.fn()
+    render(<AttachmentComposer onFilesSelected={onFilesSelected} />)
+    const supported = [
+      new File(['png'], 'net.png', { type: 'image/png' }),
+      new File(['jpg'], 'net.jpg', { type: 'image/jpeg' }),
+      new File(['webp'], 'net.webp', { type: 'image/webp' }),
+      new File(['txt'], 'net.txt', { type: 'text/plain' }),
+      new File(['pdf'], 'net.pdf', { type: 'application/pdf' }),
+    ]
+    await userEvent.upload(screen.getByLabelText(/chọn tệp tải lên/i), supported)
+    expect(onFilesSelected).toHaveBeenCalledWith(expect.arrayContaining(supported))
+  })
+
+  test('acceptsDocx', async () => {
+    const onFilesSelected = vi.fn()
+    render(<AttachmentComposer onFilesSelected={onFilesSelected} />)
+    const docx = new File(['docx'], 'net.docx', {
+      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    })
+    await userEvent.upload(screen.getByLabelText(/chọn tệp tải lên/i), docx)
+    expect(onFilesSelected).toHaveBeenCalledWith([docx])
+  })
+
   test('rejectsSixthSelection', async () => {
     const onFilesSelected = vi.fn()
     const onError = vi.fn()

@@ -16,6 +16,22 @@ function file(name) {
 describe('bounded Tutor attachment queue', () => {
   beforeEach(() => vi.clearAllMocks())
 
+  test('rendersSelectedFileBeforeConversationCreationAndStartsWhenConversationIsReady', async () => {
+    api.uploadAttachments.mockResolvedValue([{ id: 'a-pending', filename: 'a.txt', status: 'READY', sizeBytes: 1 }])
+    const { result, rerender } = renderHook(
+      ({ conversationId }) => useTutorAttachmentQueue({ conversationId }),
+      { initialProps: { conversationId: null } },
+    )
+
+    act(() => result.current.addFiles([file('a.txt')]))
+
+    expect(result.current.attachments[0]).toMatchObject({ filename: 'a.txt', status: 'SELECTED' })
+    expect(api.uploadAttachments).not.toHaveBeenCalled()
+
+    rerender({ conversationId: 'c1' })
+    await waitFor(() => expect(result.current.readyIds).toEqual(['a-pending']))
+  })
+
   test('limitsConcurrencyToTwo', async () => {
     const pending = []
     api.uploadAttachments.mockImplementation(async ([selected]) => new Promise((resolve) => {
@@ -60,6 +76,19 @@ describe('bounded Tutor attachment queue', () => {
     const first = result.current.attachments[0].localId
     act(() => result.current.remove(first))
     expect(result.current.attachments).toHaveLength(1)
+  })
+
+  test('reselectsTheSameFileAfterRemoval', async () => {
+    api.uploadAttachments.mockResolvedValue([{ id: 'same-file', filename: 'same.txt', status: 'READY', sizeBytes: 1 }])
+    const selected = file('same.txt')
+    const { result } = renderHook(() => useTutorAttachmentQueue({ conversationId: 'c1' }))
+
+    act(() => result.current.addFiles([selected]))
+    await waitFor(() => expect(result.current.readyIds).toEqual(['same-file']))
+    act(() => result.current.remove(result.current.attachments[0].localId))
+    act(() => result.current.addFiles([selected]))
+
+    await waitFor(() => expect(api.uploadAttachments).toHaveBeenCalledTimes(2))
   })
 
   test('pollsProcessingToReady', async () => {

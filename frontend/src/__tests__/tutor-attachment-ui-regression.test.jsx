@@ -97,4 +97,37 @@ describe('Én attachment upload lifecycle', () => {
     await waitFor(() => expect(screen.getByText('Sẵn sàng')).toBeInTheDocument())
     expect(attachmentPolls).toBe(2)
   })
+
+  test('renders a selected file before conversation creation and upload complete', async () => {
+    const user = userEvent.setup()
+    let resolveConversation
+    global.fetch = vi.fn((input, options = {}) => {
+      const url = String(input)
+      if (url.startsWith('/api/ai/conversations?') && options.method === 'POST') {
+        return new Promise((resolve) => {
+          resolveConversation = () => resolve({ ok: true, status: 201, json: async () => ({ id: 'conversation-pending' }) })
+        })
+      }
+      if (url === '/api/ai/conversations') {
+        return Promise.resolve({ ok: true, status: 200, json: async () => [] })
+      }
+      throw new Error(`Unexpected request before conversation is ready: ${url}`)
+    })
+
+    renderTutor()
+    await user.click(screen.getByRole('button', { name: 'Mở Én' }))
+    await waitFor(() => expect(screen.getByRole('dialog', { name: 'Én' })).toBeInTheDocument())
+
+    await user.upload(
+      screen.getByLabelText('Chọn tệp tải lên'),
+      new File(['test'], 'queued-before-conversation.txt', { type: 'text/plain' }),
+    )
+
+    expect(screen.getByText('queued-before-conversation.txt')).toBeInTheDocument()
+    expect(screen.getByText('Đang kiểm tra...')).toBeInTheDocument()
+    expect(global.fetch).not.toHaveBeenCalledWith('/api/ai/attachments', expect.anything())
+
+    resolveConversation()
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledWith('/api/ai/attachments', expect.objectContaining({ method: 'POST' })))
+  })
 })

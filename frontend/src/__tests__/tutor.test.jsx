@@ -248,6 +248,25 @@ describe('floating AI tutor', () => {
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
   })
 
+  test('retries the same failed turn without duplicating the user message or error card', async () => {
+    const user = userEvent.setup()
+    global.fetch
+      .mockRejectedValueOnce(new TypeError('network failure'))
+      .mockResolvedValueOnce({ ok: true, status: 200, json: async () => answeredResponse('Retry answer without duplicates') })
+    render(<FloatingTutor />)
+
+    await user.click(screen.getByRole('button', { name: 'Mở Én' }))
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Tin nhắn cho Én' })).toBeInTheDocument())
+    await user.type(screen.getByRole('textbox', { name: 'Tin nhắn cho Én' }), 'Một câu hỏi bị lỗi')
+    await user.click(screen.getByRole('button', { name: 'Gửi câu hỏi' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Thử lại' })).toBeInTheDocument())
+
+    await user.click(screen.getByRole('button', { name: 'Thử lại' }))
+    await waitFor(() => expect(screen.getByText('Retry answer without duplicates')).toBeInTheDocument())
+    expect(screen.getAllByText('Một câu hỏi bị lỗi')).toHaveLength(1)
+    expect(screen.queryByRole('button', { name: 'Thử lại' })).not.toBeInTheDocument()
+  })
+
   test('shows a friendly rate-limit error and blocks duplicate submits while loading', async () => {
     const user = userEvent.setup()
     let resolveRequest

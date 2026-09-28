@@ -42,6 +42,7 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
   const mountedRef = useRef(true)
   const abortControllerRef = useRef(null)
   const launchTimerRef = useRef(null)
+  const conversationCreationRef = useRef(null)
   const initialPathRef = useRef(location?.pathname ?? '/')
   const accountKey = auth?.isAuthenticated ? auth.session?.user?.id ?? 'member' : 'guest'
   const proactiveSuggestionsEnabled = preferenceContext?.preferences.proactiveAiEnabled ?? true
@@ -134,7 +135,11 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
   async function ensureTutorConversation() {
     let selectedConversationId = conversationId
     if (!selectedConversationId && auth?.isAuthenticated) {
-      const conversation = await createTutorConversation(activeContext?.skill || 'general')
+      if (!conversationCreationRef.current) {
+        conversationCreationRef.current = createTutorConversation(activeContext?.skill || 'general')
+          .finally(() => { conversationCreationRef.current = null })
+      }
+      const conversation = await conversationCreationRef.current
       selectedConversationId = conversation.id
       setConversationId(selectedConversationId)
     }
@@ -142,11 +147,14 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
   }
 
   async function handleAttachmentsSelected(files) {
+    const selectedFiles = Array.from(files || [])
+    if (selectedFiles.length === 0) return
+    attachmentQueue.addFiles(selectedFiles, conversationId)
+    if (conversationId || !auth?.isAuthenticated) return
     try {
-      const selectedConversationId = await ensureTutorConversation()
-      if (selectedConversationId) attachmentQueue.addFiles(files, selectedConversationId)
+      await ensureTutorConversation()
     } catch (error) {
-      attachmentQueue.reportError(error)
+      attachmentQueue.failPending(error)
     }
   }
 
@@ -163,7 +171,11 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
   }
 
   function handleRetryAttachment() {
-    if (attachment?.localId) attachmentQueue.retry(attachment.localId)
+    if (!attachment?.localId) return
+    attachmentQueue.retry(attachment.localId)
+    if (!conversationId && auth?.isAuthenticated) {
+      ensureTutorConversation().catch((error) => attachmentQueue.failPending(error))
+    }
   }
 
   function handleOpenTutor() {
@@ -176,18 +188,23 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
     }, 180)
   }
 
-  async function sendMessage(content, options = {}) {
+  async function sendMessage(content, options = {}, retryState = null) {
     if (loading) return
+    const attachmentIds = Array.from(options?.attachmentIds
+      ?? (options?.attachmentId ? [options.attachmentId] : attachmentQueue.readyIds))
+    const userMessageId = retryState?.userMessageId ?? `user-${Date.now()}`
+    const errorMessageId = retryState?.errorMessageId ?? `assistant-error-${Date.now()}`
     const history = (!auth?.isAuthenticated || isGuest)
       ? messages.slice(-8).map((message) => ({
         role: message.role === 'user' ? 'USER' : 'ASSISTANT',
         content: message.content,
       }))
       : []
-    setMessages((current) => [
-      ...current,
-      { id: `user-${Date.now()}`, role: 'user', content },
-    ])
+    if (!retryState) {
+      setMessages((current) => [...current, { id: userMessageId, role: 'user', content }])
+    } else {
+      setMessages((current) => current.filter((message) => message.id !== errorMessageId))
+    }
     setLoading(true)
 
     const controller = new AbortController()
@@ -200,7 +217,7 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
           context: activeContext,
           history,
           conversationId,
-          attachmentIds: options?.attachmentId ? [options.attachmentId] : attachmentQueue.readyIds,
+          attachmentIds,
         },
         { signal: controller.signal },
       )
@@ -230,13 +247,16 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
         return
       }
       setMessages((current) => [
-        ...current,
+        ...current.filter((message) => message.id !== errorMessageId),
         {
-          id: `assistant-error-${Date.now()}`,
+          id: errorMessageId,
           role: 'assistant',
           isError: true,
           content: error.message,
-          onRetry: () => sendMessage(content, options),
+          onRetry: () => sendMessage(content, { ...options, attachmentIds }, {
+            userMessageId,
+            errorMessageId,
+          }),
         },
       ])
     } finally {
