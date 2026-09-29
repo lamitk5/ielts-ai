@@ -80,13 +80,30 @@ class TutorAttachmentContextBuilderTest {
         AttachmentChatScope scope = scope(TutorAttachmentQuestionMode.FOCUSED, List.of(id));
         when(retrieval.retrieve(scope.userId(), scope.conversationId(), scope.attachmentIds(), "Which code?"))
                 .thenThrow(new RagEmbeddingException("RAG_EMBEDDING_UNAVAILABLE", 503, "embedding unavailable"));
-        when(summary.summarizeWholeDocument(id)).thenReturn(new AttachmentRepresentation(id, "notes.txt",
+        when(summary.summarizeRelevantDocument(id, "Which code?", 4_000)).thenReturn(new AttachmentRepresentation(id, "notes.txt",
                 List.of("SECRET_CODE=LUMEN-TXT-92841"), 1));
 
         AttachmentContext context = builder.build(scope, "Which code?");
 
         assertThat(context.evidence()).contains("LUMEN-TXT-92841");
         assertThat(context.representations()).hasSize(1);
+    }
+
+    @Test
+    void focusesAuthorizedFallbackTextWithinContextBudget() {
+        UUID id = UUID.randomUUID();
+        AttachmentChatScope scope = scope(TutorAttachmentQuestionMode.FOCUSED, List.of(id));
+        AttachmentRepresentation representation = new AttachmentRepresentation(id, "large.docx",
+                List.of("Relevant section: LUMEN-DOCX-57319"), 1);
+        when(retrieval.retrieve(scope.userId(), scope.conversationId(), scope.attachmentIds(), "Which code?"))
+                .thenThrow(new RagEmbeddingException("RAG_EMBEDDING_RATE_LIMITED", 429, "rate limited"));
+        when(summary.summarizeRelevantDocument(id, "Which code?", 4_000)).thenReturn(representation);
+
+        AttachmentContext context = builder.build(scope, "Which code?");
+
+        verify(summary).summarizeRelevantDocument(id, "Which code?", 4_000);
+        assertThat(context.evidence()).contains("LUMEN-DOCX-57319");
+        assertThat(context.tokenEstimate()).isLessThanOrEqualTo(12_000);
     }
 
     @Test

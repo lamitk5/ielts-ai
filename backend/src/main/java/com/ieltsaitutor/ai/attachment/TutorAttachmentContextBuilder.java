@@ -10,6 +10,7 @@ import com.ieltsaitutor.rag.embedding.RagEmbeddingException;
 
 @Service
 public class TutorAttachmentContextBuilder {
+    private static final int FALLBACK_CONTEXT_TOKEN_LIMIT = 4_000;
     private final TutorAttachmentRetrievalService retrieval;
     private final TutorAttachmentSummaryService summaries;
     private final TutorAttachmentContextBudget budget;
@@ -38,9 +39,9 @@ public class TutorAttachmentContextBuilder {
                 sources = retrieval.retrieve(scope.userId(), scope.conversationId(),
                         scope.attachmentIds(), learnerQuestion);
             } catch (RagEmbeddingException | IllegalStateException unavailable) {
-                return fallbackToAuthorizedText(scope);
+                return fallbackToAuthorizedText(scope, learnerQuestion);
             }
-            if (sources.isEmpty()) return fallbackToAuthorizedText(scope);
+            if (sources.isEmpty()) return fallbackToAuthorizedText(scope, learnerQuestion);
             String evidence = formatSources(sources);
             return checked(new AttachmentContext(scope.mode(), evidence, sources, List.of(), estimateTokens(evidence)));
         }
@@ -51,9 +52,11 @@ public class TutorAttachmentContextBuilder {
         return checked(new AttachmentContext(scope.mode(), evidence, List.of(), representations, estimateTokens(evidence)));
     }
 
-    private AttachmentContext fallbackToAuthorizedText(AttachmentChatScope scope) {
+    private AttachmentContext fallbackToAuthorizedText(AttachmentChatScope scope, String learnerQuestion) {
+        int fallbackBudget = Math.min(budget.maxAttachmentTokens(), FALLBACK_CONTEXT_TOKEN_LIMIT);
+        int perAttachmentBudget = Math.max(1, fallbackBudget / scope.attachmentIds().size());
         List<AttachmentRepresentation> representations = scope.attachmentIds().stream()
-                .map(summaries::summarizeWholeDocument).toList();
+                .map(id -> summaries.summarizeRelevantDocument(id, learnerQuestion, perAttachmentBudget)).toList();
         String evidence = formatRepresentations(representations);
         return checked(new AttachmentContext(scope.mode(), evidence, List.of(), representations, estimateTokens(evidence)));
     }

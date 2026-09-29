@@ -31,6 +31,20 @@ class TutorAttachmentSummaryServiceTest {
         assertThat(representations).extracting(AttachmentRepresentation::attachmentId).containsExactly(first, second);
     }
 
+    @Test
+    void focusedSummarySelectsRelevantChunksWithinBudget() {
+        UUID id = UUID.randomUUID();
+        TutorAttachmentSummaryService service = new TutorAttachmentSummaryService(attachmentId -> List.of(
+                chunk(id, 0, "introductory material " + "x".repeat(400)),
+                chunk(id, 1, "SECRET_CODE=LUMEN-DOCX-57319 and the requested code"),
+                chunk(id, 2, "appendix " + "y".repeat(400))));
+
+        AttachmentRepresentation representation = service.summarizeRelevantDocument(id, "Which secret code?", 30);
+
+        assertThat(representation.text()).contains("LUMEN-DOCX-57319");
+        assertThat(representation.tokenEstimate()).isLessThanOrEqualTo(30);
+    }
+
     private static RetrievedAttachmentChunk chunk(UUID id, int index, String content) {
         return new RetrievedAttachmentChunk(id, "file.txt", null, null, index, content, .8, null);
     }
