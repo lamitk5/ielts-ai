@@ -3,7 +3,7 @@ import { useReducedMotion } from 'framer-motion'
 import { useOptionalAuth } from '../auth/AuthProvider'
 import { DEFAULT_PREFERENCES } from './preferenceDefaults'
 import { LOCAL_ONLY_PREFERENCE_KEYS, mergeLocalPreferences, normalizePreferences } from './preferenceSchema'
-import { createCursorAsset, getCursorEffectColor, resolveCursorColor } from './cursorAsset'
+import { createCursorAsset, getCursorEffectColor, normalizeCursorSizePercent, resolveCursorColor } from './cursorAsset'
 import { readAccountPreferenceCache, readGuestPreferences, writeAccountPreferenceCache, writeGuestPreferences } from './preferenceStorage'
 import { getPreferences, savePreferences } from '../../services/preferencesApi'
 import { translate as translateUi } from './uiTranslations'
@@ -98,11 +98,11 @@ export function applyPreferenceTokens(value) {
   document.documentElement.dataset.reducedMotion = String(reduced)
   document.documentElement.dataset.language = preferences.language
   document.documentElement.dataset.cursorStyle = preferences.cursorStyle
-  document.documentElement.dataset.cursorSize = preferences.cursorSize
+  document.documentElement.dataset.cursorSize = String(normalizeCursorSizePercent(preferences.cursorSizePercent))
   document.documentElement.dataset.cursorColor = preferences.cursorColor
   document.documentElement.style.setProperty('--cursor-asset', createCursorAsset({
     style: preferences.cursorStyle,
-    size: preferences.cursorSize,
+    sizePercent: preferences.cursorSizePercent,
     color: cursorColor,
   }))
   document.documentElement.style.setProperty('--cursor-effect-color', getCursorEffectColor(cursorColor))

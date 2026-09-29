@@ -1,4 +1,5 @@
 import { useOptionalPreferences } from '../../features/preferences/PreferenceProvider'
+import { CURSOR_SIZE_DEFAULT, CURSOR_SIZE_MAX, CURSOR_SIZE_MIN, CURSOR_SIZE_STEP, CURSOR_STYLE_REGISTRY } from '../../features/preferences/cursorAsset'
 
 const themes = [
   ['dark', 'themeDark', 'Tối'],
@@ -20,20 +21,6 @@ const selectOptions = {
   density: [['spacious', 'densitySpacious', 'Thoáng'], ['default', 'densityDefault', 'Tiêu chuẩn'], ['compact', 'densityCompact', 'Gọn']],
 }
 
-const cursorStyles = [
-  ['default', 'cursorDefault', 'Mặc định'],
-  ['champagne', 'cursorChampagne', 'Champagne Gold'],
-  ['scholar-pen', 'cursorScholarPen', 'Scholar Pen'],
-  ['en-feather', 'cursorEnFeather', 'Én Feather'],
-  ['pixel-scholar', 'cursorPixelScholar', 'Pixel Scholar'],
-]
-
-const cursorSizes = [
-  ['small', 'cursorSmall', 'Nhỏ'],
-  ['medium', 'cursorMedium', 'Vừa'],
-  ['large', 'cursorLarge', 'Lớn'],
-]
-
 const cursorColors = [
   ['accent', 'cursorAccent', 'Theo màu nhấn', 'var(--accent)'],
   ['champagne', 'cursorChampagne', 'Champagne Gold', '#e5c982'],
@@ -43,8 +30,6 @@ const cursorColors = [
   ['burgundy', 'cursorBurgundy', 'Burgundy', '#e6a3b4'],
   ['violet', 'cursorViolet', 'Violet', '#c9b2ee'],
 ]
-
-const cursorPreviewScales = { small: '0.8', medium: '1', large: '1.25' }
 
 function SelectField({ label, value, options, onChange, numeric = false, translate }) {
   return (
@@ -97,43 +82,45 @@ function PreferenceControlGroup({ preferences, updatePreference }) {
         <div className="settings-cursor-field">
           <span className="settings-field-label">{translate('cursorStyle', 'Kiểu con trỏ')}</span>
           <div className="settings-cursor-options" aria-label={translate('cursorStyleOptions', 'Các kiểu con trỏ')}>
-            {cursorStyles.map(([value, labelKey, fallback]) => (
+            {CURSOR_STYLE_REGISTRY.map(({ id: value, labelKey, fallbackLabel }) => (
               <button
                 type="button"
                 key={value}
                 className={`settings-cursor-option ${preferences.cursorStyle === value ? 'settings-cursor-option-active' : ''}`.trim()}
                 aria-pressed={preferences.cursorStyle === value}
-                aria-label={translate(labelKey, fallback)}
+                aria-label={translate(labelKey, fallbackLabel)}
                 onClick={() => updatePreference('cursorStyle', value)}
               >
                 <span
                   className={`settings-cursor-preview settings-cursor-preview-${value}`}
                   style={{
-                    '--cursor-preview-scale': cursorPreviewScales[preferences.cursorSize],
+                    '--cursor-preview-scale': String(preferences.cursorSizePercent / 100),
                     '--cursor-preview-color': cursorColors.find(([color]) => color === preferences.cursorColor)?.[3],
                   }}
                   aria-hidden="true"
                 />
-                <span>{translate(labelKey, fallback)}</span>
+                <span>{translate(labelKey, fallbackLabel)}</span>
                 {preferences.cursorStyle === value ? <span className="settings-cursor-check" aria-hidden="true">✓</span> : null}
               </button>
             ))}
           </div>
           <div className="settings-cursor-subgroup">
-            <span className="settings-field-label">{translate('cursorSize', 'Kích thước con trỏ')}</span>
-            <div className="settings-cursor-size-options" aria-label={translate('cursorSize', 'Kích thước con trỏ')}>
-              {cursorSizes.map(([value, labelKey, fallback]) => (
-                <button
-                  type="button"
-                  key={value}
-                  className={`settings-cursor-size-option ${preferences.cursorSize === value ? 'settings-cursor-size-option-active' : ''}`.trim()}
-                  aria-pressed={preferences.cursorSize === value}
-                  onClick={() => updatePreference('cursorSize', value)}
-                >
-                  {translate(labelKey, fallback)}
-                </button>
-              ))}
-            </div>
+            <label className="settings-field settings-cursor-size-slider">
+              <span className="settings-field-label">
+                <span>{translate('cursorSize', 'Kích thước con trỏ')}</span>
+                <output data-testid="cursor-size-value" aria-live="polite">{preferences.cursorSizePercent}%</output>
+              </span>
+              <input
+                aria-label={translate('cursorSize', 'Kích thước con trỏ')}
+                type="range"
+                min={CURSOR_SIZE_MIN}
+                max={CURSOR_SIZE_MAX}
+                step={CURSOR_SIZE_STEP}
+                value={preferences.cursorSizePercent ?? CURSOR_SIZE_DEFAULT}
+                onChange={(event) => updatePreference('cursorSizePercent', Number(event.target.value))}
+              />
+              <span className="settings-range-endpoints" aria-hidden="true"><span>{CURSOR_SIZE_MIN}%</span><span>{CURSOR_SIZE_MAX}%</span></span>
+            </label>
           </div>
           <div className="settings-cursor-subgroup">
             <span className="settings-field-label">{translate('cursorColor', 'Màu con trỏ')}</span>

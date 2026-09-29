@@ -1,9 +1,8 @@
 import { DEFAULT_PREFERENCES } from './preferenceDefaults'
-import { CURSOR_COLOR_PRESETS, CURSOR_SIZE_PRESETS } from './cursorAsset'
+import { CURSOR_COLOR_PRESETS, CURSOR_SIZE_DEFAULT, CURSOR_SIZE_MAX, CURSOR_SIZE_MIN, CURSOR_SIZE_STEP, CURSOR_STYLE_PRESETS, normalizeCursorSizePercent } from './cursorAsset'
 
 export const WORKSPACE_RATIO_PRESETS = Object.freeze([40, 50, 60])
-export const CURSOR_STYLE_PRESETS = Object.freeze(['default', 'champagne', 'scholar-pen', 'en-feather', 'pixel-scholar'])
-export const LOCAL_ONLY_PREFERENCE_KEYS = Object.freeze(['cursorStyle', 'cursorSize', 'cursorColor', 'cursorEffects'])
+export const LOCAL_ONLY_PREFERENCE_KEYS = Object.freeze(['cursorStyle', 'cursorSizePercent', 'cursorColor', 'cursorEffects'])
 
 const allowed = {
   themeMode: ['system', 'light', 'dark'],
@@ -15,7 +14,7 @@ const allowed = {
   readingSplitRatio: WORKSPACE_RATIO_PRESETS,
   writingSplitRatio: WORKSPACE_RATIO_PRESETS,
   cursorStyle: CURSOR_STYLE_PRESETS,
-  cursorSize: CURSOR_SIZE_PRESETS,
+  cursorSizePercent: Object.freeze(Array.from({ length: ((CURSOR_SIZE_MAX - CURSOR_SIZE_MIN) / CURSOR_SIZE_STEP) + 1 }, (_, index) => CURSOR_SIZE_MIN + index * CURSOR_SIZE_STEP)),
   cursorColor: CURSOR_COLOR_PRESETS,
 }
 
@@ -26,7 +25,7 @@ export function isCompletePreferences(value) {
   const requiredEnums = Object.entries(allowed).filter(([key]) => key !== 'language' && !LOCAL_ONLY_PREFERENCE_KEYS.includes(key))
   const requiredBooleans = booleanPreferences.filter((key) => !LOCAL_ONLY_PREFERENCE_KEYS.includes(key))
   const localValuesValid = LOCAL_ONLY_PREFERENCE_KEYS.every((key) => (
-    value[key] === undefined || (allowed[key] ? allowed[key].includes(value[key]) : typeof value[key] === 'boolean')
+    value[key] === undefined || (key === 'cursorSizePercent' ? typeof value[key] === 'number' : allowed[key] ? allowed[key].includes(value[key]) : typeof value[key] === 'boolean')
   ))
   return requiredEnums.every(([key, choices]) => choices.includes(value[key])) &&
     requiredBooleans.every((key) => typeof value[key] === 'boolean') &&
@@ -38,7 +37,8 @@ export function isValidPreferenceRecord(record) {
     return false
   }
   for (const [key, val] of Object.entries(record.preferences)) {
-    if (allowed[key] && !allowed[key].includes(val)) return false
+    if (key === 'cursorSizePercent' && typeof val !== 'number') return false
+    if (key !== 'cursorSizePercent' && allowed[key] && !allowed[key].includes(val)) return false
     if (booleanPreferences.includes(key) && typeof val !== 'boolean') {
       return false
     }
@@ -50,8 +50,10 @@ export function normalizePreferences(value) {
   const input = value && typeof value === 'object' && !Array.isArray(value) ? value : {}
   const result = { ...DEFAULT_PREFERENCES }
   for (const [key, choices] of Object.entries(allowed)) {
+    if (key === 'cursorSizePercent') continue
     if (choices.includes(input[key])) result[key] = input[key]
   }
+  result.cursorSizePercent = normalizeCursorSizePercent(input.cursorSizePercent ?? input.cursorSize ?? CURSOR_SIZE_DEFAULT)
   for (const key of ['proactiveAiEnabled', 'crossHighlightEnabled', 'timerDefaultEnabled', 'cursorEffects']) {
     if (typeof input[key] === 'boolean') result[key] = input[key]
   }

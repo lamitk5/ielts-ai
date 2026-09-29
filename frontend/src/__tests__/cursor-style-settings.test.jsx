@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
@@ -6,6 +6,8 @@ import { PreferenceProvider } from '../features/preferences/PreferenceProvider'
 import SettingsDrawer from '../components/settings/SettingsDrawer'
 import CursorStyleLayer from '../components/common/CursorStyleLayer'
 import { AuthProvider } from '../features/auth/AuthProvider'
+import { CURSOR_SIZE_MAX, CURSOR_SIZE_MIN, CURSOR_SIZE_STEP, CURSOR_STYLE_REGISTRY } from '../features/preferences/cursorAsset'
+import { normalizePreferences } from '../features/preferences/preferenceSchema'
 
 function renderSettings() {
   return render(
@@ -60,6 +62,8 @@ describe('cursor style settings', () => {
   test('renders all five cursor styles with an accessible selected state', () => {
     renderSettings()
 
+    expect(CURSOR_STYLE_REGISTRY).toHaveLength(5)
+
     for (const label of ['Mặc định', 'Champagne Gold', 'Scholar Pen', 'Én Feather', 'Pixel Scholar']) {
       expect(cursorStyleOptions().getByRole('button', { name: label })).toBeInTheDocument()
     }
@@ -81,27 +85,31 @@ describe('cursor style settings', () => {
     expect(document.documentElement).toHaveAttribute('data-cursor-style', value)
   })
 
-  test('renders small, medium, and large cursor size controls with medium selected', () => {
+  test('renders one cursor size slider with a 70 to 150 percent range', () => {
     renderSettings()
     const group = cursorGroup()
 
-    for (const label of ['Nhỏ', 'Vừa', 'Lớn']) {
-      expect(group.getByRole('button', { name: label })).toBeInTheDocument()
-    }
-    expect(group.getByRole('button', { name: 'Vừa' })).toHaveAttribute('aria-pressed', 'true')
-    expect(document.documentElement).toHaveAttribute('data-cursor-size', 'medium')
+    const slider = group.getByRole('slider', { name: 'Kích thước con trỏ' })
+    expect(slider).toHaveAttribute('min', String(CURSOR_SIZE_MIN))
+    expect(slider).toHaveAttribute('max', String(CURSOR_SIZE_MAX))
+    expect(slider).toHaveAttribute('step', String(CURSOR_SIZE_STEP))
+    expect(slider).toHaveValue('100')
+    expect(group.getByTestId('cursor-size-value')).toHaveTextContent('100%')
+    expect(document.documentElement).toHaveAttribute('data-cursor-size', '100')
   })
 
-  test('selecting a large cursor persists and updates the live size token', async () => {
-    const user = userEvent.setup()
+  test('moving the cursor size slider persists the numeric value and updates the live size token', () => {
     const first = renderSettings()
-    await user.click(cursorGroup().getByRole('button', { name: 'Lớn' }))
-    expect(document.documentElement).toHaveAttribute('data-cursor-size', 'large')
+    const slider = cursorGroup().getByRole('slider', { name: 'Kích thước con trỏ' })
+    fireEvent.change(slider, { target: { value: '135' } })
+    expect(slider).toHaveValue('135')
+    expect(cursorGroup().getByTestId('cursor-size-value')).toHaveTextContent('135%')
+    expect(document.documentElement).toHaveAttribute('data-cursor-size', '135')
     first.unmount()
 
     renderSettings()
-    expect(cursorGroup().getByRole('button', { name: 'Lớn' })).toHaveAttribute('aria-pressed', 'true')
-    expect(document.documentElement).toHaveAttribute('data-cursor-size', 'large')
+    expect(cursorGroup().getByRole('slider', { name: 'Kích thước con trỏ' })).toHaveValue('135')
+    expect(document.documentElement).toHaveAttribute('data-cursor-size', '135')
   })
 
   test('renders all cursor colors with accent selected by default', () => {
@@ -140,14 +148,14 @@ describe('cursor style settings', () => {
     const user = userEvent.setup()
     renderSettings()
     await user.click(cursorGroup().getByRole('button', { name: 'Én Feather' }))
-    await user.click(cursorGroup().getByRole('button', { name: 'Lớn' }))
+    fireEvent.change(cursorGroup().getByRole('slider', { name: 'Kích thước con trỏ' }), { target: { value: '125' } })
     await user.click(cursorGroup().getByRole('button', { name: 'Emerald' }))
 
     const asset = document.documentElement.style.getPropertyValue('--cursor-asset')
     expect(asset).toContain('data:image/svg+xml')
     expect(asset).toContain('5 30, pointer')
     expect(document.documentElement).toHaveAttribute('data-cursor-style', 'en-feather')
-    expect(document.documentElement).toHaveAttribute('data-cursor-size', 'large')
+    expect(document.documentElement).toHaveAttribute('data-cursor-size', '125')
     expect(document.documentElement).toHaveAttribute('data-cursor-color', 'emerald')
     expect(document.documentElement.style.getPropertyValue('--cursor-effect-color')).toContain('142, 217, 188')
   })
@@ -155,12 +163,12 @@ describe('cursor style settings', () => {
   test('reset defaults restores medium cursor size and accent color', async () => {
     const user = userEvent.setup()
     renderSettings()
-    await user.click(cursorGroup().getByRole('button', { name: 'Lớn' }))
+    fireEvent.change(cursorGroup().getByRole('slider', { name: 'Kích thước con trỏ' }), { target: { value: '125' } })
     await user.click(cursorGroup().getByRole('button', { name: 'Violet' }))
     await user.click(screen.getByRole('button', { name: 'Khôi phục mặc định' }))
     await user.click(screen.getByRole('button', { name: 'Xác nhận khôi phục' }))
 
-    expect(document.documentElement).toHaveAttribute('data-cursor-size', 'medium')
+    expect(document.documentElement).toHaveAttribute('data-cursor-size', '100')
     expect(document.documentElement).toHaveAttribute('data-cursor-color', 'accent')
   })
 
@@ -187,6 +195,13 @@ describe('cursor style settings', () => {
     expect(cursorGroup().getByRole('button', { name: 'Mặc định' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('checkbox', { name: 'Hiệu ứng con trỏ' })).toBeChecked()
     expect(document.documentElement).toHaveAttribute('data-cursor-style', 'default')
+  })
+
+  test.each([
+    [40, CURSOR_SIZE_MIN],
+    [200, CURSOR_SIZE_MAX],
+  ])('clamps an invalid persisted cursor size of %s to %s', (value, expected) => {
+    expect(normalizePreferences({ cursorSizePercent: value }).cursorSizePercent).toBe(expected)
   })
 
   test('animation off and reduced motion disable animated cursor effects but keep the selected style', async () => {
