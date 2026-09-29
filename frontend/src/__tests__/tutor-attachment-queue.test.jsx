@@ -1,4 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
+import { StrictMode } from 'react'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 import { useTutorAttachmentQueue } from '../features/tutor/useTutorAttachmentQueue'
 import * as api from '../services/tutorAttachmentsApi'
@@ -36,6 +37,30 @@ describe('bounded Tutor attachment queue', () => {
     await waitFor(() => expect(result.current.readyIds).toEqual(['a-pending']))
   })
 
+  test('resumes every pending file when conversation creation returns an id', async () => {
+    api.uploadAttachments.mockImplementation(async ([selected]) => ([{
+      id: `${selected.name}-ready`,
+      filename: selected.name,
+      status: 'READY',
+      sizeBytes: selected.size,
+    }]))
+    const { result } = renderHook(() => useTutorAttachmentQueue({ conversationId: null }))
+
+    act(() => result.current.addFiles([file('notes.docx'), new File(['image'], 'study.jpg', { type: 'image/jpeg' })]))
+
+    expect(result.current.attachments.map((item) => item.status)).toEqual(['SELECTED', 'SELECTED'])
+    act(() => result.current.resumePending('conversation-created'))
+
+    await waitFor(() => expect(api.uploadAttachments).toHaveBeenCalledTimes(2))
+    await waitFor(() => expect(result.current.attachments.every((item) => item.status === 'READY')).toBe(true))
+    expect(api.uploadAttachments).toHaveBeenNthCalledWith(
+      1,
+      [expect.objectContaining({ name: 'notes.docx' })],
+      'conversation-created',
+      expect.any(Object),
+    )
+  })
+
   test('uploads a realistic oneMiBDocx after validation prerequisite becomes available', async () => {
     api.uploadAttachments.mockResolvedValue([{ id: 'docx-ready', filename: 'Câu 1.docx', status: 'READY', sizeBytes: 1024 * 1024 }])
     const { result } = renderHook(() => useTutorAttachmentQueue({ conversationId: 'c1' }))
@@ -48,6 +73,20 @@ describe('bounded Tutor attachment queue', () => {
       expect.any(Object),
     ))
     await waitFor(() => expect(result.current.readyIds).toEqual(['docx-ready']))
+  })
+
+  test('continues updating attachment state after React StrictMode effect replay', async () => {
+    api.uploadAttachments.mockResolvedValue([{ id: 'strict-ready', filename: 'notes.docx', status: 'READY', sizeBytes: 1024 }])
+    const wrapper = ({ children }) => <StrictMode>{children}</StrictMode>
+    const { result } = renderHook(() => useTutorAttachmentQueue({ conversationId: 'c1' }), { wrapper })
+
+    act(() => result.current.addFiles([realisticDocx('notes.docx')]))
+
+    await waitFor(() => expect(api.uploadAttachments).toHaveBeenCalled())
+    await waitFor(() => expect(result.current.attachments[0]).toMatchObject({
+      status: 'READY',
+      id: 'strict-ready',
+    }))
   })
 
   test('fails a selected file when the validation prerequisite never resolves', async () => {

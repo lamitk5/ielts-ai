@@ -152,7 +152,8 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
     attachmentQueue.addFiles(selectedFiles, conversationId)
     if (conversationId || !auth?.isAuthenticated) return
     try {
-      await ensureTutorConversation()
+      const selectedConversationId = await ensureTutorConversation()
+      attachmentQueue.resumePending(selectedConversationId)
     } catch (error) {
       attachmentQueue.failPending(error)
     }
@@ -174,7 +175,9 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
     if (!attachment?.localId) return
     attachmentQueue.retry(attachment.localId)
     if (!conversationId && auth?.isAuthenticated) {
-      ensureTutorConversation().catch((error) => attachmentQueue.failPending(error))
+      ensureTutorConversation()
+        .then((selectedConversationId) => attachmentQueue.resumePending(selectedConversationId))
+        .catch((error) => attachmentQueue.failPending(error))
     }
   }
 

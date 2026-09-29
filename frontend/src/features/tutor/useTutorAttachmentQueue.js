@@ -127,6 +127,17 @@ export function useTutorAttachmentQueue({ conversationId, onError, validationTim
     runQueue()
   }, [conversationId, processEntry])
 
+  const resumePending = useCallback((nextConversationId) => {
+    if (!nextConversationId) return
+    pendingRef.current = pendingRef.current.map((entry) => (
+      entry.conversationId ? entry : { ...entry, conversationId: nextConversationId }
+    ))
+    setAttachments((current) => current.map((item) => (
+      item.conversationId ? item : { ...item, conversationId: nextConversationId }
+    )))
+    drain()
+  }, [drain])
+
   useEffect(() => {
     if (!conversationId) return
     const waitingEntries = pendingRef.current.some((entry) => !entry.conversationId)
@@ -224,7 +235,18 @@ export function useTutorAttachmentQueue({ conversationId, onError, validationTim
   const isBusy = attachments.some((item) => ['UPLOADING', ...PENDING_STATUSES].includes(item.status))
   const reportError = useCallback((error) => onErrorRef.current?.(error), [])
 
-  return { attachments, addFiles, retry, remove, readyIds, isBusy, reportError, failPending, markChatRetry: () => {} }
+  return {
+    attachments,
+    addFiles,
+    resumePending,
+    retry,
+    remove,
+    readyIds,
+    isBusy,
+    reportError,
+    failPending,
+    markChatRetry: () => {},
+  }
 }
 
 export default useTutorAttachmentQueue
