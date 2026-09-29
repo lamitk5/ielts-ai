@@ -59,6 +59,16 @@ describe('ambient golden particles', () => {
     expect(layer.querySelector('.ambient-golden-particle').style.getPropertyValue('--repel-x')).toBe('0px')
   })
 
+  test('uses a visible light-theme particle treatment without capturing clicks', () => {
+    writeGuestPreferences({ themeMode: 'light' })
+    renderParticles()
+
+    const layer = screen.getByTestId('ambient-golden-particles')
+    expect(layer).toHaveAttribute('data-particle-theme', 'light')
+    expect(layer).toHaveStyle({ pointerEvents: 'none' })
+    expect(layer.querySelector('.ambient-golden-particle')).toHaveClass('ambient-golden-particle-light')
+  })
+
   test('is present on both the homepage and auth shell through the shared layout', () => {
     const { unmount } = render(
       <MemoryRouter initialEntries={['/']}>

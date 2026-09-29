@@ -34,6 +34,7 @@ function AmbientGoldenParticles() {
   const frameRef = useRef(null)
   const cancelFrameRef = useRef(null)
   const reducedMotion = preferenceContext?.reducedMotion ?? systemReducedMotion
+  const particleTheme = preferenceContext?.preferences.themeMode === 'light' || document.documentElement.dataset.theme === 'light' ? 'light' : 'dark'
 
   useEffect(() => {
     const motionQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)')
@@ -130,12 +131,13 @@ function AmbientGoldenParticles() {
       data-testid="ambient-golden-particles"
       data-animation-state={reducedMotion ? 'static' : 'animated'}
       data-pointer-mode={reducedMotion ? 'disabled' : pointerMode}
+      data-particle-theme={particleTheme}
       aria-hidden="true"
       style={{ pointerEvents: 'none' }}
     >
       {PARTICLES.map((particle, index) => (
         <span
-          className="ambient-golden-particle"
+          className={`ambient-golden-particle ${particleTheme === 'light' ? 'ambient-golden-particle-light' : ''}`.trim()}
           key={`${particle.left}-${particle.top}`}
           ref={(node) => { particleRefs.current[index] = node }}
           data-repel-target="0,0"
