@@ -22,6 +22,18 @@ const PARTICLES = [
   { left: 57, top: 70, size: 5, opacity: 0.54, blur: 3, delay: '-6s', duration: '25s', driftX: '-9px', driftY: '-10px' },
   { left: 94, top: 82, size: 7, opacity: 0.38, blur: 6, delay: '-20s', duration: '28s', driftX: '-10px', driftY: '6px' },
   { left: 39, top: 96, size: 2, opacity: 0.44, blur: 0, delay: '-17s', duration: '18s', driftX: '7px', driftY: '-8px' },
+  { left: 3, top: 20, size: 2, opacity: 0.32, blur: 0, delay: '-8s', duration: '17s', driftX: '9px', driftY: '8px' },
+  { left: 19, top: 72, size: 3, opacity: 0.3, blur: 1, delay: '-19s', duration: '22s', driftX: '-8px', driftY: '-9px' },
+  { left: 28, top: 40, size: 2, opacity: 0.26, blur: 0, delay: '-5s', duration: '16s', driftX: '11px', driftY: '-7px' },
+  { left: 45, top: 28, size: 4, opacity: 0.22, blur: 2, delay: '-15s', duration: '24s', driftX: '-10px', driftY: '9px' },
+  { left: 63, top: 4, size: 2, opacity: 0.32, blur: 0, delay: '-11s', duration: '19s', driftX: '8px', driftY: '10px' },
+  { left: 73, top: 76, size: 3, opacity: 0.28, blur: 1, delay: '-3s', duration: '20s', driftX: '-9px', driftY: '-8px' },
+  { left: 82, top: 44, size: 2, opacity: 0.3, blur: 0, delay: '-16s', duration: '18s', driftX: '7px', driftY: '9px' },
+  { left: 97, top: 58, size: 3, opacity: 0.24, blur: 2, delay: '-9s', duration: '23s', driftX: '-12px', driftY: '7px' },
+  { left: 4, top: 94, size: 2, opacity: 0.34, blur: 0, delay: '-13s', duration: '17s', driftX: '10px', driftY: '-10px' },
+  { left: 55, top: 93, size: 4, opacity: 0.25, blur: 2, delay: '-7s', duration: '25s', driftX: '-8px', driftY: '8px' },
+  { left: 88, top: 20, size: 2, opacity: 0.3, blur: 0, delay: '-18s', duration: '21s', driftX: '9px', driftY: '-8px' },
+  { left: 36, top: 78, size: 3, opacity: 0.26, blur: 1, delay: '-4s', duration: '19s', driftX: '-7px', driftY: '10px' },
 ]
 
 function AmbientGoldenParticles() {
