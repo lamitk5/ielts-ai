@@ -46,7 +46,10 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
   const initialPathRef = useRef(location?.pathname ?? '/')
   const accountKey = auth?.isAuthenticated ? auth.session?.user?.id ?? 'member' : 'guest'
   const proactiveSuggestionsEnabled = preferenceContext?.preferences.proactiveAiEnabled ?? true
-  const attachmentQueue = useTutorAttachmentQueue({ conversationId })
+  const attachmentQueue = useTutorAttachmentQueue({
+    conversationId,
+    ensureConversation: ensureTutorConversation,
+  })
   const attachment = attachmentQueue.attachments[0] ?? null
 
   useEffect(() => {
@@ -150,13 +153,6 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
     const selectedFiles = Array.from(files || [])
     if (selectedFiles.length === 0) return
     attachmentQueue.addFiles(selectedFiles, conversationId)
-    if (conversationId || !auth?.isAuthenticated) return
-    try {
-      const selectedConversationId = await ensureTutorConversation()
-      attachmentQueue.resumePending(selectedConversationId)
-    } catch (error) {
-      attachmentQueue.failPending(error)
-    }
   }
 
   async function handleAttachmentSelected(file) {
@@ -174,11 +170,6 @@ function FloatingTutor({ context = DEFAULT_CONTEXT }) {
   function handleRetryAttachment() {
     if (!attachment?.localId) return
     attachmentQueue.retry(attachment.localId)
-    if (!conversationId && auth?.isAuthenticated) {
-      ensureTutorConversation()
-        .then((selectedConversationId) => attachmentQueue.resumePending(selectedConversationId))
-        .catch((error) => attachmentQueue.failPending(error))
-    }
   }
 
   function handleOpenTutor() {

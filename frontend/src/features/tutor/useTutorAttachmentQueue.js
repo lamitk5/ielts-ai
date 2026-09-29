@@ -1,12 +1,49 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react'
 import { deleteAttachment, getAttachment, uploadAttachments } from '../../services/tutorAttachmentsApi'
+import { validateAttachmentFile } from './attachmentContract'
 
 const MAX_FILES = 5
+const MAX_CONCURRENT_UPLOADS = 2
 const MAX_PROCESSING_POLLS = 40
 const PROCESSING_POLL_MS = 100
-const PENDING_STATUSES = ['STORED', 'PROCESSING']
 const DEFAULT_VALIDATION_TIMEOUT_MS = 15000
 const VALIDATION_TIMEOUT_ERROR = 'Không thể kiểm tra tệp. Thử lại.'
+const CONVERSATION_REQUIRED_ERROR = 'Cần một cuộc hội thoại để tải tệp.'
+const ACTIVE_STATUSES = new Set(['SELECTED', 'VALIDATING', 'UPLOADING', 'STORED', 'PROCESSING'])
+
+const ALLOWED_TRANSITIONS = Object.freeze({
+  SELECTED: new Set(['VALIDATING', 'FAILED', 'REMOVED']),
+  VALIDATING: new Set(['UPLOADING', 'FAILED', 'REMOVED']),
+  UPLOADING: new Set(['STORED', 'PROCESSING', 'READY', 'FAILED', 'REMOVED']),
+  STORED: new Set(['PROCESSING', 'READY', 'FAILED', 'REMOVED']),
+  PROCESSING: new Set(['READY', 'FAILED', 'REMOVED']),
+  READY: new Set(['REMOVED']),
+  FAILED: new Set(['SELECTED', 'REMOVED']),
+  REMOVED: new Set(),
+})
+
+function canTransition(from, to) {
+  return from === to || ALLOWED_TRANSITIONS[from]?.has(to)
+}
+
+export function attachmentReducer(state, action) {
+  switch (action.type) {
+    case 'ENQUEUE':
+      return [...state, ...action.entries]
+    case 'TRANSITION':
+      return state.map((item) => {
+        if (item.localId !== action.localId || !canTransition(item.status, action.status)) return item
+        return { ...item, ...action.patch, status: action.status }
+      })
+    case 'REMOVE':
+      return state.map((item) => {
+        if (item.localId !== action.localId || !canTransition(item.status, 'REMOVED')) return item
+        return { ...item, status: 'REMOVED' }
+      })
+    default:
+      return state
+  }
+}
 
 function wait(ms, signal) {
   return new Promise((resolve) => {
@@ -26,48 +63,91 @@ function wait(ms, signal) {
   })
 }
 
-export function useTutorAttachmentQueue({ conversationId, onError, validationTimeoutMs = DEFAULT_VALIDATION_TIMEOUT_MS } = {}) {
-  const [attachments, setAttachments] = useState([])
-  const pendingRef = useRef([])
-  const runningRef = useRef(0)
-  const mountedRef = useRef(true)
+function validateWithTimeout(file, validateFile, timeoutMs) {
+  if (timeoutMs <= 0) return Promise.resolve().then(() => validateFile(file))
+  let timer = null
+  return Promise.race([
+    Promise.resolve().then(() => validateFile(file)),
+    new Promise((_, reject) => {
+      timer = window.setTimeout(() => reject(new Error(VALIDATION_TIMEOUT_ERROR)), timeoutMs)
+    }),
+  ]).finally(() => {
+    if (timer) window.clearTimeout(timer)
+  })
+}
+
+function normalizeServerStatus(status) {
+  if (status === 'READY' || status === 'IMAGE_READY') return 'READY'
+  if (status === 'STORED') return 'STORED'
+  return 'PROCESSING'
+}
+
+export function useTutorAttachmentQueue({
+  conversationId,
+  ensureConversation,
+  onError,
+  validateFile = validateAttachmentFile,
+  validationTimeoutMs = DEFAULT_VALIDATION_TIMEOUT_MS,
+} = {}) {
+  const [attachmentState, dispatch] = useReducer(attachmentReducer, [])
+  const attachments = useMemo(
+    () => attachmentState.filter((item) => item.status !== 'REMOVED'),
+    [attachmentState],
+  )
   const attachmentsRef = useRef([])
-  const processingControllersRef = useRef(new Map())
-  const validationTimeoutsRef = useRef(new Map())
+  const mountedRef = useRef(true)
+  const conversationIdRef = useRef(conversationId || null)
+  const ensureConversationRef = useRef(ensureConversation)
   const onErrorRef = useRef(onError)
+  const conversationPromiseRef = useRef(null)
+  const pendingTasksRef = useRef([])
+  const runtimeRef = useRef(new Map())
+  const runningRef = useRef(0)
+
+  const dispatchState = useCallback((action) => {
+    if (!mountedRef.current) return
+    attachmentsRef.current = attachmentReducer(attachmentsRef.current, action)
+    dispatch(action)
+  }, [])
+
   useEffect(() => {
-    attachmentsRef.current = attachments
-  }, [attachments])
+    conversationIdRef.current = conversationId || null
+  }, [conversationId])
+
+  useEffect(() => {
+    ensureConversationRef.current = ensureConversation
+  }, [ensureConversation])
+
   useEffect(() => {
     onErrorRef.current = onError
   }, [onError])
 
-  const updateAttachment = useCallback((localId, patch) => {
-    if (!mountedRef.current) return
-    setAttachments((current) => current.map((item) => (
-      item.localId === localId ? { ...item, ...patch } : item
-    )))
-  }, [])
+  const transitionAttachment = useCallback((localId, status, patch = {}) => {
+    const current = attachmentsRef.current.find((item) => item.localId === localId)
+    if (!current || !canTransition(current.status, status)) return false
+    dispatchState({ type: 'TRANSITION', localId, status, patch })
+    return true
+  }, [dispatchState])
 
-  const clearValidationTimeout = useCallback((localId) => {
-    const timeoutId = validationTimeoutsRef.current.get(localId)
-    if (timeoutId) window.clearTimeout(timeoutId)
-    validationTimeoutsRef.current.delete(localId)
-  }, [])
+  const ensureQueueConversation = useCallback(() => {
+    if (conversationIdRef.current) return Promise.resolve(conversationIdRef.current)
+    if (conversationPromiseRef.current) return conversationPromiseRef.current
 
-  const scheduleValidationTimeout = useCallback((entry) => {
-    if (entry.conversationId || validationTimeoutMs <= 0) return
-    clearValidationTimeout(entry.localId)
-    const timeoutId = window.setTimeout(() => {
-      validationTimeoutsRef.current.delete(entry.localId)
-      const pendingIndex = pendingRef.current.findIndex((pending) => pending.localId === entry.localId)
-      if (pendingIndex < 0 || !mountedRef.current) return
-      pendingRef.current.splice(pendingIndex, 1)
-      updateAttachment(entry.localId, { status: 'FAILED', errorMessage: VALIDATION_TIMEOUT_ERROR })
-      onErrorRef.current?.({ code: 'ATTACHMENT_VALIDATION_TIMEOUT', message: VALIDATION_TIMEOUT_ERROR })
-    }, validationTimeoutMs)
-    validationTimeoutsRef.current.set(entry.localId, timeoutId)
-  }, [clearValidationTimeout, updateAttachment, validationTimeoutMs])
+    const creator = ensureConversationRef.current
+    if (typeof creator !== 'function') return Promise.resolve(null)
+
+    conversationPromiseRef.current = Promise.resolve()
+      .then(() => creator())
+      .then((id) => {
+        if (id) conversationIdRef.current = id
+        return id || null
+      })
+      .finally(() => {
+        conversationPromiseRef.current = null
+      })
+
+    return conversationPromiseRef.current
+  }, [])
 
   const pollUntilReady = useCallback(async (localId, id, signal) => {
     for (let attempt = 0; attempt < MAX_PROCESSING_POLLS; attempt += 1) {
@@ -78,87 +158,110 @@ export function useTutorAttachmentQueue({ conversationId, onError, validationTim
       if (current?.status === 'FAILED' || current?.status === 'EXPIRED') {
         throw new Error(current.errorMessage || 'Tệp đính kèm không thể xử lý.')
       }
-      updateAttachment(localId, { status: current?.status || 'PROCESSING' })
+      const nextStatus = current?.status === 'STORED' ? 'STORED' : 'PROCESSING'
+      transitionAttachment(localId, nextStatus, { ...current, id })
       if (!(await wait(PROCESSING_POLL_MS, signal)) || signal.aborted) return null
     }
     throw new Error('Tệp đính kèm xử lý quá lâu. Vui lòng thử lại.')
-  }, [updateAttachment])
+  }, [transitionAttachment])
 
-  const processEntry = useCallback(async (entry) => {
-    clearValidationTimeout(entry.localId)
-    const controller = new AbortController()
-    processingControllersRef.current.set(entry.localId, controller)
-    updateAttachment(entry.localId, { status: 'UPLOADING' })
+  async function processEntry(localId) {
+    const runtime = runtimeRef.current.get(localId)
+    const entry = attachmentsRef.current.find((item) => item.localId === localId)
+    if (!runtime || !entry || runtime.removed || !mountedRef.current) return
+
+    transitionAttachment(localId, 'VALIDATING')
+    let validation
     try {
-      const result = await uploadAttachments([entry.file], entry.conversationId || conversationId, { signal: controller.signal })
-      const uploaded = result?.[0]
-      if (!uploaded?.id) throw new Error('Tải tệp không trả về mã hợp lệ.')
-      updateAttachment(entry.localId, { ...uploaded, id: uploaded.id, status: uploaded.status || 'READY' })
-      const finalRecord = PENDING_STATUSES.includes(uploaded.status)
-        ? await pollUntilReady(entry.localId, uploaded.id, controller.signal)
-        : uploaded
-      if (!finalRecord || controller.signal.aborted) return
-      updateAttachment(entry.localId, { ...finalRecord, id: uploaded.id, file: entry.file, previewUrl: entry.previewUrl })
+      validation = await validateWithTimeout(entry.file, validateFile, validationTimeoutMs)
     } catch (error) {
-      if (controller.signal.aborted) return
-      updateAttachment(entry.localId, {
-        status: 'FAILED',
-        errorMessage: error?.message || 'Tải tệp đính kèm thất bại.',
-      })
-      onErrorRef.current?.(error)
-    } finally {
-      processingControllersRef.current.delete(entry.localId)
+      if (!runtime.removed && mountedRef.current) {
+        transitionAttachment(localId, 'FAILED', { errorMessage: error?.message || VALIDATION_TIMEOUT_ERROR })
+        onErrorRef.current?.({ code: 'ATTACHMENT_VALIDATION_TIMEOUT', message: error?.message || VALIDATION_TIMEOUT_ERROR })
+      }
+      return
     }
-  }, [clearValidationTimeout, conversationId, pollUntilReady, updateAttachment])
 
-  const drain = useCallback(() => {
-    function runQueue() {
-      while (runningRef.current < 2 && pendingRef.current.length > 0) {
-        const nextIndex = pendingRef.current.findIndex((entry) => entry.conversationId || conversationId)
-        if (nextIndex < 0) return
-        const [entry] = pendingRef.current.splice(nextIndex, 1)
-        runningRef.current += 1
-        processEntry(entry).finally(() => {
-          runningRef.current -= 1
-          runQueue()
-        })
+    if (runtime.removed || !mountedRef.current) return
+    if (!validation?.valid) {
+      transitionAttachment(localId, 'FAILED', { errorMessage: validation?.error?.message || 'Định dạng tệp không được hỗ trợ.' })
+      onErrorRef.current?.(validation?.error)
+      return
+    }
+
+    let targetConversationId = entry.conversationId || conversationIdRef.current
+    if (!targetConversationId) {
+      try {
+        targetConversationId = await ensureQueueConversation()
+      } catch (error) {
+        if (!runtime.removed && mountedRef.current) {
+          transitionAttachment(localId, 'FAILED', { errorMessage: error?.message || 'Không thể tạo cuộc hội thoại.' })
+          onErrorRef.current?.(error)
+        }
+        return
       }
     }
-    runQueue()
-  }, [conversationId, processEntry])
 
-  const resumePending = useCallback((nextConversationId) => {
-    if (!nextConversationId) return
-    pendingRef.current = pendingRef.current.map((entry) => (
-      entry.conversationId ? entry : { ...entry, conversationId: nextConversationId }
-    ))
-    setAttachments((current) => current.map((item) => (
-      item.conversationId ? item : { ...item, conversationId: nextConversationId }
-    )))
-    drain()
-  }, [drain])
-
-  useEffect(() => {
-    if (!conversationId) return
-    const waitingEntries = pendingRef.current.some((entry) => !entry.conversationId)
-    if (waitingEntries) {
-      pendingRef.current = pendingRef.current.map((entry) => (
-        entry.conversationId ? entry : { ...entry, conversationId }
-      ))
-      setAttachments((current) => current.map((item) => (
-        item.conversationId ? item : { ...item, conversationId }
-      )))
+    if (runtime.removed || !mountedRef.current) return
+    if (!targetConversationId) {
+      transitionAttachment(localId, 'FAILED', { errorMessage: CONVERSATION_REQUIRED_ERROR })
+      onErrorRef.current?.({ code: 'ATTACHMENT_CONVERSATION_REQUIRED', message: CONVERSATION_REQUIRED_ERROR })
+      return
     }
-    drain()
-  }, [conversationId, drain])
 
-  const addFiles = useCallback((files, conversationIdOverride = null) => {
+    transitionAttachment(localId, 'UPLOADING', { conversationId: targetConversationId })
+    try {
+      const result = await uploadAttachments([entry.file], targetConversationId, { signal: runtime.controller.signal })
+      const uploaded = result?.[0]
+      if (!uploaded?.id) throw new Error('Tải tệp không trả về mã hợp lệ.')
+      const uploadedStatus = normalizeServerStatus(uploaded.status)
+      transitionAttachment(localId, uploadedStatus, {
+        ...uploaded,
+        id: uploaded.id,
+        conversationId: targetConversationId,
+        serverStatus: uploaded.status,
+      })
+      const finalRecord = uploadedStatus === 'STORED' || uploadedStatus === 'PROCESSING'
+        ? await pollUntilReady(localId, uploaded.id, runtime.controller.signal)
+        : uploaded
+      if (!finalRecord || runtime.controller.signal.aborted || runtime.removed) return
+      transitionAttachment(localId, 'READY', {
+        ...finalRecord,
+        id: uploaded.id,
+        file: entry.file,
+        previewUrl: entry.previewUrl,
+        serverStatus: finalRecord.status,
+      })
+    } catch (error) {
+      if (runtime.controller.signal.aborted || runtime.removed || !mountedRef.current) return
+      transitionAttachment(localId, 'FAILED', { errorMessage: error?.message || 'Tải tệp đính kèm thất bại.' })
+      onErrorRef.current?.(error)
+    }
+  }
+
+  function drainQueue() {
+    while (runningRef.current < MAX_CONCURRENT_UPLOADS && pendingTasksRef.current.length > 0) {
+      const localId = pendingTasksRef.current.shift()
+      const runtime = runtimeRef.current.get(localId)
+      if (!runtime || runtime.removed) continue
+      runningRef.current += 1
+      runtime.task = processEntry(localId).finally(() => {
+        runningRef.current -= 1
+        runtimeRef.current.delete(localId)
+        drainQueue()
+      })
+    }
+  }
+
+  function addFiles(files, conversationIdOverride = null) {
     const selected = Array.from(files || [])
     if (selected.length === 0) return
-    if (attachments.length + selected.length > MAX_FILES) {
+    const activeCount = attachmentsRef.current.filter((item) => ACTIVE_STATUSES.has(item.status)).length
+    if (activeCount + selected.length > MAX_FILES) {
       onErrorRef.current?.({ code: 'ATTACHMENT_LIMIT_EXCEEDED', message: 'Chỉ được đính kèm tối đa 5 tệp.' })
       return
     }
+
     const entries = selected.map((file, index) => {
       let previewUrl = null
       if (file.type?.startsWith('image/') && typeof URL.createObjectURL === 'function') {
@@ -170,75 +273,81 @@ export function useTutorAttachmentQueue({ conversationId, onError, validationTim
         filename: file.name,
         sizeBytes: file.size,
         status: 'SELECTED',
-        conversationId: conversationIdOverride || conversationId,
+        conversationId: conversationIdOverride || conversationIdRef.current || null,
         file,
         previewUrl,
       }
     })
-    setAttachments((current) => [...current, ...entries])
-    pendingRef.current.push(...entries)
-    entries.forEach(scheduleValidationTimeout)
-    drain()
-  }, [attachments.length, conversationId, drain, scheduleValidationTimeout])
 
-  const retry = useCallback((localId) => {
-    const entry = attachments.find((item) => item.localId === localId)
+    dispatchState({ type: 'ENQUEUE', entries })
+    entries.forEach((entry) => {
+      runtimeRef.current.set(entry.localId, {
+        controller: new AbortController(),
+        removed: false,
+        task: null,
+      })
+      pendingTasksRef.current.push(entry.localId)
+    })
+    drainQueue()
+  }
+
+  function retry(localId) {
+    const entry = attachmentsRef.current.find((item) => item.localId === localId)
     if (!entry || entry.status !== 'FAILED') return
-    const retryEntry = { ...entry, status: 'SELECTED', conversationId: entry.conversationId || conversationId }
-    pendingRef.current.push(retryEntry)
-    setAttachments((current) => current.map((item) => item.localId === localId
-      ? { ...item, status: 'UPLOADING', errorMessage: null }
-      : item))
-    scheduleValidationTimeout(retryEntry)
-    drain()
-  }, [attachments, conversationId, drain, scheduleValidationTimeout])
+    dispatchState({ type: 'TRANSITION', localId, status: 'SELECTED', patch: { errorMessage: null } })
+    runtimeRef.current.set(localId, { controller: new AbortController(), removed: false, task: null })
+    pendingTasksRef.current.push(localId)
+    drainQueue()
+  }
 
-  const failPending = useCallback((error) => {
-    const pendingIds = new Set(pendingRef.current.map((entry) => entry.localId))
-    pendingRef.current = []
-    pendingIds.forEach(clearValidationTimeout)
-    if (pendingIds.size > 0) {
-      setAttachments((current) => current.map((item) => pendingIds.has(item.localId)
-        ? { ...item, status: 'FAILED', errorMessage: error?.message || 'Không thể tạo cuộc hội thoại.' }
-        : item))
-    }
+  function failPending(error) {
+    const message = error?.message || 'Không thể tạo cuộc hội thoại.'
+    runtimeRef.current.forEach((runtime, localId) => {
+      const current = attachmentsRef.current.find((item) => item.localId === localId)
+      if (current && ACTIVE_STATUSES.has(current.status)) {
+        runtime.controller.abort()
+        runtime.removed = true
+        transitionAttachment(localId, 'FAILED', { errorMessage: message })
+      }
+    })
+    pendingTasksRef.current = []
     onErrorRef.current?.(error)
-  }, [clearValidationTimeout])
+  }
 
   const remove = useCallback((localId) => {
-    const entry = attachments.find((item) => item.localId === localId)
+    const entry = attachmentsRef.current.find((item) => item.localId === localId)
     if (!entry) return
-    pendingRef.current = pendingRef.current.filter((item) => item.localId !== localId)
-    clearValidationTimeout(localId)
-    processingControllersRef.current.get(localId)?.abort()
-    processingControllersRef.current.delete(localId)
+    const runtime = runtimeRef.current.get(localId)
+    if (runtime) {
+      runtime.removed = true
+      runtime.controller.abort()
+      runtimeRef.current.delete(localId)
+    }
+    pendingTasksRef.current = pendingTasksRef.current.filter((id) => id !== localId)
     if (entry.previewUrl && typeof URL.revokeObjectURL === 'function') URL.revokeObjectURL(entry.previewUrl)
-    setAttachments((current) => current.filter((item) => item.localId !== localId))
+    dispatchState({ type: 'REMOVE', localId })
     if (entry.id && !String(entry.id).startsWith('att-temp-')) Promise.resolve(deleteAttachment(entry.id)).catch(() => {})
-  }, [attachments, clearValidationTimeout])
+  }, [dispatchState])
 
   useEffect(() => () => {
     mountedRef.current = false
-    pendingRef.current = []
-    validationTimeoutsRef.current.forEach((timeoutId) => window.clearTimeout(timeoutId))
-    validationTimeoutsRef.current.clear()
-    processingControllersRef.current.forEach((controller) => controller.abort())
-    processingControllersRef.current.clear()
+    pendingTasksRef.current = []
+    runtimeRef.current.forEach((runtime) => runtime.controller.abort())
+    runtimeRef.current.clear()
     attachmentsRef.current.forEach((entry) => {
       if (entry.previewUrl && typeof URL.revokeObjectURL === 'function') URL.revokeObjectURL(entry.previewUrl)
     })
   }, [])
 
   const readyIds = useMemo(() => attachments
-    .filter((item) => (item.status === 'READY' || item.status === 'IMAGE_READY') && item.id)
+    .filter((item) => item.status === 'READY' && item.id)
     .map((item) => item.id), [attachments])
-  const isBusy = attachments.some((item) => ['UPLOADING', ...PENDING_STATUSES].includes(item.status))
+  const isBusy = attachments.some((item) => ['VALIDATING', 'UPLOADING', 'STORED', 'PROCESSING'].includes(item.status))
   const reportError = useCallback((error) => onErrorRef.current?.(error), [])
 
   return {
     attachments,
     addFiles,
-    resumePending,
     retry,
     remove,
     readyIds,

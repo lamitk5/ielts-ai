@@ -1,7 +1,7 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { StrictMode } from 'react'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
-import { useTutorAttachmentQueue } from '../features/tutor/useTutorAttachmentQueue'
+import { attachmentReducer, useTutorAttachmentQueue } from '../features/tutor/useTutorAttachmentQueue'
 import * as api from '../services/tutorAttachmentsApi'
 
 vi.mock('../services/tutorAttachmentsApi', () => ({
@@ -21,37 +21,37 @@ function realisticDocx(name = 'Câu 1.docx', type = 'application/vnd.openxmlform
 describe('bounded Tutor attachment queue', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  test('rendersSelectedFileBeforeConversationCreationAndStartsWhenConversationIsReady', async () => {
+  test('rendersSelectedFileBeforeConversationCreationAndStartsWithoutAConversationRerender', async () => {
+    const ensureConversation = vi.fn().mockResolvedValue('c1')
     api.uploadAttachments.mockResolvedValue([{ id: 'a-pending', filename: 'a.txt', status: 'READY', sizeBytes: 1 }])
     const { result, rerender } = renderHook(
-      ({ conversationId }) => useTutorAttachmentQueue({ conversationId }),
+      ({ conversationId }) => useTutorAttachmentQueue({ conversationId, ensureConversation }),
       { initialProps: { conversationId: null } },
     )
 
     act(() => result.current.addFiles([file('a.txt')]))
 
-    expect(result.current.attachments[0]).toMatchObject({ filename: 'a.txt', status: 'SELECTED' })
+    expect(result.current.attachments[0]).toMatchObject({ filename: 'a.txt', status: 'VALIDATING' })
     expect(api.uploadAttachments).not.toHaveBeenCalled()
 
-    rerender({ conversationId: 'c1' })
     await waitFor(() => expect(result.current.readyIds).toEqual(['a-pending']))
+    expect(ensureConversation).toHaveBeenCalledTimes(1)
+    rerender({ conversationId: 'c1' })
   })
 
-  test('resumes every pending file when conversation creation returns an id', async () => {
+  test('starts every pending file when conversation creation returns an id', async () => {
+    const ensureConversation = vi.fn().mockResolvedValue('conversation-created')
     api.uploadAttachments.mockImplementation(async ([selected]) => ([{
       id: `${selected.name}-ready`,
       filename: selected.name,
       status: 'READY',
       sizeBytes: selected.size,
     }]))
-    const { result } = renderHook(() => useTutorAttachmentQueue({ conversationId: null }))
+    const { result } = renderHook(() => useTutorAttachmentQueue({ conversationId: null, ensureConversation }))
 
     act(() => result.current.addFiles([file('notes.docx'), new File(['image'], 'study.jpg', { type: 'image/jpeg' })]))
 
-    expect(result.current.attachments.map((item) => item.status)).toEqual(['SELECTED', 'SELECTED'])
-    act(() => result.current.resumePending('conversation-created'))
-
-    await waitFor(() => expect(api.uploadAttachments).toHaveBeenCalledTimes(2))
+    expect(result.current.attachments.map((item) => item.status)).toEqual(['VALIDATING', 'VALIDATING'])
     await waitFor(() => expect(result.current.attachments.every((item) => item.status === 'READY')).toBe(true))
     expect(api.uploadAttachments).toHaveBeenNthCalledWith(
       1,
@@ -59,6 +59,59 @@ describe('bounded Tutor attachment queue', () => {
       'conversation-created',
       expect.any(Object),
     )
+  })
+
+  test('runs the upload pipeline without waiting for a conversation prop rerender', async () => {
+    const ensureConversation = vi.fn().mockResolvedValue('conversation-pipeline')
+    api.uploadAttachments.mockResolvedValue([{ id: 'pipeline-ready', filename: 'pipeline.docx', status: 'READY', sizeBytes: 1024 }])
+    const { result } = renderHook(() => useTutorAttachmentQueue({ conversationId: null, ensureConversation }))
+
+    act(() => result.current.addFiles([realisticDocx('pipeline.docx')]))
+
+    await waitFor(() => expect(ensureConversation).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(result.current.readyIds).toEqual(['pipeline-ready']))
+    expect(api.uploadAttachments).toHaveBeenCalledWith(
+      [expect.objectContaining({ name: 'pipeline.docx' })],
+      'conversation-pipeline',
+      expect.any(Object),
+    )
+  })
+
+  test('uses one conversation promise for five files selected together', async () => {
+    const ensureConversation = vi.fn().mockResolvedValue('conversation-five')
+    api.uploadAttachments.mockImplementation(async ([selected]) => ([{
+      id: `${selected.name}-ready`,
+      filename: selected.name,
+      status: 'READY',
+      sizeBytes: selected.size,
+    }]))
+    const { result } = renderHook(() => useTutorAttachmentQueue({ conversationId: null, ensureConversation }))
+
+    act(() => result.current.addFiles(['a.txt', 'b.txt', 'c.txt', 'd.txt', 'e.txt'].map(file)))
+
+    await waitFor(() => expect(api.uploadAttachments).toHaveBeenCalledTimes(5))
+    await waitFor(() => expect(result.current.attachments.every((item) => item.status === 'READY')).toBe(true))
+    expect(ensureConversation).toHaveBeenCalledTimes(1)
+    expect(api.uploadAttachments.mock.calls.every((call) => call[1] === 'conversation-five')).toBe(true)
+  })
+
+  test('does not lose the pipeline when React rerenders during conversation creation', async () => {
+    let resolveConversation
+    const ensureConversation = vi.fn(() => new Promise((resolve) => { resolveConversation = resolve }))
+    api.uploadAttachments.mockResolvedValue([{ id: 'rerender-ready', filename: 'rerender.txt', status: 'READY', sizeBytes: 1 }])
+    const { result, rerender } = renderHook(({ marker }) => useTutorAttachmentQueue({
+      conversationId: null,
+      ensureConversation,
+      marker,
+    }), { initialProps: { marker: 0 } })
+
+    act(() => result.current.addFiles([file('rerender.txt')]))
+    await waitFor(() => expect(ensureConversation).toHaveBeenCalledTimes(1))
+    rerender({ marker: 1 })
+    resolveConversation('conversation-rerender')
+
+    await waitFor(() => expect(result.current.readyIds).toEqual(['rerender-ready']))
+    expect(ensureConversation).toHaveBeenCalledTimes(1)
   })
 
   test('uploads a realistic oneMiBDocx after validation prerequisite becomes available', async () => {
@@ -92,10 +145,15 @@ describe('bounded Tutor attachment queue', () => {
   test('fails a selected file when the validation prerequisite never resolves', async () => {
     vi.useFakeTimers()
     try {
-      const { result } = renderHook(() => useTutorAttachmentQueue({ conversationId: null, validationTimeoutMs: 100 }))
+      const hungValidation = vi.fn(() => new Promise(() => {}))
+      const { result } = renderHook(() => useTutorAttachmentQueue({
+        conversationId: 'c1',
+        validateFile: hungValidation,
+        validationTimeoutMs: 100,
+      }))
 
       act(() => result.current.addFiles([realisticDocx()]))
-      expect(result.current.attachments[0].status).toBe('SELECTED')
+      expect(result.current.attachments[0].status).toBe('VALIDATING')
 
       await act(async () => { await vi.advanceTimersByTimeAsync(100) })
 
@@ -153,6 +211,47 @@ describe('bounded Tutor attachment queue', () => {
     const first = result.current.attachments[0].localId
     act(() => result.current.remove(first))
     expect(result.current.attachments).toHaveLength(1)
+  })
+
+  test('aborts only the removed attachment task', async () => {
+    const pending = new Map()
+    api.uploadAttachments.mockImplementation(async ([selected], _conversationId, options) => new Promise((resolve) => {
+      pending.set(selected.name, { resolve, signal: options.signal })
+    }))
+    const { result } = renderHook(() => useTutorAttachmentQueue({ conversationId: 'c1' }))
+
+    act(() => result.current.addFiles(['a.txt', 'b.txt', 'c.txt', 'd.txt'].map(file)))
+    await waitFor(() => expect(api.uploadAttachments).toHaveBeenCalledTimes(2))
+
+    const removed = result.current.attachments.find((item) => item.filename === 'a.txt')
+    act(() => result.current.remove(removed.localId))
+
+    expect(pending.get('a.txt').signal.aborted).toBe(true)
+    expect(pending.get('b.txt').signal.aborted).toBe(false)
+  })
+
+  test('ignores a late upload completion after removal', async () => {
+    let resolveUpload
+    api.uploadAttachments.mockImplementation(() => new Promise((resolve) => { resolveUpload = resolve }))
+    const { result } = renderHook(() => useTutorAttachmentQueue({ conversationId: 'c1' }))
+
+    act(() => result.current.addFiles([file('late.txt')]))
+    await waitFor(() => expect(api.uploadAttachments).toHaveBeenCalledTimes(1))
+    const localId = result.current.attachments[0].localId
+    act(() => result.current.remove(localId))
+    resolveUpload([{ id: 'late-ready', filename: 'late.txt', status: 'READY', sizeBytes: 1 }])
+    await waitFor(() => expect(result.current.attachments).toHaveLength(0))
+    expect(result.current.readyIds).toEqual([])
+  })
+
+  test('does not allow a stale transition to overwrite READY', () => {
+    const ready = [{ localId: 'ready-1', status: 'READY', filename: 'ready.txt' }]
+    const next = attachmentReducer(ready, {
+      type: 'TRANSITION',
+      localId: 'ready-1',
+      status: 'UPLOADING',
+    })
+    expect(next).toEqual(ready)
   })
 
   test('reselectsTheSameFileAfterRemoval', async () => {

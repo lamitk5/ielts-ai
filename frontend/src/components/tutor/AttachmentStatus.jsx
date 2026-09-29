@@ -11,6 +11,7 @@ function formatFileSize(bytes) {
 
 const STATUS_LABELS = {
   SELECTED: 'Đang kiểm tra...',
+  VALIDATING: 'Đang kiểm tra...',
   UPLOADING: 'Đang tải lên...',
   UPLOADED: 'Đã tải lên',
   STORED: 'Đang đọc nội dung...',
