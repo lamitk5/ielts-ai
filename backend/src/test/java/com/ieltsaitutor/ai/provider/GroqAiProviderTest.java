@@ -19,6 +19,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -89,6 +90,85 @@ class GroqAiProviderTest {
     }
 
     @Test
+    void retriesRateLimitAfterProviderDelayAndStopsAfterBoundedAttempts() {
+        AtomicInteger attempts = new AtomicInteger();
+        AtomicReference<Duration> delay = new AtomicReference<>();
+        server.createContext("/openai/v1/chat/completions", exchange -> {
+            if (attempts.getAndIncrement() == 0) {
+                exchange.getResponseHeaders().set("Retry-After", "1");
+                respond(exchange, 429, "rate limited");
+            } else {
+                respond(exchange, 200, "{\"choices\":[{\"message\":{\"content\":\"recovered\"}}]}");
+            }
+        });
+        server.start();
+        provider = new GroqAiProvider(WebClient.builder().build(), configuredProperties(), new ObjectMapper(), delay::set);
+
+        assertThat(provider.chat(command()).answer()).isEqualTo("recovered");
+        assertThat(attempts).hasValue(2);
+        assertThat(delay.get()).isEqualTo(Duration.ofSeconds(1));
+    }
+
+    @Test
+    void doesNotImmediatelyResendWhenTokenBudgetIsExhausted() {
+        AtomicInteger attempts = new AtomicInteger();
+        server.createContext("/openai/v1/chat/completions", exchange -> {
+            attempts.incrementAndGet();
+            exchange.getResponseHeaders().set("Retry-After", "1");
+            exchange.getResponseHeaders().set("x-ratelimit-remaining-tokens", "0");
+            respond(exchange, 429, "token budget exhausted");
+        });
+        server.start();
+
+        assertThatThrownBy(() -> provider.chat(command()))
+                .isInstanceOf(AiProviderException.class)
+                .satisfies(exception -> assertThat(((AiProviderException) exception).code()).isEqualTo("AI_RATE_LIMITED"));
+        assertThat(attempts).hasValue(1);
+    }
+
+    @Test
+    void prefersShortestProviderResetWindowWhenRetryAfterIsAbsent() {
+        AtomicReference<Duration> delay = new AtomicReference<>();
+        server.createContext("/openai/v1/chat/completions", exchange -> {
+            exchange.getResponseHeaders().set("x-ratelimit-reset-requests", "1m26.4s");
+            exchange.getResponseHeaders().set("x-ratelimit-reset-tokens", "1.095s");
+            respond(exchange, 429, "rate limited");
+        });
+        server.start();
+        provider = new GroqAiProvider(WebClient.builder().build(), configuredProperties(), new ObjectMapper(), delay::set);
+
+        assertThatThrownBy(() -> provider.chat(command())).isInstanceOf(AiProviderException.class);
+        assertThat(delay.get()).isEqualTo(Duration.ofMillis(1_095));
+    }
+
+    @Test
+    void boundsAndDeduplicatesHistoryBeforeProviderCall() {
+        server.createContext("/openai/v1/chat/completions", exchange -> respond(exchange, 200,
+                "{\"choices\":[{\"message\":{\"content\":\"bounded\"}}]}"));
+        server.start();
+        List<com.ieltsaitutor.ai.dto.ChatHistoryItem> history = List.of(
+                new com.ieltsaitutor.ai.dto.ChatHistoryItem("USER", "duplicate"),
+                new com.ieltsaitutor.ai.dto.ChatHistoryItem("USER", "duplicate"),
+                new com.ieltsaitutor.ai.dto.ChatHistoryItem("ASSISTANT", "x".repeat(5_000)),
+                new com.ieltsaitutor.ai.dto.ChatHistoryItem("USER", "latest"));
+
+        provider.chat(new AiChatCommand("Explain", null, history));
+
+        assertThat(body.get()).contains("latest");
+        assertThat(body.get()).doesNotContain("x".repeat(5_000));
+        assertThat(countOccurrences(body.get(), "\"content\":\"duplicate\"")).isEqualTo(1);
+    }
+
+    private AiProviderProperties configuredProperties() {
+        AiProviderProperties properties = new AiProviderProperties();
+        properties.getGroq().setApiKey("groq-test-key");
+        properties.getGroq().setChatModel("groq-test-model");
+        properties.getGroq().setBaseUrl("http://localhost:" + server.getAddress().getPort() + "/openai/v1");
+        properties.getGroq().setResponseTimeout(Duration.ofMillis(300));
+        return properties;
+    }
+
+    @Test
     void rejectsMalformedResponseSafely() {
         server.createContext("/openai/v1/chat/completions", exchange -> respond(exchange, 200, "{\"choices\":[]}"));
         server.start();
@@ -120,5 +200,15 @@ class GroqAiProviderTest {
         byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
         exchange.sendResponseHeaders(status, bytes.length);
         try (var output = exchange.getResponseBody()) { output.write(bytes); }
+    }
+
+    private int countOccurrences(String value, String needle) {
+        int count = 0;
+        int index = 0;
+        while ((index = value.indexOf(needle, index)) >= 0) {
+            count++;
+            index += needle.length();
+        }
+        return count;
     }
 }

@@ -45,6 +45,19 @@ class TutorAttachmentSummaryServiceTest {
         assertThat(representation.tokenEstimate()).isLessThanOrEqualTo(30);
     }
 
+    @Test
+    void focusedSummaryDeduplicatesRepeatedChunkContent() {
+        UUID id = UUID.randomUUID();
+        TutorAttachmentSummaryService service = new TutorAttachmentSummaryService(attachmentId -> List.of(
+                chunk(id, 0, "SECRET_CODE=LUMEN-TXT-92841"),
+                chunk(id, 1, "SECRET_CODE=LUMEN-TXT-92841"),
+                chunk(id, 2, "unique supporting context")));
+
+        AttachmentRepresentation representation = service.summarizeRelevantDocument(id, "Which secret code?", 100);
+
+        assertThat(representation.text()).containsOnlyOnce("SECRET_CODE=LUMEN-TXT-92841");
+    }
+
     private static RetrievedAttachmentChunk chunk(UUID id, int index, String content) {
         return new RetrievedAttachmentChunk(id, "file.txt", null, null, index, content, .8, null);
     }

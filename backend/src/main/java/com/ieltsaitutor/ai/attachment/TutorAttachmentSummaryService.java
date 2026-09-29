@@ -93,8 +93,13 @@ public class TutorAttachmentSummaryService {
     }
 
     private List<RetrievedAttachmentChunk> chunksFor(UUID attachmentId) {
+        Set<String> seenContent = new HashSet<>();
         return java.util.Optional.ofNullable(chunkSource.apply(attachmentId)).orElseGet(List::of).stream()
-                .sorted(Comparator.comparingInt(RetrievedAttachmentChunk::chunkIndex)).toList();
+                .sorted(Comparator.comparingInt(RetrievedAttachmentChunk::chunkIndex))
+                .filter(chunk -> chunk.content() != null
+                        && !chunk.content().isBlank()
+                        && seenContent.add(chunk.content().trim()))
+                .toList();
     }
 
     private int estimateTokens(String text) {
