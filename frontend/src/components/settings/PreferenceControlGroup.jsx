@@ -28,6 +28,24 @@ const cursorStyles = [
   ['pixel-scholar', 'cursorPixelScholar', 'Pixel Scholar'],
 ]
 
+const cursorSizes = [
+  ['small', 'cursorSmall', 'Nhỏ'],
+  ['medium', 'cursorMedium', 'Vừa'],
+  ['large', 'cursorLarge', 'Lớn'],
+]
+
+const cursorColors = [
+  ['accent', 'cursorAccent', 'Theo màu nhấn', 'var(--accent)'],
+  ['champagne', 'cursorChampagne', 'Champagne Gold', '#e5c982'],
+  ['ivory', 'cursorIvory', 'Ivory', '#f5f7fa'],
+  ['sapphire', 'cursorSapphire', 'Sapphire', '#9cc4ee'],
+  ['emerald', 'cursorEmerald', 'Emerald', '#8ed9bc'],
+  ['burgundy', 'cursorBurgundy', 'Burgundy', '#e6a3b4'],
+  ['violet', 'cursorViolet', 'Violet', '#c9b2ee'],
+]
+
+const cursorPreviewScales = { small: '0.8', medium: '1', large: '1.25' }
+
 function SelectField({ label, value, options, onChange, numeric = false, translate }) {
   return (
     <label className="settings-field">
@@ -88,11 +106,52 @@ function PreferenceControlGroup({ preferences, updatePreference }) {
                 aria-label={translate(labelKey, fallback)}
                 onClick={() => updatePreference('cursorStyle', value)}
               >
-                <span className={`settings-cursor-preview settings-cursor-preview-${value}`} aria-hidden="true" />
+                <span
+                  className={`settings-cursor-preview settings-cursor-preview-${value}`}
+                  style={{
+                    '--cursor-preview-scale': cursorPreviewScales[preferences.cursorSize],
+                    '--cursor-preview-color': cursorColors.find(([color]) => color === preferences.cursorColor)?.[3],
+                  }}
+                  aria-hidden="true"
+                />
                 <span>{translate(labelKey, fallback)}</span>
                 {preferences.cursorStyle === value ? <span className="settings-cursor-check" aria-hidden="true">✓</span> : null}
               </button>
             ))}
+          </div>
+          <div className="settings-cursor-subgroup">
+            <span className="settings-field-label">{translate('cursorSize', 'Kích thước con trỏ')}</span>
+            <div className="settings-cursor-size-options" aria-label={translate('cursorSize', 'Kích thước con trỏ')}>
+              {cursorSizes.map(([value, labelKey, fallback]) => (
+                <button
+                  type="button"
+                  key={value}
+                  className={`settings-cursor-size-option ${preferences.cursorSize === value ? 'settings-cursor-size-option-active' : ''}`.trim()}
+                  aria-pressed={preferences.cursorSize === value}
+                  onClick={() => updatePreference('cursorSize', value)}
+                >
+                  {translate(labelKey, fallback)}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="settings-cursor-subgroup">
+            <span className="settings-field-label">{translate('cursorColor', 'Màu con trỏ')}</span>
+            <div className="settings-cursor-color-options" aria-label={translate('cursorColorOptions', 'Các màu con trỏ')}>
+              {cursorColors.map(([value, labelKey, fallback, color]) => (
+                <button
+                  type="button"
+                  key={value}
+                  className={`settings-cursor-color-option ${preferences.cursorColor === value ? 'settings-cursor-color-option-active' : ''}`.trim()}
+                  aria-label={translate(labelKey, fallback)}
+                  aria-pressed={preferences.cursorColor === value}
+                  onClick={() => updatePreference('cursorColor', value)}
+                >
+                  <span className="settings-cursor-color-swatch" style={{ '--cursor-swatch-color': color }} aria-hidden="true" />
+                  <span className="sr-only">{translate(labelKey, fallback)}</span>
+                </button>
+              ))}
+            </div>
           </div>
           <label className="settings-switch">
             <span>{translate('cursorEffects', 'Hiệu ứng con trỏ')}</span>

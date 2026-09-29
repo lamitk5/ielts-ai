@@ -11,5 +11,7 @@ export const DEFAULT_PREFERENCES = Object.freeze({
   readingSplitRatio: 40,
   writingSplitRatio: 40,
   cursorStyle: 'default',
+  cursorSize: 'medium',
+  cursorColor: 'accent',
   cursorEffects: true,
 })

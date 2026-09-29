@@ -3,6 +3,7 @@ import { useReducedMotion } from 'framer-motion'
 import { useOptionalAuth } from '../auth/AuthProvider'
 import { DEFAULT_PREFERENCES } from './preferenceDefaults'
 import { LOCAL_ONLY_PREFERENCE_KEYS, mergeLocalPreferences, normalizePreferences } from './preferenceSchema'
+import { createCursorAsset, getCursorEffectColor, resolveCursorColor } from './cursorAsset'
 import { readAccountPreferenceCache, readGuestPreferences, writeAccountPreferenceCache, writeGuestPreferences } from './preferenceStorage'
 import { getPreferences, savePreferences } from '../../services/preferencesApi'
 import { translate as translateUi } from './uiTranslations'
@@ -49,6 +50,7 @@ export function applyPreferenceTokens(value) {
   const coarsePointer = window.matchMedia?.('(pointer: coarse)').matches ?? false
   const [darkStrong, soft, lightStrong, lightAction, lightActionText] = accents[preferences.accentPreset]
   const strong = theme === 'light' ? lightStrong : darkStrong
+  const cursorColor = resolveCursorColor(preferences.cursorColor, strong)
   const status = theme === 'light'
     ? { '--success': '#216c56', '--warning': '#7a591f', '--danger': '#8b334d', '--info': '#255b91' }
     : { '--success': '#8ed9bc', '--warning': '#e5c982', '--danger': '#e6a3b4', '--info': '#9cc4ee' }
@@ -96,6 +98,14 @@ export function applyPreferenceTokens(value) {
   document.documentElement.dataset.reducedMotion = String(reduced)
   document.documentElement.dataset.language = preferences.language
   document.documentElement.dataset.cursorStyle = preferences.cursorStyle
+  document.documentElement.dataset.cursorSize = preferences.cursorSize
+  document.documentElement.dataset.cursorColor = preferences.cursorColor
+  document.documentElement.style.setProperty('--cursor-asset', createCursorAsset({
+    style: preferences.cursorStyle,
+    size: preferences.cursorSize,
+    color: cursorColor,
+  }))
+  document.documentElement.style.setProperty('--cursor-effect-color', getCursorEffectColor(cursorColor))
   document.documentElement.dataset.cursorEffects = !coarsePointer && !reduced && preferences.cursorEffects ? 'on' : 'off'
   document.documentElement.dataset.cursorPointer = coarsePointer ? 'coarse' : 'fine'
 }

@@ -42,6 +42,14 @@ function cursorGroup() {
   return within(screen.getByRole('group', { name: 'Giao diện & Hiển thị' }))
 }
 
+function cursorStyleOptions() {
+  return within(screen.getByLabelText('Các kiểu con trỏ'))
+}
+
+function cursorColorOptions() {
+  return within(screen.getByLabelText('Các màu con trỏ'))
+}
+
 beforeEach(() => localStorage.clear())
 afterEach(() => {
   vi.unstubAllGlobals()
@@ -51,12 +59,11 @@ afterEach(() => {
 describe('cursor style settings', () => {
   test('renders all five cursor styles with an accessible selected state', () => {
     renderSettings()
-    const group = cursorGroup()
 
     for (const label of ['Mặc định', 'Champagne Gold', 'Scholar Pen', 'Én Feather', 'Pixel Scholar']) {
-      expect(group.getByRole('button', { name: label })).toBeInTheDocument()
+      expect(cursorStyleOptions().getByRole('button', { name: label })).toBeInTheDocument()
     }
-    expect(group.getByRole('button', { name: 'Mặc định' })).toHaveAttribute('aria-pressed', 'true')
+    expect(cursorStyleOptions().getByRole('button', { name: 'Mặc định' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByText('Kiểu con trỏ')).toBeInTheDocument()
   })
 
@@ -68,10 +75,93 @@ describe('cursor style settings', () => {
   ])('selecting %s applies the cursor preference', async (label, value) => {
     const user = userEvent.setup()
     renderSettings()
-    await user.click(cursorGroup().getByRole('button', { name: label }))
+    await user.click(cursorStyleOptions().getByRole('button', { name: label }))
 
-    expect(cursorGroup().getByRole('button', { name: label })).toHaveAttribute('aria-pressed', 'true')
+    expect(cursorStyleOptions().getByRole('button', { name: label })).toHaveAttribute('aria-pressed', 'true')
     expect(document.documentElement).toHaveAttribute('data-cursor-style', value)
+  })
+
+  test('renders small, medium, and large cursor size controls with medium selected', () => {
+    renderSettings()
+    const group = cursorGroup()
+
+    for (const label of ['Nhỏ', 'Vừa', 'Lớn']) {
+      expect(group.getByRole('button', { name: label })).toBeInTheDocument()
+    }
+    expect(group.getByRole('button', { name: 'Vừa' })).toHaveAttribute('aria-pressed', 'true')
+    expect(document.documentElement).toHaveAttribute('data-cursor-size', 'medium')
+  })
+
+  test('selecting a large cursor persists and updates the live size token', async () => {
+    const user = userEvent.setup()
+    const first = renderSettings()
+    await user.click(cursorGroup().getByRole('button', { name: 'Lớn' }))
+    expect(document.documentElement).toHaveAttribute('data-cursor-size', 'large')
+    first.unmount()
+
+    renderSettings()
+    expect(cursorGroup().getByRole('button', { name: 'Lớn' })).toHaveAttribute('aria-pressed', 'true')
+    expect(document.documentElement).toHaveAttribute('data-cursor-size', 'large')
+  })
+
+  test('renders all cursor colors with accent selected by default', () => {
+    renderSettings()
+    for (const label of ['Theo màu nhấn', 'Champagne Gold', 'Ivory', 'Sapphire', 'Emerald', 'Burgundy', 'Violet']) {
+      expect(cursorColorOptions().getByRole('button', { name: label })).toBeInTheDocument()
+    }
+    expect(cursorColorOptions().getByRole('button', { name: 'Theo màu nhấn' })).toHaveAttribute('aria-pressed', 'true')
+    expect(document.documentElement).toHaveAttribute('data-cursor-color', 'accent')
+    expect(document.documentElement.style.getPropertyValue('--cursor-asset')).toBe('auto')
+  })
+
+  test('accent cursor color follows the selected accent dynamically', async () => {
+    const user = userEvent.setup()
+    renderSettings()
+    await user.click(cursorStyleOptions().getByRole('button', { name: 'Champagne Gold' }))
+    const before = document.documentElement.style.getPropertyValue('--cursor-asset')
+    await user.click(screen.getByRole('button', { name: 'Chọn màu nhấn Sapphire' }))
+
+    expect(document.documentElement).toHaveAttribute('data-cursor-color', 'accent')
+    expect(document.documentElement.style.getPropertyValue('--cursor-asset')).not.toBe(before)
+  })
+
+  test('explicit Champagne Gold stays independent when the accent changes', async () => {
+    const user = userEvent.setup()
+    renderSettings()
+    await user.click(cursorColorOptions().getByRole('button', { name: 'Champagne Gold' }))
+    const champagneAsset = document.documentElement.style.getPropertyValue('--cursor-asset')
+    await user.click(screen.getByRole('button', { name: 'Chọn màu nhấn Sapphire' }))
+
+    expect(document.documentElement).toHaveAttribute('data-cursor-color', 'champagne')
+    expect(document.documentElement.style.getPropertyValue('--cursor-asset')).toBe(champagneAsset)
+  })
+
+  test('style, size, and color produce a generated cursor asset and matching effect color', async () => {
+    const user = userEvent.setup()
+    renderSettings()
+    await user.click(cursorGroup().getByRole('button', { name: 'Én Feather' }))
+    await user.click(cursorGroup().getByRole('button', { name: 'Lớn' }))
+    await user.click(cursorGroup().getByRole('button', { name: 'Emerald' }))
+
+    const asset = document.documentElement.style.getPropertyValue('--cursor-asset')
+    expect(asset).toContain('data:image/svg+xml')
+    expect(asset).toContain('5 30, pointer')
+    expect(document.documentElement).toHaveAttribute('data-cursor-style', 'en-feather')
+    expect(document.documentElement).toHaveAttribute('data-cursor-size', 'large')
+    expect(document.documentElement).toHaveAttribute('data-cursor-color', 'emerald')
+    expect(document.documentElement.style.getPropertyValue('--cursor-effect-color')).toContain('142, 217, 188')
+  })
+
+  test('reset defaults restores medium cursor size and accent color', async () => {
+    const user = userEvent.setup()
+    renderSettings()
+    await user.click(cursorGroup().getByRole('button', { name: 'Lớn' }))
+    await user.click(cursorGroup().getByRole('button', { name: 'Violet' }))
+    await user.click(screen.getByRole('button', { name: 'Khôi phục mặc định' }))
+    await user.click(screen.getByRole('button', { name: 'Xác nhận khôi phục' }))
+
+    expect(document.documentElement).toHaveAttribute('data-cursor-size', 'medium')
+    expect(document.documentElement).toHaveAttribute('data-cursor-color', 'accent')
   })
 
   test('persists cursor style and effects across a fresh render', async () => {

@@ -1,8 +1,9 @@
 import { DEFAULT_PREFERENCES } from './preferenceDefaults'
+import { CURSOR_COLOR_PRESETS, CURSOR_SIZE_PRESETS } from './cursorAsset'
 
 export const WORKSPACE_RATIO_PRESETS = Object.freeze([40, 50, 60])
 export const CURSOR_STYLE_PRESETS = Object.freeze(['default', 'champagne', 'scholar-pen', 'en-feather', 'pixel-scholar'])
-export const LOCAL_ONLY_PREFERENCE_KEYS = Object.freeze(['cursorStyle', 'cursorEffects'])
+export const LOCAL_ONLY_PREFERENCE_KEYS = Object.freeze(['cursorStyle', 'cursorSize', 'cursorColor', 'cursorEffects'])
 
 const allowed = {
   themeMode: ['system', 'light', 'dark'],
@@ -14,6 +15,8 @@ const allowed = {
   readingSplitRatio: WORKSPACE_RATIO_PRESETS,
   writingSplitRatio: WORKSPACE_RATIO_PRESETS,
   cursorStyle: CURSOR_STYLE_PRESETS,
+  cursorSize: CURSOR_SIZE_PRESETS,
+  cursorColor: CURSOR_COLOR_PRESETS,
 }
 
 const booleanPreferences = ['proactiveAiEnabled', 'crossHighlightEnabled', 'timerDefaultEnabled', 'cursorEffects']
