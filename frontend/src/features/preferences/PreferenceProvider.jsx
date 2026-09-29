@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState
 import { useReducedMotion } from 'framer-motion'
 import { useOptionalAuth } from '../auth/AuthProvider'
 import { DEFAULT_PREFERENCES } from './preferenceDefaults'
-import { normalizePreferences } from './preferenceSchema'
+import { LOCAL_ONLY_PREFERENCE_KEYS, mergeLocalPreferences, normalizePreferences } from './preferenceSchema'
 import { readAccountPreferenceCache, readGuestPreferences, writeAccountPreferenceCache, writeGuestPreferences } from './preferenceStorage'
 import { getPreferences, savePreferences } from '../../services/preferencesApi'
 import { translate as translateUi } from './uiTranslations'
@@ -46,6 +46,7 @@ export function applyPreferenceTokens(value) {
   const systemReduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
   const theme = preferences.themeMode === 'system' ? (systemDark ? 'dark' : 'light') : preferences.themeMode
   const reduced = systemReduced || preferences.reduceMotion === 'reduce'
+  const coarsePointer = window.matchMedia?.('(pointer: coarse)').matches ?? false
   const [darkStrong, soft, lightStrong, lightAction, lightActionText] = accents[preferences.accentPreset]
   const strong = theme === 'light' ? lightStrong : darkStrong
   const status = theme === 'light'
@@ -94,6 +95,9 @@ export function applyPreferenceTokens(value) {
   document.documentElement.dataset.density = preferences.density
   document.documentElement.dataset.reducedMotion = String(reduced)
   document.documentElement.dataset.language = preferences.language
+  document.documentElement.dataset.cursorStyle = preferences.cursorStyle
+  document.documentElement.dataset.cursorEffects = !coarsePointer && !reduced && preferences.cursorEffects ? 'on' : 'off'
+  document.documentElement.dataset.cursorPointer = coarsePointer ? 'coarse' : 'fine'
 }
 
 export function PreferenceProvider({ children }) {
@@ -141,7 +145,7 @@ function PreferenceRootProvider({ children }) {
       try {
         const record = await getPreferences()
         if (!current()) return
-        const normalized = normalizePreferences(record)
+        const normalized = mergeLocalPreferences(normalizePreferences(record), cached)
         confirmedRef.current = record
         setConfirmedPreferences(normalized)
         writeAccountPreferenceCache(userId, normalized, record.version)
@@ -194,7 +198,7 @@ function PreferenceRootProvider({ children }) {
       const record = await savePreferences(snapshot, confirmed.version)
       if (epochRef.current !== epoch || identityRef.current !== userId || !mountedRef.current) return
       confirmedRef.current = record
-      const normalized = normalizePreferences(record)
+      const normalized = mergeLocalPreferences(normalizePreferences(record), snapshot)
       setConfirmedPreferences(normalized)
       writeAccountPreferenceCache(userId, normalized, record.version)
       if (editRef.current === edit) {
@@ -212,7 +216,7 @@ function PreferenceRootProvider({ children }) {
         try {
           const record = await getPreferences()
           if (epochRef.current !== epoch || identityRef.current !== userId || !mountedRef.current) return
-          const normalized = normalizePreferences(record)
+          const normalized = mergeLocalPreferences(normalizePreferences(record), preferencesRef.current)
           confirmedRef.current = record
           setConfirmedPreferences(normalized)
           writeAccountPreferenceCache(userId, normalized, record.version)
@@ -245,6 +249,9 @@ function PreferenceRootProvider({ children }) {
     if (!userId) {
       setStatus(writeGuestPreferences(next) ? 'synced' : 'unsynced')
     } else {
+      if (LOCAL_ONLY_PREFERENCE_KEYS.includes(key)) {
+        writeAccountPreferenceCache(userId, next, confirmedRef.current?.version)
+      }
       const edit = ++editRef.current
       clearTimeout(timerRef.current)
       setStatus(confirmedRef.current ? 'saving' : 'loading')
@@ -263,7 +270,7 @@ function PreferenceRootProvider({ children }) {
       setStatus('loading')
       getPreferences().then((record) => {
         if (!isCurrent()) return
-        const normalized = normalizePreferences(record)
+        const normalized = mergeLocalPreferences(normalizePreferences(record), preferencesRef.current)
         confirmedRef.current = record
         setConfirmedPreferences(normalized)
         writeAccountPreferenceCache(userId, normalized, record.version)

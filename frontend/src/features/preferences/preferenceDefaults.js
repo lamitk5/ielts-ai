@@ -10,4 +10,6 @@ export const DEFAULT_PREFERENCES = Object.freeze({
   timerDefaultEnabled: false,
   readingSplitRatio: 40,
   writingSplitRatio: 40,
+  cursorStyle: 'default',
+  cursorEffects: true,
 })

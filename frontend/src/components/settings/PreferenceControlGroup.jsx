@@ -20,6 +20,14 @@ const selectOptions = {
   density: [['spacious', 'densitySpacious', 'Thoáng'], ['default', 'densityDefault', 'Tiêu chuẩn'], ['compact', 'densityCompact', 'Gọn']],
 }
 
+const cursorStyles = [
+  ['default', 'cursorDefault', 'Mặc định'],
+  ['champagne', 'cursorChampagne', 'Champagne Gold'],
+  ['scholar-pen', 'cursorScholarPen', 'Scholar Pen'],
+  ['en-feather', 'cursorEnFeather', 'Én Feather'],
+  ['pixel-scholar', 'cursorPixelScholar', 'Pixel Scholar'],
+]
+
 function SelectField({ label, value, options, onChange, numeric = false, translate }) {
   return (
     <label className="settings-field">
@@ -68,6 +76,29 @@ function PreferenceControlGroup({ preferences, updatePreference }) {
           ))}
         </div>
         <SelectField label={translate('density', 'Mật độ hiển thị')} value={preferences.density} options={selectOptions.density} translate={translate} onChange={(value) => updatePreference('density', value)} />
+        <div className="settings-cursor-field">
+          <span className="settings-field-label">{translate('cursorStyle', 'Kiểu con trỏ')}</span>
+          <div className="settings-cursor-options" aria-label={translate('cursorStyleOptions', 'Các kiểu con trỏ')}>
+            {cursorStyles.map(([value, labelKey, fallback]) => (
+              <button
+                type="button"
+                key={value}
+                className={`settings-cursor-option ${preferences.cursorStyle === value ? 'settings-cursor-option-active' : ''}`.trim()}
+                aria-pressed={preferences.cursorStyle === value}
+                aria-label={translate(labelKey, fallback)}
+                onClick={() => updatePreference('cursorStyle', value)}
+              >
+                <span className={`settings-cursor-preview settings-cursor-preview-${value}`} aria-hidden="true" />
+                <span>{translate(labelKey, fallback)}</span>
+                {preferences.cursorStyle === value ? <span className="settings-cursor-check" aria-hidden="true">✓</span> : null}
+              </button>
+            ))}
+          </div>
+          <label className="settings-switch">
+            <span>{translate('cursorEffects', 'Hiệu ứng con trỏ')}</span>
+            <input aria-label={translate('cursorEffects', 'Hiệu ứng con trỏ')} type="checkbox" checked={preferences.cursorEffects} onChange={(event) => updatePreference('cursorEffects', event.target.checked)} />
+          </label>
+        </div>
       </fieldset>
 
       <fieldset className="settings-group settings-section">

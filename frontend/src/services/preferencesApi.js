@@ -9,9 +9,16 @@ const wireEnums = {
   language: { vi: 'VI', en: 'EN' },
 }
 
+const serverPreferenceKeys = new Set([
+  ...Object.keys(wireEnums),
+  'proactiveAiEnabled', 'crossHighlightEnabled', 'timerDefaultEnabled',
+  'readingSplitRatio', 'writingSplitRatio',
+])
+
 function toWire(preferences) {
   const normalized = normalizePreferences(preferences)
   return Object.fromEntries(Object.entries(normalized)
+    .filter(([key]) => serverPreferenceKeys.has(key))
     .map(([key, value]) => [key, wireEnums[key]?.[value] ?? value]))
 }
 
