@@ -33,6 +33,21 @@ class TutorAttachmentChunkRepositoryTest {
     }
 
     @Test
+    void persistsPrivateChunksWithoutEmbeddingMetadata() {
+        UUID attachmentId = UUID.randomUUID();
+        repository.replace(attachmentId, List.of(chunk()), null, null);
+
+        org.mockito.ArgumentCaptor<MapSqlParameterSource[]> captured =
+                org.mockito.ArgumentCaptor.forClass(MapSqlParameterSource[].class);
+        verify(jdbc).batchUpdate(anyString(), captured.capture());
+        assertThat(captured.getValue()[0].getValue("embedding")).isNull();
+        assertThat(captured.getValue()[0].getValue("embeddingProvider")).isNull();
+        assertThat(captured.getValue()[0].getValue("embeddingModel")).isNull();
+        assertThat(captured.getValue()[0].getValue("embeddingDimension")).isNull();
+        assertThat(captured.getValue()[0].getValue("embeddingVersion")).isNull();
+    }
+
+    @Test
     void retrievesOnlyGovernedPrivateCandidates() {
         when(jdbc.query(anyString(), any(MapSqlParameterSource.class), any(RowMapper.class))).thenReturn(List.of());
 

@@ -74,7 +74,9 @@ public class TutorAttachmentProcessingService {
             if (processor != null) {
                 processor.accept(attachment);
             } else {
-                processDocument(attachment);
+                String deferredEmbeddingCode = processDocument(attachment);
+                repository.updateStatus(attachmentId, TutorAttachment.AttachmentStatus.READY, deferredEmbeddingCode);
+                return;
             }
             repository.updateStatus(attachmentId, TutorAttachment.AttachmentStatus.READY, null);
         } catch (RuntimeException exception) {
@@ -82,8 +84,8 @@ public class TutorAttachmentProcessingService {
         }
     }
 
-    private void processDocument(TutorAttachment attachment) {
-        if (attachment.kind() == AttachmentKind.IMAGE) return;
+    private String processDocument(TutorAttachment attachment) {
+        if (attachment.kind() == AttachmentKind.IMAGE) return null;
         if (documents == null || chunks == null || embeddings == null) {
             throw new IllegalStateException("ATTACHMENT_PROCESSOR_NOT_CONFIGURED");
         }
@@ -91,20 +93,32 @@ public class TutorAttachmentProcessingService {
         if (extracted == null || extracted.isEmpty()) {
             throw new IllegalStateException("ATTACHMENT_EXTRACTION_EMPTY");
         }
+        chunks.replace(attachment.id(), extracted, null, null);
         if (!embeddings.isEmbeddingConfigured()) {
-            throw new IllegalStateException("ATTACHMENT_EMBEDDING_UNAVAILABLE");
+            return "ATTACHMENT_EMBEDDING_DEFERRED";
         }
-        EmbeddingSpace space = embeddings.embeddingSpace();
-        if (space == null || space.dimension() != 768) {
-            throw new IllegalStateException("ATTACHMENT_EMBEDDING_SPACE_INVALID");
+        try {
+            EmbeddingSpace space = embeddings.embeddingSpace();
+            if (space == null || space.dimension() != 768) {
+                throw new IllegalStateException("ATTACHMENT_EMBEDDING_SPACE_INVALID");
+            }
+            List<EmbeddingResult> vectors = embeddings.embedBatch(extracted.stream()
+                    .map(chunk -> new EmbeddingRequest(chunk.content(), EmbeddingTask.DOCUMENT, space)).toList());
+            if (vectors.size() != extracted.size() || vectors.stream().anyMatch(vector ->
+                    vector.dimension() != 768 || vector.space() == null || !space.matches(vector.space()))) {
+                throw new IllegalStateException("ATTACHMENT_EMBEDDING_SPACE_INVALID");
+            }
+            chunks.replace(attachment.id(), extracted, vectors.stream().map(EmbeddingResult::values).toList(), space);
+            return null;
+        } catch (RagEmbeddingException exception) {
+            if (!isDeferredEmbeddingFailure(exception)) throw exception;
+            return exception.getCode();
         }
-        List<EmbeddingResult> vectors = embeddings.embedBatch(extracted.stream()
-                .map(chunk -> new EmbeddingRequest(chunk.content(), EmbeddingTask.DOCUMENT, space)).toList());
-        if (vectors.size() != extracted.size() || vectors.stream().anyMatch(vector ->
-                vector.dimension() != 768 || vector.space() == null || !space.matches(vector.space()))) {
-            throw new IllegalStateException("ATTACHMENT_EMBEDDING_SPACE_INVALID");
-        }
-        chunks.replace(attachment.id(), extracted, vectors.stream().map(EmbeddingResult::values).toList(), space);
+    }
+
+    private boolean isDeferredEmbeddingFailure(RagEmbeddingException exception) {
+        return exception.getStatus() == 429 || exception.getStatus() == 502
+                || exception.getStatus() == 503 || exception.getStatus() == 504;
     }
 
     private String failureCode(RuntimeException exception) {

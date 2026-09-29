@@ -3,6 +3,7 @@ package com.ieltsaitutor.ai.attachment;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -26,6 +27,7 @@ import com.ieltsaitutor.rag.embedding.EmbeddingProvider;
 import com.ieltsaitutor.rag.embedding.EmbeddingRequest;
 import com.ieltsaitutor.rag.embedding.EmbeddingResult;
 import com.ieltsaitutor.rag.embedding.EmbeddingSpace;
+import com.ieltsaitutor.rag.embedding.RagEmbeddingException;
 import com.ieltsaitutor.rag.ingestion.DocumentChunker;
 import com.ieltsaitutor.rag.ingestion.TikaDocumentExtractor;
 
@@ -48,6 +50,51 @@ class TutorAttachmentProcessingIntegrationTest {
     void pdfProcessingPersistsExtractedPhraseBeforeReady() throws Exception {
         assertProcessed("notes.pdf", "application/pdf", pdfBytes("LUMEN-PDF-UNIQUE-64127"),
                 "LUMEN-PDF-UNIQUE-64127");
+    }
+
+    @Test
+    void txtEmbeddingRateLimitKeepsAttachmentReadyWithPersistedText() throws Exception {
+        assertReadyWhenEmbeddingFails("notes.txt", "text/plain",
+                "LUMEN-TXT-DEFERRED-92841".getBytes(StandardCharsets.UTF_8),
+                new RagEmbeddingException("RAG_EMBEDDING_RATE_LIMITED", 429, "rate limited"));
+    }
+
+    @Test
+    void docxEmbeddingRateLimitKeepsAttachmentReadyWithPersistedText() throws Exception {
+        assertReadyWhenEmbeddingFails("notes.docx",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                docxBytes("LUMEN-DOCX-DEFERRED-57319"),
+                new RagEmbeddingException("RAG_EMBEDDING_RATE_LIMITED", 429, "rate limited"));
+    }
+
+    @Test
+    void pdfEmbeddingUnavailableKeepsAttachmentReadyWithPersistedText() throws Exception {
+        assertReadyWhenEmbeddingFails("notes.pdf", "application/pdf", pdfBytes("LUMEN-PDF-DEFERRED-64127"),
+                new RagEmbeddingException("RAG_EMBEDDING_UNAVAILABLE", 503, "unavailable"));
+    }
+
+    @Test
+    void embeddingTimeoutKeepsAttachmentReadyAndRecordsDeferredFailure() throws Exception {
+        assertReadyWhenEmbeddingFails("notes.txt", "text/plain", "timeout content".getBytes(StandardCharsets.UTF_8),
+                new RagEmbeddingException("RAG_EMBEDDING_UNAVAILABLE", 504, "timeout"));
+    }
+
+    @Test
+    void validImageBecomesReadyWithoutCallingEmbeddingProvider() throws Exception {
+        TutorAttachmentRepository repository = mock(TutorAttachmentRepository.class);
+        TutorAttachmentStorage storage = mock(TutorAttachmentStorage.class);
+        TutorAttachmentChunkRepository chunks = mock(TutorAttachmentChunkRepository.class);
+        EmbeddingProvider embeddings = embeddingProvider();
+        TutorAttachment attachment = attachment("photo.png", "image/png", new byte[] { 1, 2, 3 }, AttachmentKind.IMAGE);
+        when(repository.findById(attachment.id())).thenReturn(Optional.of(attachment));
+
+        TutorAttachmentProcessingService service = newProcessingService(repository, storage, chunks, embeddings);
+        service.process(attachment.id());
+
+        verify(embeddings, org.mockito.Mockito.never()).embedBatch(anyList());
+        verify(chunks, org.mockito.Mockito.never()).replace(org.mockito.ArgumentMatchers.any(), anyList(),
+                org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+        verify(repository).updateStatus(attachment.id(), TutorAttachment.AttachmentStatus.READY, null);
     }
 
     @Test
@@ -87,6 +134,25 @@ class TutorAttachmentProcessingIntegrationTest {
         verify(repository).updateStatus(attachment.id(), TutorAttachment.AttachmentStatus.READY, null);
     }
 
+    private void assertReadyWhenEmbeddingFails(String filename, String contentType, byte[] bytes,
+            RagEmbeddingException failure) throws Exception {
+        TutorAttachmentRepository repository = mock(TutorAttachmentRepository.class);
+        TutorAttachmentStorage storage = mock(TutorAttachmentStorage.class);
+        TutorAttachmentChunkRepository chunks = mock(TutorAttachmentChunkRepository.class);
+        EmbeddingProvider embeddings = embeddingProviderThrowing(failure);
+        TutorAttachment attachment = attachment(filename, contentType, bytes);
+        when(repository.findById(attachment.id())).thenReturn(Optional.of(attachment));
+        when(storage.open(attachment.storageKey())).thenReturn(new ByteArrayInputStream(bytes));
+
+        TutorAttachmentProcessingService service = newProcessingService(repository, storage, chunks, embeddings);
+        service.process(attachment.id());
+
+        verify(chunks).replace(eq(attachment.id()), anyList(), isNull(), isNull());
+        verify(repository).updateStatus(attachment.id(), TutorAttachment.AttachmentStatus.READY, failure.getCode());
+        verify(repository, org.mockito.Mockito.never()).updateStatus(attachment.id(),
+                TutorAttachment.AttachmentStatus.FAILED, failure.getCode());
+    }
+
     private static TutorAttachmentProcessingService newProcessingService(TutorAttachmentRepository repository,
             TutorAttachmentStorage storage, TutorAttachmentChunkRepository chunks, EmbeddingProvider embeddings) {
         try {
@@ -110,15 +176,27 @@ class TutorAttachmentProcessingIntegrationTest {
         return embeddings;
     }
 
+    private static EmbeddingProvider embeddingProviderThrowing(RagEmbeddingException failure) {
+        EmbeddingProvider embeddings = mock(EmbeddingProvider.class);
+        when(embeddings.isEmbeddingConfigured()).thenReturn(true);
+        when(embeddings.embeddingSpace()).thenReturn(SPACE);
+        when(embeddings.embedBatch(anyList())).thenThrow(failure);
+        return embeddings;
+    }
+
     private static List<Float> vector() {
         return java.util.stream.IntStream.range(0, 768).mapToObj(index -> (float) index / 768).toList();
     }
 
     private static TutorAttachment attachment(String filename, String contentType, byte[] bytes) {
+        return attachment(filename, contentType, bytes, AttachmentKind.DOCUMENT);
+    }
+
+    private static TutorAttachment attachment(String filename, String contentType, byte[] bytes, AttachmentKind kind) {
         UUID id = UUID.randomUUID();
         Instant now = Instant.now();
         return new TutorAttachment(id, UUID.randomUUID(), UUID.randomUUID(), filename, filename, contentType,
-                AttachmentKind.DOCUMENT, bytes.length, "sha-" + id, "key-" + id,
+                kind, bytes.length, "sha-" + id, "key-" + id,
                 TutorAttachment.AttachmentStatus.STORED, null, null, 0, now, now, null);
     }
 

@@ -37,7 +37,7 @@ public class JdbcTutorAttachmentChunkRepository implements TutorAttachmentChunkR
     @Override
     public void replace(UUID attachmentId, List<TutorAttachmentChunk> chunks, List<List<Float>> embeddings,
             EmbeddingSpace space) {
-        if (chunks == null || embeddings == null || chunks.size() != embeddings.size()) {
+        if (chunks == null || (embeddings != null && chunks.size() != embeddings.size())) {
             throw new IllegalArgumentException("Attachment chunks and embeddings must align");
         }
         jdbc.update("DELETE FROM ai_attachment_chunks WHERE attachment_id=:attachmentId",
@@ -46,8 +46,8 @@ public class JdbcTutorAttachmentChunkRepository implements TutorAttachmentChunkR
         MapSqlParameterSource[] parameters = new MapSqlParameterSource[chunks.size()];
         for (int index = 0; index < chunks.size(); index++) {
             TutorAttachmentChunk chunk = chunks.get(index);
-            List<Float> embedding = embeddings.get(index);
-            if (embedding == null || embedding.size() != 768) {
+            List<Float> embedding = embeddings == null ? null : embeddings.get(index);
+            if (embeddings != null && (embedding == null || embedding.size() != 768)) {
                 throw new IllegalArgumentException("Attachment embeddings must use vector(768)");
             }
             parameters[index] = new MapSqlParameterSource()
@@ -58,11 +58,11 @@ public class JdbcTutorAttachmentChunkRepository implements TutorAttachmentChunkR
                     .addValue("sectionLabel", chunk.sectionLabel())
                     .addValue("content", chunk.content())
                     .addValue("tokenEstimate", chunk.tokenEstimate())
-                    .addValue("embedding", vectorLiteral(embedding))
-                    .addValue("embeddingProvider", space.provider().name())
-                    .addValue("embeddingModel", space.model())
-                    .addValue("embeddingDimension", space.dimension())
-                    .addValue("embeddingVersion", space.version())
+                    .addValue("embedding", embedding == null ? null : vectorLiteral(embedding))
+                    .addValue("embeddingProvider", space == null ? null : space.provider().name())
+                    .addValue("embeddingModel", space == null ? null : space.model())
+                    .addValue("embeddingDimension", space == null ? null : space.dimension())
+                    .addValue("embeddingVersion", space == null ? null : space.version())
                     .addValue("createdAt", Instant.now().atOffset(ZoneOffset.UTC), Types.TIMESTAMP_WITH_TIMEZONE);
         }
         jdbc.batchUpdate("""
