@@ -1,40 +1,129 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useOptionalPreferences } from '../../features/preferences/PreferenceProvider'
+import { calculateRepulsion, clampVelocity, MAX_REPEL_OFFSET, MAX_REPEL_VELOCITY, REPULSION_RADIUS } from './particlePhysics'
 
-const PARTICLES = [
-  { left: 10, top: 12, size: 3, opacity: 0.34, blur: 0, delay: '-2s', duration: '14s', driftX: '10px', driftY: '-12px' },
-  { left: 24, top: 24, size: 2, opacity: 0.24, blur: 1, delay: '-7s', duration: '18s', driftX: '-12px', driftY: '8px' },
-  { left: 42, top: 9, size: 2, opacity: 0.3, blur: 0, delay: '-10s', duration: '16s', driftX: '8px', driftY: '10px' },
-  { left: 59, top: 18, size: 4, opacity: 0.18, blur: 3, delay: '-4s', duration: '21s', driftX: '-14px', driftY: '-10px' },
-  { left: 78, top: 11, size: 2, opacity: 0.28, blur: 0, delay: '-12s', duration: '17s', driftX: '12px', driftY: '6px' },
-  { left: 91, top: 29, size: 3, opacity: 0.2, blur: 2, delay: '-6s', duration: '20s', driftX: '-9px', driftY: '13px' },
-  { left: 16, top: 48, size: 2, opacity: 0.2, blur: 1, delay: '-14s', duration: '19s', driftX: '13px', driftY: '7px' },
-  { left: 34, top: 62, size: 3, opacity: 0.26, blur: 0, delay: '-1s', duration: '15s', driftX: '-7px', driftY: '-12px' },
-  { left: 52, top: 42, size: 2, opacity: 0.22, blur: 1, delay: '-8s', duration: '22s', driftX: '10px', driftY: '9px' },
-  { left: 69, top: 55, size: 4, opacity: 0.16, blur: 3, delay: '-16s', duration: '23s', driftX: '-12px', driftY: '-8px' },
-  { left: 86, top: 68, size: 2, opacity: 0.24, blur: 0, delay: '-5s', duration: '18s', driftX: '7px', driftY: '11px' },
-  { left: 7, top: 79, size: 3, opacity: 0.18, blur: 2, delay: '-11s', duration: '20s', driftX: '-11px', driftY: '8px' },
-  { left: 47, top: 84, size: 2, opacity: 0.28, blur: 0, delay: '-3s', duration: '16s', driftX: '9px', driftY: '-9px' },
-  { left: 76, top: 91, size: 3, opacity: 0.2, blur: 1, delay: '-9s', duration: '21s', driftX: '-8px', driftY: '-11px' },
-  { left: 31, top: 14, size: 5, opacity: 0.5, blur: 4, delay: '-13s', duration: '24s', driftX: '10px', driftY: '-7px' },
-  { left: 67, top: 34, size: 6, opacity: 0.42, blur: 5, delay: '-18s', duration: '26s', driftX: '-12px', driftY: '8px' },
-  { left: 12, top: 38, size: 2, opacity: 0.46, blur: 0, delay: '-15s', duration: '19s', driftX: '8px', driftY: '9px' },
-  { left: 57, top: 70, size: 5, opacity: 0.54, blur: 3, delay: '-6s', duration: '25s', driftX: '-9px', driftY: '-10px' },
-  { left: 94, top: 82, size: 7, opacity: 0.38, blur: 6, delay: '-20s', duration: '28s', driftX: '-10px', driftY: '6px' },
-  { left: 39, top: 96, size: 2, opacity: 0.44, blur: 0, delay: '-17s', duration: '18s', driftX: '7px', driftY: '-8px' },
-  { left: 3, top: 20, size: 2, opacity: 0.32, blur: 0, delay: '-8s', duration: '17s', driftX: '9px', driftY: '8px' },
-  { left: 19, top: 72, size: 3, opacity: 0.3, blur: 1, delay: '-19s', duration: '22s', driftX: '-8px', driftY: '-9px' },
-  { left: 28, top: 40, size: 2, opacity: 0.26, blur: 0, delay: '-5s', duration: '16s', driftX: '11px', driftY: '-7px' },
-  { left: 45, top: 28, size: 4, opacity: 0.22, blur: 2, delay: '-15s', duration: '24s', driftX: '-10px', driftY: '9px' },
-  { left: 63, top: 4, size: 2, opacity: 0.32, blur: 0, delay: '-11s', duration: '19s', driftX: '8px', driftY: '10px' },
-  { left: 73, top: 76, size: 3, opacity: 0.28, blur: 1, delay: '-3s', duration: '20s', driftX: '-9px', driftY: '-8px' },
-  { left: 82, top: 44, size: 2, opacity: 0.3, blur: 0, delay: '-16s', duration: '18s', driftX: '7px', driftY: '9px' },
-  { left: 97, top: 58, size: 3, opacity: 0.24, blur: 2, delay: '-9s', duration: '23s', driftX: '-12px', driftY: '7px' },
-  { left: 4, top: 94, size: 2, opacity: 0.34, blur: 0, delay: '-13s', duration: '17s', driftX: '10px', driftY: '-10px' },
-  { left: 55, top: 93, size: 4, opacity: 0.25, blur: 2, delay: '-7s', duration: '25s', driftX: '-8px', driftY: '8px' },
-  { left: 88, top: 20, size: 2, opacity: 0.3, blur: 0, delay: '-18s', duration: '21s', driftX: '9px', driftY: '-8px' },
-  { left: 36, top: 78, size: 3, opacity: 0.26, blur: 1, delay: '-4s', duration: '19s', driftX: '-7px', driftY: '10px' },
-]
+const PARTICLE_BUDGETS = Object.freeze({
+  desktop: 64,
+  largeTablet: 54,
+  tablet: 45,
+  mobile: 24,
+})
+
+const PARTICLE_LAYERS = Object.freeze([
+  { name: 'dust', count: 38 },
+  { name: 'glow', count: 19 },
+  { name: 'spark', count: 7 },
+])
+
+const REGION_GROUPS = Object.freeze({
+  dust: [
+    { left: 8, top: 12, region: 'hero-margin' },
+    { left: 20, top: 22, region: 'hero-margin' },
+    { left: 36, top: 10, region: 'hero-margin' },
+    { left: 53, top: 16, region: 'negative-space' },
+    { left: 72, top: 8, region: 'negative-space' },
+    { left: 90, top: 24, region: 'negative-space' },
+    { left: 14, top: 42, region: 'hero-text-margin' },
+    { left: 30, top: 58, region: 'negative-space' },
+    { left: 48, top: 40, region: 'search' },
+    { left: 66, top: 54, region: 'negative-space' },
+    { left: 84, top: 68, region: 'negative-space' },
+    { left: 6, top: 78, region: 'negative-space' },
+    { left: 42, top: 82, region: 'negative-space' },
+    { left: 74, top: 90, region: 'negative-space' },
+  ],
+  glow: [
+    { left: 18, top: 18, region: 'hero-text-margin' },
+    { left: 38, top: 30, region: 'search' },
+    { left: 58, top: 26, region: 'search' },
+    { left: 78, top: 18, region: 'negative-space' },
+    { left: 92, top: 44, region: 'negative-space' },
+    { left: 24, top: 54, region: 'hero-text-margin' },
+    { left: 46, top: 48, region: 'search' },
+    { left: 68, top: 64, region: 'learning-visual' },
+    { left: 88, top: 78, region: 'negative-space' },
+  ],
+  spark: [
+    { left: 28, top: 14, region: 'hero-margin' },
+    { left: 50, top: 34, region: 'search' },
+    { left: 70, top: 28, region: 'search' },
+    { left: 86, top: 42, region: 'negative-space' },
+    { left: 16, top: 70, region: 'hero-text-margin' },
+    { left: 58, top: 76, region: 'learning-visual' },
+    { left: 94, top: 88, region: 'negative-space' },
+  ],
+})
+
+const LAYER_TOKENS = Object.freeze({
+  dark: {
+    dust: { core: '#d7bf82', halo: 'rgba(229, 201, 130, 0.45)', shadow: '0 0 8px rgba(229, 201, 130, 0.28)' },
+    glow: { core: '#e5c982', halo: 'rgba(229, 201, 130, 0.68)', shadow: '0 0 12px rgba(229, 201, 130, 0.62), 0 0 28px rgba(207, 174, 103, 0.28)' },
+    spark: { core: '#fff1bd', halo: 'rgba(229, 201, 130, 0.82)', shadow: '0 0 8px rgba(255, 241, 189, 0.9), 0 0 24px rgba(229, 201, 130, 0.58)' },
+  },
+  light: {
+    dust: { core: '#9a6a16', halo: 'rgba(154, 106, 22, 0.34)', shadow: '0 0 7px rgba(154, 106, 22, 0.24)' },
+    glow: { core: '#a87520', halo: 'rgba(168, 117, 32, 0.48)', shadow: '0 0 10px rgba(168, 117, 32, 0.38), 0 0 22px rgba(122, 89, 31, 0.2)' },
+    spark: { core: '#b47a1e', halo: 'rgba(196, 145, 61, 0.56)', shadow: '0 0 7px rgba(180, 122, 30, 0.56), 0 0 20px rgba(154, 106, 22, 0.32)' },
+  },
+})
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value))
+}
+
+function getParticleBudget(width) {
+  if (width >= 1280) return PARTICLE_BUDGETS.desktop
+  if (width >= 1024) return PARTICLE_BUDGETS.largeTablet
+  if (width >= 768) return PARTICLE_BUDGETS.tablet
+  return PARTICLE_BUDGETS.mobile
+}
+
+function createParticleDefinitions() {
+  return PARTICLE_LAYERS.flatMap(({ name, count }) => (
+    Array.from({ length: count }, (_, index) => {
+      const regionGroup = REGION_GROUPS[name]
+      const base = regionGroup[index % regionGroup.length]
+      const jitter = ((index * 11) % 7) - 3
+      const layerIndex = index + (name === 'dust' ? 0 : name === 'glow' ? 38 : 57)
+      const layerConfig = name === 'dust'
+        ? { size: 1.4 + (index % 3) * 0.3, opacity: 0.38 + (index % 4) * 0.035, blur: index % 6 === 0 ? 0.4 : 0, duration: 17 + (index % 6), twinkle: false }
+        : name === 'glow'
+        ? { size: 3 + (index % 3), opacity: 0.5 + (index % 3) * 0.045, blur: 0.7 + (index % 3) * 0.45, duration: 22 + (index % 5), twinkle: true }
+        : { size: 2.8 + (index % 3) * 0.35, opacity: 0.68 + (index % 2) * 0.06, blur: 0.2, duration: 19 + (index % 4), twinkle: true }
+
+      return {
+        id: `${name}-${layerIndex}`,
+        layer: name,
+        region: base.region,
+        left: clamp(base.left + jitter, 2, 98),
+        top: clamp(base.top + ((index * 7) % 5) - 2, 3, 97),
+        ...layerConfig,
+        delay: `-${2 + ((index * 5) % 17)}s`,
+        driftX: `${(index % 2 ? -1 : 1) * (5 + (index % 6))}px`,
+        driftY: `${(index % 3 ? 1 : -1) * (5 + ((index + 2) % 6))}px`,
+      }
+    })
+  ))
+}
+
+const PARTICLE_DEFINITIONS = Object.freeze(createParticleDefinitions())
+
+function selectParticles(width) {
+  const budget = getParticleBudget(width)
+  const layerBudgets = {
+    dust: Math.round(budget * 0.6),
+    glow: Math.round(budget * 0.3),
+    spark: budget - Math.round(budget * 0.6) - Math.round(budget * 0.3),
+  }
+
+  return Object.entries(layerBudgets).flatMap(([layer, count]) => (
+    PARTICLE_DEFINITIONS.filter((particle) => particle.layer === layer).slice(0, count)
+  ))
+}
+
+function getThemeTokens(theme, layer) {
+  return LAYER_TOKENS[theme][layer]
+}
 
 function AmbientGoldenParticles() {
   const preferenceContext = useOptionalPreferences()
@@ -42,11 +131,15 @@ function AmbientGoldenParticles() {
     () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false,
   )
   const [pointerMode, setPointerMode] = useState('idle')
+  const [viewportWidth, setViewportWidth] = useState(() => window.innerWidth)
   const particleRefs = useRef([])
+  const particleMotionRef = useRef([])
+  const pointerRef = useRef({ active: false, x: 0, y: 0 })
+  const pointerModeRef = useRef('idle')
   const frameRef = useRef(null)
-  const cancelFrameRef = useRef(null)
-  const reducedMotion = preferenceContext?.reducedMotion ?? systemReducedMotion
   const particleTheme = preferenceContext?.preferences.themeMode === 'light' || document.documentElement.dataset.theme === 'light' ? 'light' : 'dark'
+  const reducedMotion = preferenceContext?.reducedMotion ?? systemReducedMotion
+  const particles = useMemo(() => selectParticles(viewportWidth), [viewportWidth])
 
   useEffect(() => {
     const motionQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)')
@@ -57,69 +150,88 @@ function AmbientGoldenParticles() {
   }, [])
 
   useEffect(() => {
-    if (reducedMotion) return undefined
+    const handleResize = () => setViewportWidth(window.innerWidth)
+    window.addEventListener('resize', handleResize, { passive: true })
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
-    const scheduleUpdate = () => {
+  useEffect(() => {
+    particleMotionRef.current = particles.map(() => ({ x: 0, y: 0, vx: 0, vy: 0 }))
+  }, [particles])
+
+  useEffect(() => {
+    if (reducedMotion) {
+      return undefined
+    }
+
+    const writeMotion = () => {
+      particleRefs.current.forEach((particle, index) => {
+        if (!particle) return
+        const motion = particleMotionRef.current[index]
+        particle.style.setProperty('--repel-x', `${motion?.x ?? 0}px`)
+        particle.style.setProperty('--repel-y', `${motion?.y ?? 0}px`)
+      })
+    }
+
+    const animate = () => {
+      frameRef.current = null
+      let moving = pointerRef.current.active
+
+      particleRefs.current.forEach((particle, index) => {
+        const motion = particleMotionRef.current[index]
+        const item = particles[index]
+        if (!particle || !motion || !item) return
+
+        const x = window.innerWidth * item.left / 100
+        const y = window.innerHeight * item.top / 100
+        const target = pointerRef.current.active
+          ? calculateRepulsion(pointerRef.current.x - x, pointerRef.current.y - y)
+          : { x: 0, y: 0, strength: 0 }
+        const [vx, vy] = clampVelocity(
+          motion.vx * 0.86 + (target.x - motion.x) * 0.18,
+          motion.vy * 0.86 + (target.y - motion.y) * 0.18,
+        )
+        motion.vx = vx
+        motion.vy = vy
+        motion.x = clamp(motion.x + vx, -MAX_REPEL_OFFSET, MAX_REPEL_OFFSET)
+        motion.y = clamp(motion.y + vy, -MAX_REPEL_OFFSET, MAX_REPEL_OFFSET)
+        if (Math.abs(motion.x) > 0.05 || Math.abs(motion.y) > 0.05 || Math.abs(vx) > 0.05 || Math.abs(vy) > 0.05) moving = true
+      })
+
+      writeMotion()
+      if (moving) frameRef.current = window.requestAnimationFrame(animate)
+    }
+
+    const scheduleMotion = () => {
       if (frameRef.current !== null) return
-      if (window.requestAnimationFrame) {
-        frameRef.current = window.requestAnimationFrame(() => {
-          frameRef.current = null
-          cancelFrameRef.current = null
-          particleRefs.current.forEach((particle) => {
-            if (!particle) return
-            const target = particle.dataset.repelTarget?.split(',').map(Number) ?? [0, 0]
-            particle.style.setProperty('--repel-x', `${target[0] ?? 0}px`)
-            particle.style.setProperty('--repel-y', `${target[1] ?? 0}px`)
-          })
-        })
-        cancelFrameRef.current = () => window.cancelAnimationFrame(frameRef.current)
-      } else {
-        frameRef.current = window.setTimeout(() => {
-          frameRef.current = null
-          cancelFrameRef.current = null
-          particleRefs.current.forEach((particle) => {
-            if (!particle) return
-            const target = particle.dataset.repelTarget?.split(',').map(Number) ?? [0, 0]
-            particle.style.setProperty('--repel-x', `${target[0] ?? 0}px`)
-            particle.style.setProperty('--repel-y', `${target[1] ?? 0}px`)
-          })
-        }, 16)
-        cancelFrameRef.current = () => window.clearTimeout(frameRef.current)
-      }
+      if (window.requestAnimationFrame) frameRef.current = window.requestAnimationFrame(animate)
     }
 
     const resetRepulsion = () => {
-      particleRefs.current.forEach((particle) => {
-        if (particle) particle.dataset.repelTarget = '0,0'
-      })
-      setPointerMode('idle')
-      scheduleUpdate()
+      pointerRef.current.active = false
+      if (pointerModeRef.current !== 'idle') {
+        pointerModeRef.current = 'idle'
+        setPointerMode('idle')
+      }
+      scheduleMotion()
     }
 
     const handlePointerMove = (event) => {
       if (event.pointerType !== 'mouse') {
         resetRepulsion()
-        setPointerMode('disabled')
+        if (pointerModeRef.current !== 'disabled') {
+          pointerModeRef.current = 'disabled'
+          setPointerMode('disabled')
+        }
         return
       }
 
-      const radius = 128
-      particleRefs.current.forEach((particle, index) => {
-        const item = PARTICLES[index]
-        const x = window.innerWidth * item.left / 100
-        const y = window.innerHeight * item.top / 100
-        const distanceX = event.clientX - x
-        const distanceY = event.clientY - y
-        const distance = Math.hypot(distanceX, distanceY)
-        if (distance === 0 || distance >= radius) {
-          particle.dataset.repelTarget = '0,0'
-          return
-        }
-        const force = 1 - distance / radius
-        particle.dataset.repelTarget = `${(-distanceX / distance * force * 22).toFixed(2)},${(-distanceY / distance * force * 22).toFixed(2)}`
-      })
-      setPointerMode('fine')
-      scheduleUpdate()
+      pointerRef.current = { active: true, x: event.clientX, y: event.clientY }
+      if (pointerModeRef.current !== 'fine') {
+        pointerModeRef.current = 'fine'
+        setPointerMode('fine')
+      }
+      scheduleMotion()
     }
 
     const handlePointerOut = (event) => {
@@ -128,14 +240,26 @@ function AmbientGoldenParticles() {
 
     window.addEventListener('pointermove', handlePointerMove, { passive: true })
     window.addEventListener('pointerout', handlePointerOut, { passive: true })
+    const particleNodes = particleRefs.current
     return () => {
       window.removeEventListener('pointermove', handlePointerMove)
       window.removeEventListener('pointerout', handlePointerOut)
-      cancelFrameRef.current?.()
+      if (frameRef.current !== null) window.cancelAnimationFrame(frameRef.current)
       frameRef.current = null
-      cancelFrameRef.current = null
+      pointerRef.current.active = false
+      pointerModeRef.current = 'idle'
+      particleMotionRef.current.forEach((motion) => {
+        motion.x = 0
+        motion.y = 0
+        motion.vx = 0
+        motion.vy = 0
+      })
+      particleNodes.forEach((particle) => {
+        particle?.style.setProperty('--repel-x', '0px')
+        particle?.style.setProperty('--repel-y', '0px')
+      })
     }
-  }, [reducedMotion])
+  }, [particles, reducedMotion])
 
   return (
     <div
@@ -144,30 +268,41 @@ function AmbientGoldenParticles() {
       data-animation-state={reducedMotion ? 'static' : 'animated'}
       data-pointer-mode={reducedMotion ? 'disabled' : pointerMode}
       data-particle-theme={particleTheme}
+      data-particle-count={particles.length}
+      data-repulsion-radius={REPULSION_RADIUS}
+      data-max-velocity={MAX_REPEL_VELOCITY}
       aria-hidden="true"
       style={{ pointerEvents: 'none' }}
     >
-      {PARTICLES.map((particle, index) => (
-        <span
-          className={`ambient-golden-particle ${particleTheme === 'light' ? 'ambient-golden-particle-light' : ''}`.trim()}
-          key={`${particle.left}-${particle.top}`}
-          ref={(node) => { particleRefs.current[index] = node }}
-          data-repel-target="0,0"
-          style={{
-            '--particle-left': `${particle.left}%`,
-            '--particle-top': `${particle.top}%`,
-            '--particle-size': `${particle.size}px`,
-            '--particle-opacity': particle.opacity,
-            '--particle-blur': `${particle.blur}px`,
-            '--particle-delay': particle.delay,
-            '--particle-duration': particle.duration,
-            '--particle-drift-x': particle.driftX,
-            '--particle-drift-y': particle.driftY,
-            '--repel-x': '0px',
-            '--repel-y': '0px',
-          }}
-        />
-      ))}
+      {particles.map((particle, index) => {
+        const tokens = getThemeTokens(particleTheme, particle.layer)
+        return (
+          <span
+            className={`ambient-golden-particle ambient-golden-particle-${particle.layer} ${particleTheme === 'light' ? 'ambient-golden-particle-light' : ''}`.trim()}
+            key={particle.id}
+            ref={(node) => { particleRefs.current[index] = node }}
+            data-particle-layer={particle.layer}
+            data-particle-region={particle.region}
+            data-repel-target="0,0"
+            style={{
+              '--particle-left': `${particle.left}%`,
+              '--particle-top': `${particle.top}%`,
+              '--particle-size': `${particle.size}px`,
+              '--particle-opacity': particle.opacity,
+              '--particle-blur': `${particle.blur}px`,
+              '--particle-delay': particle.delay,
+              '--particle-duration': `${particle.duration}s`,
+              '--particle-drift-x': particle.driftX,
+              '--particle-drift-y': particle.driftY,
+              '--particle-core': tokens.core,
+              '--particle-halo': tokens.halo,
+              '--particle-shadow': tokens.shadow,
+              '--repel-x': '0px',
+              '--repel-y': '0px',
+            }}
+          />
+        )
+      })}
     </div>
   )
 }
