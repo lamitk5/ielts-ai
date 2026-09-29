@@ -47,6 +47,24 @@ describe('Én multimodal picker and cards', () => {
     expect(onFilesSelected).toHaveBeenCalledWith([docx])
   })
 
+  test('copies and clears the native FileList so the same file can be selected again', async () => {
+    const user = userEvent.setup()
+    const onFilesSelected = vi.fn()
+    render(<AttachmentComposer onFilesSelected={onFilesSelected} />)
+    const input = screen.getByLabelText(/chọn tệp tải lên/i)
+    const docx = new File(['docx'], 'Câu 1.docx', {
+      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    })
+
+    await user.upload(input, docx)
+    await user.upload(input, docx)
+
+    expect(input).toHaveValue('')
+    expect(onFilesSelected).toHaveBeenCalledTimes(2)
+    expect(onFilesSelected.mock.calls[0][0]).toEqual([docx])
+    expect(onFilesSelected.mock.calls[1][0]).toEqual([docx])
+  })
+
   test('rejectsSixthSelection', async () => {
     const onFilesSelected = vi.fn()
     const onError = vi.fn()
