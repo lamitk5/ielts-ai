@@ -87,6 +87,18 @@ public class JdbcPracticeSubmissionRepository implements PracticeSubmissionRepos
         return findById(id).orElseThrow(() -> new IllegalArgumentException("Submission not found"));
     }
 
+    @Override
+    public Optional<PracticeSubmission> updateAutosaveIfRevision(UUID id, long expectedRevision, Instant savedAt) {
+        int updated = jdbc.update("""
+                UPDATE practice_submissions
+                SET autosave_revision = autosave_revision + 1, last_saved_at = :savedAt, updated_at = :savedAt
+                WHERE id = :id AND autosave_revision = :expectedRevision
+                    AND status IN ('DRAFT', 'IN_PROGRESS')
+                """, new MapSqlParameterSource().addValue("id", id)
+                .addValue("expectedRevision", expectedRevision).addValue("savedAt", savedAt, Types.TIMESTAMP_WITH_TIMEZONE));
+        return updated == 0 ? Optional.empty() : findById(id);
+    }
+
     private List<PracticeSubmission> query(String where, MapSqlParameterSource params) {
         return jdbc.query("""
                 SELECT id,user_id,skill,practice_id,practice_version_id,published_set_id,

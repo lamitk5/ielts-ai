@@ -55,6 +55,13 @@ public record PracticeSubmission(
         return status == SubmissionStatus.DRAFT || status == SubmissionStatus.IN_PROGRESS;
     }
 
+    public PracticeSubmission withAutosave(long revision, Instant savedAt) {
+        if (revision <= autosaveRevision) throw new IllegalArgumentException("Autosave revision must increase");
+        return new PracticeSubmission(id, userId, skill, practiceId, practiceVersionId, publishedSetId,
+                publicationRevision, status, startedAt, savedAt, submittedAt, scoredAt, revision,
+                startIdempotencyKey, submitIdempotencyKey, contentHash, retryable, createdAt, savedAt);
+    }
+
     private static String normalizedRequired(String value, String field) {
         if (value == null || value.isBlank()) throw new IllegalArgumentException(field + " is required");
         return value.trim();

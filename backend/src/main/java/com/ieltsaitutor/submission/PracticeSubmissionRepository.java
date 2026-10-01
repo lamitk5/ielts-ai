@@ -16,4 +16,6 @@ public interface PracticeSubmissionRepository {
     Optional<PracticeSubmission> findByOwnerAndSubmitIdempotencyKey(UUID ownerId, String key);
 
     PracticeSubmission updateStatus(UUID id, SubmissionStatus status, Instant updatedAt);
+
+    Optional<PracticeSubmission> updateAutosaveIfRevision(UUID id, long expectedRevision, Instant savedAt);
 }
