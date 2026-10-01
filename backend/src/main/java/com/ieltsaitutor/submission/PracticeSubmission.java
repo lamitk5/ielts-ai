@@ -62,6 +62,12 @@ public record PracticeSubmission(
                 startIdempotencyKey, submitIdempotencyKey, contentHash, retryable, createdAt, savedAt);
     }
 
+    public PracticeSubmission withFinalized(Instant submittedAt, String submitKey, String finalizedContentHash) {
+        return new PracticeSubmission(id, userId, skill, practiceId, practiceVersionId, publishedSetId,
+                publicationRevision, SubmissionStatus.SUBMITTED, startedAt, submittedAt, submittedAt, scoredAt,
+                autosaveRevision, startIdempotencyKey, submitKey, finalizedContentHash, false, createdAt, submittedAt);
+    }
+
     private static String normalizedRequired(String value, String field) {
         if (value == null || value.isBlank()) throw new IllegalArgumentException(field + " is required");
         return value.trim();

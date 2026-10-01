@@ -18,4 +18,7 @@ public interface PracticeSubmissionRepository {
     PracticeSubmission updateStatus(UUID id, SubmissionStatus status, Instant updatedAt);
 
     Optional<PracticeSubmission> updateAutosaveIfRevision(UUID id, long expectedRevision, Instant savedAt);
+
+    Optional<PracticeSubmission> finalizeIfEditable(UUID id, String submitIdempotencyKey,
+            String contentHash, java.time.Instant submittedAt);
 }

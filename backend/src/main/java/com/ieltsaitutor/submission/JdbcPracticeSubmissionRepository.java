@@ -99,6 +99,22 @@ public class JdbcPracticeSubmissionRepository implements PracticeSubmissionRepos
         return updated == 0 ? Optional.empty() : findById(id);
     }
 
+    @Override
+    public Optional<PracticeSubmission> finalizeIfEditable(UUID id, String submitIdempotencyKey,
+            String contentHash, Instant submittedAt) {
+        int updated = jdbc.update("""
+                UPDATE practice_submissions
+                SET status = 'SUBMITTED', submit_idempotency_key = :submitKey, content_hash = :contentHash,
+                    submitted_at = :submittedAt,
+                    duration_seconds = GREATEST(0, EXTRACT(EPOCH FROM (:submittedAt - started_at))::BIGINT),
+                    updated_at = :submittedAt
+                WHERE id = :id AND status IN ('DRAFT', 'IN_PROGRESS')
+                """, new MapSqlParameterSource().addValue("id", id)
+                .addValue("submitKey", submitIdempotencyKey).addValue("contentHash", contentHash)
+                .addValue("submittedAt", submittedAt, Types.TIMESTAMP_WITH_TIMEZONE));
+        return updated == 0 ? Optional.empty() : findById(id);
+    }
+
     private List<PracticeSubmission> query(String where, MapSqlParameterSource params) {
         return jdbc.query("""
                 SELECT id,user_id,skill,practice_id,practice_version_id,published_set_id,
