@@ -46,6 +46,7 @@ function HeroSearch() {
   const navigate = useNavigate()
   const controlRef = useRef(null)
   const submitTimerRef = useRef(null)
+  const navigationTimerRef = useRef(null)
   const [query, setQuery] = useState('')
   const [error, setError] = useState('')
   const [isFocused, setIsFocused] = useState(false)
@@ -53,6 +54,7 @@ function HeroSearch() {
 
   useEffect(() => () => {
     if (submitTimerRef.current) window.clearTimeout(submitTimerRef.current)
+    if (navigationTimerRef.current) window.clearTimeout(navigationTimerRef.current)
   }, [])
 
   function handlePointerMove(event) {
@@ -90,11 +92,16 @@ function HeroSearch() {
 
     setError('')
     setIsSubmitting(true)
+    if (submitTimerRef.current) window.clearTimeout(submitTimerRef.current)
+    if (navigationTimerRef.current) window.clearTimeout(navigationTimerRef.current)
     submitTimerRef.current = window.setTimeout(() => {
       setIsSubmitting(false)
       submitTimerRef.current = null
-    }, 360)
-    navigate(`/practice/search?q=${encodeURIComponent(trimmedQuery)}`)
+    }, 450)
+    navigationTimerRef.current = window.setTimeout(() => {
+      navigationTimerRef.current = null
+      navigate(`/practice/search?q=${encodeURIComponent(trimmedQuery)}`)
+    }, 90)
   }
 
   return (

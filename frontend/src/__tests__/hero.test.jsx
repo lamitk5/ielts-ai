@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, test, vi } from 'vitest'
@@ -148,8 +148,36 @@ describe('premium hero', () => {
     await user.type(input, '  IELTS Writing Task 1  ')
     await user.click(screen.getByRole('button', { name: 'Tìm bài luyện' }))
 
-    expect(screen.getByRole('heading', { name: 'Tìm bài luyện tập' })).toBeInTheDocument()
+    await waitFor(
+      () => {
+        expect(screen.getByRole('heading', { name: 'Tìm bài luyện tập' })).toBeInTheDocument()
+      },
+      { timeout: 3000 },
+    )
     expect(screen.getByText(/IELTS Writing Task 1/)).toBeInTheDocument()
+  })
+
+  test('keeps the liquid sweep visible briefly before routing a submitted query', () => {
+    vi.useFakeTimers()
+    try {
+      renderApp()
+      const input = screen.getByRole('textbox', { name: 'Tìm nội dung luyện tập IELTS' })
+      const control = input.closest('.hero-search-control')
+
+      fireEvent.change(input, { target: { value: 'Reading' } })
+      fireEvent.submit(screen.getByRole('search'))
+
+      expect(control).toHaveClass('hero-search-control-submitting')
+      expect(screen.getByRole('search')).toBeInTheDocument()
+
+      act(() => {
+        vi.advanceTimersByTime(90)
+      })
+
+      expect(screen.getByRole('heading', { name: 'Tìm bài luyện tập' })).toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   test('exposes keyboard-accessible quick practice suggestions', async () => {

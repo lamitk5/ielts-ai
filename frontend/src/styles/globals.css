@@ -1110,9 +1110,10 @@ input:focus-visible {
 .hero-search-control::before {
   z-index: 0;
   background: radial-gradient(
-    circle 9rem at var(--search-pointer-x, 50%) var(--search-pointer-y, 50%),
-    color-mix(in srgb, var(--gold-light) 30%, transparent),
-    transparent 72%
+    circle 12rem at var(--search-pointer-x, 50%) var(--search-pointer-y, 50%),
+    color-mix(in srgb, var(--gold-light) 64%, transparent) 0%,
+    color-mix(in srgb, var(--gold-light) 30%, transparent) 38%,
+    transparent 76%
   );
   opacity: 0;
   transition: opacity 220ms ease;
@@ -1122,13 +1123,19 @@ input:focus-visible {
   z-index: 0;
   inset: -1px;
   padding: 1px;
-  background: linear-gradient(
-    108deg,
-    transparent 18%,
-    color-mix(in srgb, var(--gold-light) 76%, transparent) 46%,
-    transparent 74%
-  );
-  background-size: 230% 100%;
+  background:
+    radial-gradient(
+      circle 10rem at var(--search-pointer-x, 50%) var(--search-pointer-y, 50%),
+      color-mix(in srgb, var(--gold-light) 96%, transparent),
+      transparent 70%
+    ),
+    linear-gradient(
+      108deg,
+      transparent 14%,
+      color-mix(in srgb, var(--gold-light) 94%, transparent) 46%,
+      transparent 78%
+    );
+  background-size: auto, 230% 100%;
   opacity: 0;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
@@ -1140,18 +1147,23 @@ input:focus-visible {
   z-index: 1;
 }
 
-.hero-search-control-focused {
+.hero-search-control.hero-search-control-focused {
   border-color: var(--accent-hover);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 34%, transparent), 0 0 1.7rem var(--accent-soft), var(--shadow-md);
-  transform: scale(1.01);
+  background: color-mix(in srgb, var(--surface-1) 88%, var(--accent-soft));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 42%, transparent), 0 0 2.2rem color-mix(in srgb, var(--accent) 42%, transparent), var(--shadow-md);
+  transform: scale(1.014);
 }
 
-.hero-search-control-focused::after {
-  opacity: 0.68;
+.hero-search-control.hero-search-control-focused::before {
+  opacity: 0.9;
+}
+
+.hero-search-control.hero-search-control-focused::after {
+  opacity: 0.94;
   animation: hero-search-liquid-trace 2.8s ease-in-out infinite;
 }
 
-.hero-search-control-submitting::after {
+.hero-search-control.hero-search-control-submitting::after {
   opacity: 0.95;
   animation: hero-search-submit-sweep 320ms ease-out both;
 }
@@ -1169,6 +1181,13 @@ input:focus-visible {
 .hero-search-icon {
   flex: 0 0 auto;
   color: var(--accent-hover);
+  transition: color 180ms ease, filter 180ms ease, transform 180ms ease;
+}
+
+.hero-search-control.hero-search-control-focused .hero-search-icon {
+  color: var(--accent-hover);
+  filter: drop-shadow(0 0 0.45rem var(--accent-soft));
+  transform: translateX(1px) scale(1.08);
 }
 
 .hero-search-control input {
@@ -1180,6 +1199,12 @@ input:focus-visible {
   color: var(--text-primary);
   font: inherit;
   font-size: 0.95rem;
+  transition: background-color 180ms ease;
+}
+
+.hero-search-control.hero-search-control-focused input {
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--accent-soft) 58%, transparent);
 }
 
 .hero-search-control input::placeholder {
@@ -1224,12 +1249,17 @@ input:focus-visible {
 @media (hover: hover) and (pointer: fine) {
   .hero-search-control:hover {
     border-color: color-mix(in srgb, var(--accent-hover) 82%, var(--border-strong));
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 24%, transparent), 0 0 1.4rem var(--accent-soft), var(--shadow-md);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 32%, transparent), 0 0 2rem color-mix(in srgb, var(--accent) 34%, transparent), var(--shadow-md);
   }
 
   .hero-search-control:hover::before,
   .hero-search-control[data-pointer-active='true']::before {
-    opacity: 0.72;
+    opacity: 0.9;
+  }
+
+  .hero-search-control:hover::after,
+  .hero-search-control[data-pointer-active='true']::after {
+    opacity: 0.86;
   }
 }
 
@@ -1238,12 +1268,12 @@ input:focus-visible {
     transition: border-color 0.01ms linear, box-shadow 0.01ms linear;
   }
 
-  .hero-search-control-focused {
+  .hero-search-control.hero-search-control-focused {
     transform: none;
   }
 
-  .hero-search-control-focused::after,
-  .hero-search-control-submitting::after {
+  .hero-search-control.hero-search-control-focused::after,
+  .hero-search-control.hero-search-control-submitting::after {
     animation: none;
   }
 }
@@ -1252,12 +1282,12 @@ input:focus-visible {
   transition: border-color 0.01ms linear, box-shadow 0.01ms linear;
 }
 
-:root[data-reduced-motion='true'] .hero-search-control-focused {
+:root[data-reduced-motion='true'] .hero-search-control.hero-search-control-focused {
   transform: none;
 }
 
-:root[data-reduced-motion='true'] .hero-search-control-focused::after,
-:root[data-reduced-motion='true'] .hero-search-control-submitting::after {
+:root[data-reduced-motion='true'] .hero-search-control.hero-search-control-focused::after,
+:root[data-reduced-motion='true'] .hero-search-control.hero-search-control-submitting::after {
   animation: none;
 }
 
@@ -5747,4 +5777,20 @@ input:focus-visible {
   border-color: var(--accent);
   background: var(--surface-glass);
   box-shadow: 0 14px 32px rgba(74, 56, 31, 0.16), 0 0 22px var(--accent-soft);
+}
+
+/* Keep the interactive liquid-gold state visible after light-theme surface tokens. */
+[data-theme='light'] .hero-search-control.hero-search-control-focused {
+  border-color: var(--accent-hover);
+  background: color-mix(in srgb, var(--surface-raised) 84%, var(--accent-soft));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 48%, transparent), 0 0 2.4rem color-mix(in srgb, var(--accent) 38%, transparent), var(--shadow-soft);
+}
+
+[data-theme='light'] .hero-search-control:hover {
+  border-color: var(--accent-hover);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 42%, transparent), 0 0 2.2rem color-mix(in srgb, var(--accent) 34%, transparent), var(--shadow-soft);
+}
+
+[data-theme='light'] .hero-search-control.hero-search-control-focused input {
+  background: color-mix(in srgb, var(--accent-soft) 72%, transparent);
 }
