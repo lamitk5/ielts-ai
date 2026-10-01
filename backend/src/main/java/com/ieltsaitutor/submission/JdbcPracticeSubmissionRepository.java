@@ -115,6 +115,23 @@ public class JdbcPracticeSubmissionRepository implements PracticeSubmissionRepos
         return updated == 0 ? Optional.empty() : findById(id);
     }
 
+    @Override
+    public SubmissionHistoryPage findHistory(UUID ownerId, String skill, SubmissionStatus status, int page, int size) {
+        String filters = "WHERE user_id = :userId "
+                + "AND (:skill IS NULL OR lower(skill) = lower(:skill)) "
+                + "AND (:status IS NULL OR status = :status)";
+        MapSqlParameterSource params = new MapSqlParameterSource().addValue("userId", ownerId)
+                .addValue("skill", skill).addValue("status", status == null ? null : status.name())
+                .addValue("limit", size).addValue("offset", (long) page * size);
+        List<PracticeSubmission> items = jdbc.query("SELECT id,user_id,skill,practice_id,practice_version_id,published_set_id,"
+                        + "publication_revision,status,started_at,last_saved_at,submitted_at,scored_at,autosave_revision,"
+                        + "start_idempotency_key,submit_idempotency_key,content_hash,retryable,created_at,updated_at "
+                        + "FROM practice_submissions " + filters + " ORDER BY created_at DESC LIMIT :limit OFFSET :offset",
+                params, MAPPER);
+        Long total = jdbc.queryForObject("SELECT COUNT(*) FROM practice_submissions " + filters, params, Long.class);
+        return new SubmissionHistoryPage(items, page, size, total == null ? 0 : total);
+    }
+
     private List<PracticeSubmission> query(String where, MapSqlParameterSource params) {
         return jdbc.query("""
                 SELECT id,user_id,skill,practice_id,practice_version_id,published_set_id,

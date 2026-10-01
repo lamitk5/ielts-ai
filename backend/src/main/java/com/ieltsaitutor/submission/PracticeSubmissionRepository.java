@@ -3,6 +3,7 @@ package com.ieltsaitutor.submission;
 import java.util.Optional;
 import java.util.UUID;
 import java.time.Instant;
+import java.util.List;
 
 public interface PracticeSubmissionRepository {
     PracticeSubmission create(PracticeSubmission submission);
@@ -21,4 +22,6 @@ public interface PracticeSubmissionRepository {
 
     Optional<PracticeSubmission> finalizeIfEditable(UUID id, String submitIdempotencyKey,
             String contentHash, java.time.Instant submittedAt);
+
+    SubmissionHistoryPage findHistory(UUID ownerId, String skill, SubmissionStatus status, int page, int size);
 }
