@@ -28,6 +28,6 @@ export function saveAttemptAnswers(attemptId, answers) {
 export function submitAttempt(attemptId, answers, score, total, idempotencyKey) {
   return request(`/api/attempts/${encodeURIComponent(attemptId)}/submit`, {
     method: 'POST',
-    body: JSON.stringify({ answers, score, total, idempotencyKey }),
+    body: JSON.stringify({ answers, idempotencyKey }),
   })
 }

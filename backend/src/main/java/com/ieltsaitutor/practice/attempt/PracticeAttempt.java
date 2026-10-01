@@ -36,4 +36,9 @@ public record PracticeAttempt(
         return new PracticeAttempt(id, userId, practiceId, practiceVersion, skill, AttemptStatus.FEEDBACK_READY,
                 updatedAnswers, updatedScore, updatedTotal, startedAt, Instant.now(), updatedResultPayload, idempotencyKey);
     }
+
+    public PracticeAttempt withSubmitted(Map<String, String> updatedAnswers) {
+        return new PracticeAttempt(id, userId, practiceId, practiceVersion, skill, AttemptStatus.SUBMITTED,
+                updatedAnswers, null, null, startedAt, Instant.now(), "{}", idempotencyKey);
+    }
 }

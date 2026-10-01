@@ -54,6 +54,17 @@ public class JdbcAttemptRepository implements AttemptRepository {
         return attempt.withAnswers(answers);
     }
 
+    @Override public PracticeAttempt saveSubmitted(PracticeAttempt attempt, Map<String, String> answers) {
+        Instant submitted = Instant.now();
+        jdbc.update("""
+                UPDATE learning_attempts SET answer_payload = CAST(:answers AS jsonb), score = NULL, total = NULL,
+                    result_payload = '{}'::jsonb, attempt_status = 'SUBMITTED', submitted_at = :submittedAt
+                WHERE id = :id AND attempt_status = 'IN_PROGRESS'
+                """, new MapSqlParameterSource().addValue("id", attempt.id()).addValue("answers", json(answers))
+                .addValue("submittedAt", submitted, Types.TIMESTAMP_WITH_TIMEZONE));
+        return attempt.withSubmitted(answers);
+    }
+
     @Override public PracticeAttempt saveResult(PracticeAttempt attempt, Map<String, String> answers, int score, int total, String resultPayload) {
         Instant submitted = Instant.now();
         jdbc.update("""

@@ -44,7 +44,7 @@ public class AttemptController {
     @PostMapping("/{attemptId}/submit")
     public AttemptView submit(@PathVariable UUID attemptId, @RequestBody SubmitRequest request, HttpServletRequest httpRequest) {
         AuthPrincipal principal = principal(httpRequest);
-        return view(service.submit(principal.userId(), attemptId, request.answers(), request.score(), request.total(), request.resultPayload(), request.idempotencyKey()));
+        return view(service.submit(principal.userId(), attemptId, request.answers(), request.idempotencyKey()));
     }
 
     @GetMapping("/{attemptId}/result")
@@ -65,7 +65,7 @@ public class AttemptController {
 
     public record StartRequest(String practiceId, String practiceVersion, String skill, String idempotencyKey) {}
     public record AnswersRequest(Map<String, String> answers) {}
-    public record SubmitRequest(Map<String, String> answers, int score, int total, String resultPayload, String idempotencyKey) {}
+    public record SubmitRequest(Map<String, String> answers, String idempotencyKey) {}
     public record AttemptView(UUID id, String practiceId, String practiceVersion, String skill, String status,
             Map<String, String> answers, Integer score, Integer total, java.time.Instant startedAt,
             java.time.Instant submittedAt, String resultPayload) {}

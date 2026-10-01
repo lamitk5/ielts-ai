@@ -61,6 +61,20 @@ public class AttemptService {
         return repository.saveResult(attempt, answers, score, total, resultPayload);
     }
 
+    @Transactional
+    public PracticeAttempt submit(UUID userId, UUID attemptId, Map<String, String> answers, String idempotencyKey) {
+        PracticeAttempt attempt = owned(userId, attemptId);
+        if (attempt.status() != AttemptStatus.IN_PROGRESS) {
+            if (attempt.status() == AttemptStatus.SUBMITTED && attempt.answers().equals(answers)
+                    && java.util.Objects.equals(attempt.idempotencyKey(), idempotencyKey)) return attempt;
+            throw new AttemptConflictException("Attempt has already been submitted");
+        }
+        if (attempt.idempotencyKey() != null && idempotencyKey != null && !attempt.idempotencyKey().equals(idempotencyKey)) {
+            throw new AttemptConflictException("Submission key does not match attempt");
+        }
+        return repository.saveSubmitted(attempt, answers);
+    }
+
     private PracticeAttempt owned(UUID userId, UUID attemptId) {
         return repository.findById(attemptId)
                 .filter(attempt -> attempt.userId().equals(userId))
