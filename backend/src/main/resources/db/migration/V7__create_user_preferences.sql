@@ -1,0 +1,23 @@
+CREATE TABLE user_preferences (
+    user_id UUID PRIMARY KEY REFERENCES app_users(id) ON DELETE CASCADE,
+    theme_mode VARCHAR(16) NOT NULL DEFAULT 'SYSTEM',
+    accent_preset VARCHAR(16) NOT NULL DEFAULT 'GOLD',
+    font_scale VARCHAR(16) NOT NULL DEFAULT 'DEFAULT',
+    density VARCHAR(16) NOT NULL DEFAULT 'DEFAULT',
+    reduce_motion VARCHAR(16) NOT NULL DEFAULT 'SYSTEM',
+    proactive_ai_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    cross_highlight_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    timer_default_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    reading_split_ratio INTEGER NOT NULL DEFAULT 40,
+    writing_split_ratio INTEGER NOT NULL DEFAULT 40,
+    version BIGINT NOT NULL DEFAULT 0,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT user_preferences_theme_ck CHECK (theme_mode IN ('SYSTEM', 'LIGHT', 'DARK')),
+    CONSTRAINT user_preferences_accent_ck CHECK (accent_preset IN ('GOLD', 'SAPPHIRE', 'EMERALD', 'BURGUNDY', 'VIOLET', 'SLATE')),
+    CONSTRAINT user_preferences_font_ck CHECK (font_scale IN ('SMALL', 'DEFAULT', 'LARGE')),
+    CONSTRAINT user_preferences_density_ck CHECK (density IN ('COMFORTABLE', 'DEFAULT', 'COMPACT')),
+    CONSTRAINT user_preferences_motion_ck CHECK (reduce_motion IN ('SYSTEM', 'REDUCED', 'ALLOWED')),
+    CONSTRAINT user_preferences_reading_ratio_ck CHECK (reading_split_ratio IN (40, 50, 60)),
+    CONSTRAINT user_preferences_writing_ratio_ck CHECK (writing_split_ratio IN (40, 50, 60)),
+    CONSTRAINT user_preferences_version_ck CHECK (version >= 0)
+);

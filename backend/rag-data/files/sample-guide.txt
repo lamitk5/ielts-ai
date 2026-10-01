@@ -1,0 +1,1 @@
+This sample document is included only to verify the local manifest ingestion path.
