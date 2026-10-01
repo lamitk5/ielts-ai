@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 public class SubmissionCommandService {
@@ -15,6 +16,7 @@ public class SubmissionCommandService {
         this(repository, new SubmissionStateMachine());
     }
 
+    @Autowired
     public SubmissionCommandService(PracticeSubmissionRepository repository, SubmissionStateMachine stateMachine) {
         this.repository = repository;
         this.stateMachine = stateMachine;

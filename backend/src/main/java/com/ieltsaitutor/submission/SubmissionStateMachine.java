@@ -5,6 +5,9 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public final class SubmissionStateMachine {
     private static final Map<SubmissionStatus, Set<SubmissionStatus>> RETRY_TARGETS = Map.of(
             SubmissionStatus.FAILED,
