@@ -1,129 +1,112 @@
-# IELTS AI Tutor
+# IELTS AI Tutor (LUMEN)
 
-IELTS AI Tutor is a four-skill learning platform built with React/Vite, Spring Boot, PostgreSQL and pgvector. It keeps IELTS-style fixtures project-owned and synthetic, exposes provider-independent Tutor and Writing contracts, and uses Gemini only from the backend.
+Nền tảng luyện thi toàn diện 4 kỹ năng IELTS (Listening, Reading, Writing, Speaking) tích hợp trợ lý AI thông minh (LUMEN AI Tutor), tra cứu bài tập qua RAG (pgvector), và chấm điểm/phân tích lỗi cá nhân hóa.
 
-## Prerequisites
+---
 
-- Java 21
-- Node.js 20+
-- Docker Desktop with PostgreSQL and pgvector support
+## 1. Giới thiệu Dự án (Project Overview)
 
-## Local development
+**IELTS AI Tutor** được thiết kế nhằm mang lại trải nghiệm luyện thi cá nhân hóa cao cấp với phong cách thiết kế **Academic Luxury**:
+- **Trợ lý gia sư AI (LUMEN Tutor)**: Đồng hành xuyên suốt quá trình làm bài, hỗ trợ giải thích ngữ cảnh, tra cứu lời giải và phản hồi tương tác bằng tool calling có kiểm soát.
+- **Luyện 4 kỹ năng độc lập**:
+  - **Reading & Listening**: Không gian làm bài chia đôi (Split Learning Workspace), tự động chấm điểm theo answer key chuẩn.
+  - **Writing**: Chấm bài tự động theo 4 tiêu chí IELTS (Task Response, Coherence, Lexical Resource, Grammatical Range) và cung cấp band score ước lượng.
+  - **Speaking**: Giao diện phòng thi ảo (Speaking Room) với visualizer âm thanh và theo dõi luồng phản hồi trực tiếp.
+- **RAG & Tìm kiếm Ngữ nghĩa**: Hệ thống nhúng tài liệu và bài tập vào vector database (PostgreSQL + pgvector), cho phép tìm kiếm và truy xuất thông tin chính xác.
 
+---
+
+## 2. Kiến trúc Hệ thống (Architecture)
+
+Dự án tuân thủ mô hình kiến trúc **Modular Monolith** kết hợp **Domain-Driven Design (DDD)** và **Clean/Layered Architecture**:
+
+- **Mô hình kiến trúc**: Modular Monolith tách biệt rõ ràng giữa các domain nghiệp vụ (`auth`, `practice`, `writing`, `speaking`, `tutor`, `rag`, `learning`).
+- **Backend (Java Spring Boot 3.3+)**:
+  - Xử lý nghiệp vụ tập trung, quản lý migration cơ sở dữ liệu với Flyway.
+  - Điều phối đa nhà cung cấp AI độc lập với vendor (Groq, Cloudflare Workers AI, Google Gemini).
+  - Tích hợp vector search thông qua PostgreSQL extension `pgvector` (`vector(768)`).
+- **Frontend (React 18 + Vite)**:
+  - Thiết kế theo chuẩn **Academic Luxury**: Font tiêu đề `Playfair Display`, font giao diện `Inter`.
+  - Hiệu ứng mượt mà với Framer Motion và biểu đồ phân tích năng lực với Recharts.
+  - Quản lý trạng thái làm bài độc lập, hỗ trợ phân tách màn hình và khả năng tương thích cao.
+
+---
+
+## 3. Cấu trúc Dự án (Project Structure)
+
+```text
+ielts-ai/
+├── backend/                               # Spring Boot Backend
+│   ├── src/main/java/com/ieltsaitutor/
+│   │   ├── auth/                          # Xác thực người dùng, JWT & Security
+│   │   ├── practice/                      # Nghiệp vụ luyện đề Reading & Listening
+│   │   ├── writing/                       # Chấm bài Writing & đánh giá tiêu chí
+│   │   ├── speaking/                      # Phòng luyện Speaking & giao thức STT
+│   │   ├── tutor/                         # Trợ lý AI Tutor: orchestrator, memory, tools
+│   │   ├── rag/                           # RAG engine, vector chunking & retrieval
+│   │   ├── search/                        # Tìm kiếm bài tập ngữ nghĩa và keyword
+│   │   ├── learning/                      # Tiến độ học, chuỗi ngày streak, bản nháp
+│   │   └── admin/                         # Quản trị CMS, RAG index & generator
+│   ├── src/main/resources/
+│   │   ├── db/migration/                  # Flyway migrations (V1 -> V6)
+│   │   └── application.yml                # Cấu hình backend
+│   ├── docker-compose.yml                 # PostgreSQL 16 + pgvector container
+│   └── pom.xml                            # Maven dependencies
+├── frontend/                              # React + Vite Frontend
+│   ├── src/
+│   │   ├── components/                    # UI Components (layout, tutor, workspace,...)
+│   │   ├── features/                      # Business logic modules (auth, tutor, practice,...)
+│   │   ├── pages/                         # Các trang ứng dụng (Home, Practice, Writing,...)
+│   │   ├── services/                      # API client giao tiếp với backend
+│   │   ├── styles/                        # Tailwind CSS & global styles
+│   │   └── main.jsx                       # Entry point React
+│   ├── package.json                       # NPM dependencies
+│   └── vite.config.js                     # Vite build configuration
+├── docs/                                  # Tài liệu thiết kế, báo cáo & runbooks
+├── scripts/                               # Scripts khởi động tự động và quản lý DB
+│   ├── START_IELTS.bat                    # Script khởi chạy toàn bộ 1-click cho Windows
+│   └── start-ielts.ps1                    # PowerShell startup script
+├── architecture.yaml                      # Đặc tả ma trận phụ thuộc module
+├── AGENTS.md                              # Quy chuẩn thiết kế và phát triển agent
+└── README.md                              # Tài liệu tổng quan dự án
+```
+
+---
+
+## 4. Công nghệ Sử dụng (Tech Stack)
+
+| Thành phần | Công nghệ |
+|---|---|
+| **Backend** | Java 21, Spring Boot 3.3+, Spring Data JDBC, Flyway |
+| **Frontend** | React 18, Vite, Tailwind CSS, Framer Motion, Recharts |
+| **Database** | PostgreSQL 16, pgvector extension |
+| **AI / LLM** | Google Gemini API, Groq, Cloudflare Workers AI |
+| **DevOps & Tooling** | Docker, Maven, Node.js / NPM |
+
+---
+
+## 5. Hướng dẫn Khởi chạy (Local Setup)
+
+### Bước 1: Khởi động Cơ sở dữ liệu
 ```powershell
 docker compose -f backend/docker-compose.yml up -d
+```
+
+### Bước 2: Chạy Backend
+```powershell
 cd backend
 ./mvnw.cmd spring-boot:run
 ```
 
-In another terminal:
-
+### Bước 3: Chạy Frontend
+Mở terminal khác:
 ```powershell
 cd frontend
 npm install
 npm run dev
 ```
 
-Flyway applies migrations V1 through V6 on backend startup. V6 is additive: it records the exact embedding provider/model/dimension/version and marks legacy indexed content as `REINDEX_REQUIRED` until it is safely reindexed. Do not edit or squash an already-applied migration.
-
-## Configuration
-
-Copy the placeholders from `backend/.env.example` into the local environment. Keep `GEMINI_API_KEY` server-side only. `GEMINI_MODEL`, `GEMINI_EMBEDDING_MODEL`, and `RAG_EMBEDDING_DIMENSION` are configurable; the current vector schema is `vector(768)`.
-
-The default chat order is Groq → Cloudflare → Gemini when each provider is configured; missing credentials disable only that provider. Gemini quota errors are returned as a controlled temporary-unavailable response. Automated tests use deterministic providers and do not require a live provider quota. Phase AI-1 has no persistent conversation memory, audio STT, or real IELTS exam modules.
-
-## Product routes
-
-- `/` — guest homepage; `/?demo=member` is explicit local demo data
-- `/register`, `/login` — persistent auth session
-- `/assessment` — four-skill entry flow
-- `/practice/reading`, `/practice/listening`, `/practice/writing`, `/practice/speaking`
-- `/practice/search?q=...` — fixture-backed practice search
-- `/admin/rag` — authenticated ADMIN CMS, with a temporary local token compatibility path
-
-Reading and Listening marking uses stored synthetic answer keys. Writing returns structured estimates only when the provider returns a valid contract. Speaking persists text input and reports the STT boundary without fabricating a transcript.
-
-## Verification
-
+Hoặc chạy nhanh toàn bộ bằng script:
 ```powershell
-cd backend
-cmd /c .\mvnw.cmd test
-cmd /c .\mvnw.cmd package
-cd ..\frontend
-npm test -- --run
-npm run lint
-npm run build
+.\scripts\START_IELTS.bat
 ```
-
-The Testcontainers integration check may remain skipped when Docker Desktop returns the known local HTTP 400 metadata response; this is an environment limitation, not a mocked database path. Live Gemini checks are external and quota-dependent.
-
----
-
-## Kiến trúc Modular Monolith & Phổ đồ thị
-
-Dự án backend nền tảng học và luyện thi IELTS được thiết kế theo kiến trúc **Modular Monolith** sử dụng **Spring Boot 3.3+**, **Java 23**, và **Spring Modulith**.
-
-### 1. Cấu trúc Module & Package
-
-Hệ thống được tổ chức thành các module độc lập với ranh giới rõ ràng thông qua `package-info.java` và `@ApplicationModule`:
-
-| Module | Package | Loại | Mô tả | Allowed Dependencies |
-|---|---|---|---|---|
-| **presentation** | `com.ielts.presentation` | Delivery | REST API, Controller, Web endpoints | `shared`, `application` |
-| **application** | `com.ielts.application` | Orchestration | Điều phối nghiệp vụ liên module | `shared`, `infrastructure`, domain submodules, ai submodules |
-| **domain.user** | `com.ielts.domain.user` | Domain | Thực thể User, quản lý người học & giảng viên | `shared` |
-| **domain.course** | `com.ielts.domain.course` | Domain | Thực thể Course, chương trình học | `shared`, `user` |
-| **domain.lesson** | `com.ielts.domain.lesson` | Domain | Thực thể Lesson, bài học trong khóa | `shared`, `course` |
-| **domain.skill** | `com.ielts.domain.skill` | Domain | Thực thể Skill, 4 kỹ năng (L/R/W/S) | `shared`, `lesson` |
-| **domain.progress** | `com.ielts.domain.progress` | Domain | Tiến độ học, điểm số, lịch sử luyện tập | `shared`, `user`, `course`, `lesson`, `skill` |
-| **ai.asr** | `com.ielts.ai.asr` | AI Submodule | Nhận dạng giọng nói (Automatic Speech Recognition) | `shared` |
-| **ai.nlp.writing** | `com.ielts.ai.nlp.writing` | AI Submodule | Chấm & phân tích bài viết IELTS Writing | `shared` |
-| **ai.nlp.speaking** | `com.ielts.ai.nlp.speaking` | AI Submodule | Đánh giá phát âm, ngữ pháp Speaking | `shared`, `asr` |
-| **ai.tts** | `com.ielts.ai.tts` | AI Submodule | Tổng hợp giọng đọc (Text to Speech) | `shared` |
-| **ai.recommendation** | `com.ielts.ai.recommendation` | AI Submodule | Gợi ý bài học & lộ trình cá nhân hóa | `shared`, `progress`, `course` |
-| **ai.chatbot** | `com.ielts.ai.chatbot` | AI Submodule | Trợ lý ảo hội thoại luyện nói/hỏi đáp | `shared` |
-| **infrastructure** | `com.ielts.infrastructure` | Technical | Cấu hình kỹ thuật, adapter bên thứ ba | `shared` |
-| **shared** | `com.ielts.shared` | Cross-Cutting | Tiện ích chung, base types, exceptions | Không phụ thuộc module nào |
-
-### 2. Quy ước Stub & Ranh giới
-
-1. **Package Info**: Mỗi package module chứa file `package-info.java` với annotation:
-   ```java
-   @ApplicationModule(
-       displayName = "...",
-       allowedDependencies = { ... }
-   )
-   package com.ielts.<module>;
-   ```
-2. **Spring Modulith Detection Strategy**: Cấu hình trong `application.properties`:
-   ```properties
-   spring.modulith.detection-strategy=explicitly-annotated
-   ```
-3. **Stubs**:
-   - Mỗi module có 1 `@Service` hoặc `@Component` rỗng.
-   - Mỗi sub-module domain có 1 Entity stub (`User`, `Course`, `Lesson`, `Skill`, `Progress`).
-   - Mỗi module AI có 1 interface `Evaluator` và 1 implementation rỗng (`Default*Evaluator`).
-
-### 3. Kiểm tra Kiến trúc (Modularity Verification)
-
-Kiểm tra ranh giới phụ thuộc tự động thông qua JUnit test:
-```java
-@Test
-void verifyModularArchitecture() {
-    ApplicationModules.of(IeltsApplication.class).verify();
-}
-```
-Nếu có module nào vi phạm danh sách `allowedDependencies`, test sẽ báo lỗi ngay lập tức khi build.
-
-### 4. Phân tích Phổ (Spectral Analysis)
-
-File `architecture.yaml` tại thư mục gốc định nghĩa toàn bộ:
-- Danh sách các node (15 modules).
-- Các cạnh phụ thuộc có hướng (`source` $\to$ `target`).
-- Trọng số và kiểu quan hệ (`orchestration`, `domain_collaboration`, `ai_pipeline`, `shared_kernel`).
-
-Dùng trực tiếp cho các thuật toán phân tích phổ đồ thị:
-- **Ma trận kề (Adjacency Matrix)** $A$
-- **Ma trận bậc (Degree Matrix)** $D$
-- **Ma trận Laplacian** $L = D - A$
-- **Phân cụm phổ (Spectral Clustering)** và đánh giá hệ số mô đun (Modularity Q).
