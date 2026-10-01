@@ -1,0 +1,112 @@
+package com.ieltsaitutor.submission;
+
+import java.sql.Types;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public class JdbcPracticeSubmissionRepository implements PracticeSubmissionRepository {
+    private final NamedParameterJdbcTemplate jdbc;
+
+    private static final RowMapper<PracticeSubmission> MAPPER = (rs, row) -> new PracticeSubmission(
+            rs.getObject("id", UUID.class),
+            rs.getObject("user_id", UUID.class),
+            rs.getString("skill"),
+            rs.getString("practice_id"),
+            rs.getString("practice_version_id"),
+            rs.getString("published_set_id"),
+            rs.getInt("publication_revision"),
+            SubmissionStatus.valueOf(rs.getString("status")),
+            rs.getTimestamp("started_at").toInstant(),
+            rs.getTimestamp("last_saved_at") == null ? null : rs.getTimestamp("last_saved_at").toInstant(),
+            rs.getTimestamp("submitted_at") == null ? null : rs.getTimestamp("submitted_at").toInstant(),
+            rs.getTimestamp("scored_at") == null ? null : rs.getTimestamp("scored_at").toInstant(),
+            rs.getLong("autosave_revision"),
+            rs.getString("start_idempotency_key"),
+            rs.getString("submit_idempotency_key"),
+            rs.getString("content_hash"),
+            rs.getBoolean("retryable"),
+            rs.getTimestamp("created_at").toInstant(),
+            rs.getTimestamp("updated_at").toInstant());
+
+    public JdbcPracticeSubmissionRepository(NamedParameterJdbcTemplate jdbc) {
+        this.jdbc = jdbc;
+    }
+
+    @Override
+    public PracticeSubmission create(PracticeSubmission submission) {
+        jdbc.update("""
+                INSERT INTO practice_submissions(
+                    id,user_id,skill,practice_id,practice_version_id,published_set_id,
+                    publication_revision,status,started_at,last_saved_at,submitted_at,
+                    scored_at,autosave_revision,start_idempotency_key,submit_idempotency_key,
+                    content_hash,retryable,created_at,updated_at)
+                VALUES(:id,:userId,:skill,:practiceId,:practiceVersionId,:publishedSetId,
+                    :publicationRevision,:status,:startedAt,:lastSavedAt,:submittedAt,
+                    :scoredAt,:autosaveRevision,:startKey,:submitKey,:contentHash,
+                    :retryable,:createdAt,:updatedAt)
+                """, params(submission));
+        return submission;
+    }
+
+    @Override
+    public Optional<PracticeSubmission> findById(UUID id) {
+        return query("WHERE id = :id", new MapSqlParameterSource("id", id)).stream().findFirst();
+    }
+
+    @Override
+    public Optional<PracticeSubmission> findByOwnerAndId(UUID ownerId, UUID id) {
+        return query("WHERE id = :id AND user_id = :userId",
+                new MapSqlParameterSource().addValue("id", id).addValue("userId", ownerId)).stream().findFirst();
+    }
+
+    @Override
+    public Optional<PracticeSubmission> findByOwnerAndStartIdempotencyKey(UUID ownerId, String key) {
+        return query("WHERE user_id = :userId AND start_idempotency_key = :key",
+                new MapSqlParameterSource().addValue("userId", ownerId).addValue("key", key)).stream().findFirst();
+    }
+
+    @Override
+    public Optional<PracticeSubmission> findByOwnerAndSubmitIdempotencyKey(UUID ownerId, String key) {
+        return query("WHERE user_id = :userId AND submit_idempotency_key = :key",
+                new MapSqlParameterSource().addValue("userId", ownerId).addValue("key", key)).stream().findFirst();
+    }
+
+    private List<PracticeSubmission> query(String where, MapSqlParameterSource params) {
+        return jdbc.query("""
+                SELECT id,user_id,skill,practice_id,practice_version_id,published_set_id,
+                    publication_revision,status,started_at,last_saved_at,submitted_at,scored_at,
+                    autosave_revision,start_idempotency_key,submit_idempotency_key,content_hash,
+                    retryable,created_at,updated_at
+                FROM practice_submissions """ + where, params, MAPPER);
+    }
+
+    private MapSqlParameterSource params(PracticeSubmission item) {
+        return new MapSqlParameterSource()
+                .addValue("id", item.id())
+                .addValue("userId", item.userId())
+                .addValue("skill", item.skill())
+                .addValue("practiceId", item.practiceId())
+                .addValue("practiceVersionId", item.practiceVersionId())
+                .addValue("publishedSetId", item.publishedSetId())
+                .addValue("publicationRevision", item.publicationRevision())
+                .addValue("status", item.status().name())
+                .addValue("startedAt", item.startedAt(), Types.TIMESTAMP_WITH_TIMEZONE)
+                .addValue("lastSavedAt", item.lastSavedAt(), Types.TIMESTAMP_WITH_TIMEZONE)
+                .addValue("submittedAt", item.submittedAt(), Types.TIMESTAMP_WITH_TIMEZONE)
+                .addValue("scoredAt", item.scoredAt(), Types.TIMESTAMP_WITH_TIMEZONE)
+                .addValue("autosaveRevision", item.autosaveRevision())
+                .addValue("startKey", item.startIdempotencyKey())
+                .addValue("submitKey", item.submitIdempotencyKey())
+                .addValue("contentHash", item.contentHash())
+                .addValue("retryable", item.retryable())
+                .addValue("createdAt", item.createdAt(), Types.TIMESTAMP_WITH_TIMEZONE)
+                .addValue("updatedAt", item.updatedAt(), Types.TIMESTAMP_WITH_TIMEZONE);
+    }
+}
