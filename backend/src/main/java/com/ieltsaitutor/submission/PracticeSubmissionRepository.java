@@ -2,6 +2,7 @@ package com.ieltsaitutor.submission;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.time.Instant;
 
 public interface PracticeSubmissionRepository {
     PracticeSubmission create(PracticeSubmission submission);
@@ -13,4 +14,6 @@ public interface PracticeSubmissionRepository {
     Optional<PracticeSubmission> findByOwnerAndStartIdempotencyKey(UUID ownerId, String key);
 
     Optional<PracticeSubmission> findByOwnerAndSubmitIdempotencyKey(UUID ownerId, String key);
+
+    PracticeSubmission updateStatus(UUID id, SubmissionStatus status, Instant updatedAt);
 }

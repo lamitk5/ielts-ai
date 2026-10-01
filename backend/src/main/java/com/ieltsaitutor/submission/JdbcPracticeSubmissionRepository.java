@@ -1,6 +1,7 @@
 package com.ieltsaitutor.submission;
 
 import java.sql.Types;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -76,6 +77,14 @@ public class JdbcPracticeSubmissionRepository implements PracticeSubmissionRepos
     public Optional<PracticeSubmission> findByOwnerAndSubmitIdempotencyKey(UUID ownerId, String key) {
         return query("WHERE user_id = :userId AND submit_idempotency_key = :key",
                 new MapSqlParameterSource().addValue("userId", ownerId).addValue("key", key)).stream().findFirst();
+    }
+
+    @Override
+    public PracticeSubmission updateStatus(UUID id, SubmissionStatus status, Instant updatedAt) {
+        jdbc.update("UPDATE practice_submissions SET status = :status, updated_at = :updatedAt WHERE id = :id",
+                new MapSqlParameterSource().addValue("id", id).addValue("status", status.name())
+                        .addValue("updatedAt", updatedAt, Types.TIMESTAMP_WITH_TIMEZONE));
+        return findById(id).orElseThrow(() -> new IllegalArgumentException("Submission not found"));
     }
 
     private List<PracticeSubmission> query(String where, MapSqlParameterSource params) {
