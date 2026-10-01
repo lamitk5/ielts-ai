@@ -1,5 +1,5 @@
 import { Search } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const suggestions = [
@@ -44,8 +44,27 @@ function HeroSuggestions() {
 
 function HeroSearch() {
   const navigate = useNavigate()
+  const inputRef = useRef(null)
+  const pulseTimeoutRef = useRef(null)
   const [query, setQuery] = useState('')
   const [error, setError] = useState('')
+  const [isFocused, setIsFocused] = useState(false)
+  const [isPulsing, setIsPulsing] = useState(false)
+
+  useEffect(() => () => {
+    window.clearTimeout(pulseTimeoutRef.current)
+  }, [])
+
+  function pulseSearch() {
+    setIsPulsing(true)
+    window.clearTimeout(pulseTimeoutRef.current)
+    pulseTimeoutRef.current = window.setTimeout(() => setIsPulsing(false), 900)
+  }
+
+  function focusSearch() {
+    inputRef.current?.focus()
+    pulseSearch()
+  }
 
   function submitSearch(event) {
     event.preventDefault()
@@ -71,13 +90,28 @@ function HeroSearch() {
         <label className="sr-only" htmlFor="hero-search-input">
           Tìm nội dung luyện tập IELTS
         </label>
-        <div className="hero-search-control">
-          <Search aria-hidden="true" className="hero-search-icon" size={19} />
+        <div
+          className={`hero-search-control${isFocused ? ' is-active' : ''}${isPulsing ? ' is-pulsing' : ''}`}
+        >
+          <button
+            aria-label="Mở ô tìm kiếm"
+            className="hero-search-icon-button"
+            type="button"
+            onClick={focusSearch}
+          >
+            <Search aria-hidden="true" className="hero-search-icon" size={19} />
+          </button>
           <input
             id="hero-search-input"
+            ref={inputRef}
             aria-describedby={error ? 'hero-search-error' : undefined}
             aria-invalid={Boolean(error)}
             value={query}
+            onFocus={() => {
+              setIsFocused(true)
+              pulseSearch()
+            }}
+            onBlur={() => setIsFocused(false)}
             onChange={(event) => {
               setQuery(event.target.value)
               if (error) setError('')

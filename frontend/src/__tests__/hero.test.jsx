@@ -81,6 +81,20 @@ describe('premium hero', () => {
     )
   })
 
+  test('reveals the search light on icon focus and keeps the icon keyboard accessible', async () => {
+    const user = userEvent.setup()
+    renderApp()
+
+    const control = screen.getByRole('search').querySelector('.hero-search-control')
+    const iconButton = screen.getByRole('button', { name: 'Mở ô tìm kiếm' })
+
+    expect(control).not.toHaveClass('is-active')
+    await user.click(iconButton)
+
+    expect(control).toHaveClass('is-active')
+    expect(screen.getByRole('textbox', { name: 'Tìm nội dung luyện tập IELTS' })).toHaveFocus()
+  })
+
   test('navigates a trimmed search query to the safe search route', async () => {
     const user = userEvent.setup()
     renderApp()
