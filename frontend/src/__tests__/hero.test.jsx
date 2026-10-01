@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, test, vi } from 'vitest'
@@ -79,6 +79,65 @@ describe('premium hero', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(
       'Nhập nội dung bạn muốn luyện tập.',
     )
+  })
+
+  test('activates the liquid gold focus state without changing the search contract', async () => {
+    const user = userEvent.setup()
+    renderApp()
+
+    const input = screen.getByRole('textbox', { name: 'Tìm nội dung luyện tập IELTS' })
+    const control = input.closest('.hero-search-control')
+
+    await user.click(input)
+
+    expect(control).toHaveClass('hero-search-control-focused')
+    expect(control).toHaveAttribute('data-search-focused', 'true')
+  })
+
+  test('follows a fine pointer with CSS coordinates without interfering with the input', () => {
+    renderApp()
+
+    const input = screen.getByRole('textbox', { name: 'Tìm nội dung luyện tập IELTS' })
+    const control = input.closest('.hero-search-control')
+    vi.spyOn(control, 'getBoundingClientRect').mockReturnValue({
+      bottom: 56,
+      height: 56,
+      left: 0,
+      right: 240,
+      top: 0,
+      width: 240,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    })
+
+    fireEvent.pointerMove(control, {
+      clientX: 80,
+      clientY: 24,
+      pointerType: 'mouse',
+    })
+
+    expect(control).toHaveAttribute('data-pointer-active', 'true')
+    expect(control.style.getPropertyValue('--search-pointer-x')).toBe('80px')
+    expect(control.style.getPropertyValue('--search-pointer-y')).toBe('24px')
+    expect(input).not.toHaveFocus()
+  })
+
+  test('keeps touch interaction independent from pointer-follow styling', () => {
+    renderApp()
+
+    const input = screen.getByRole('textbox', { name: 'Tìm nội dung luyện tập IELTS' })
+    const control = input.closest('.hero-search-control')
+
+    fireEvent.pointerMove(control, {
+      clientX: 80,
+      clientY: 24,
+      pointerType: 'touch',
+    })
+
+    expect(control).not.toHaveAttribute('data-pointer-active', 'true')
+    expect(control.style.getPropertyValue('--search-pointer-x')).toBe('50%')
+    expect(control.style.getPropertyValue('--search-pointer-y')).toBe('50%')
   })
 
   test('navigates a trimmed search query to the safe search route', async () => {
