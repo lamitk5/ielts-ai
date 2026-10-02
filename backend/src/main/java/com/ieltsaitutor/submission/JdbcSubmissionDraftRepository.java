@@ -1,6 +1,6 @@
 package com.ieltsaitutor.submission;
 
-import java.sql.Types;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +54,7 @@ public class JdbcSubmissionDraftRepository implements SubmissionDraftRepository 
         List<SubmissionDraftSnapshot> saved = jdbc.query(sql, new MapSqlParameterSource()
                 .addValue("submissionId", submissionId).addValue("userId", userId)
                 .addValue("payload", json(payload)).addValue("expectedRevision", expectedRevision)
-                .addValue("idempotencyKey", idempotencyKey).addValue("updatedAt", updatedAt, Types.TIMESTAMP_WITH_TIMEZONE), rowMapper);
+                .addValue("idempotencyKey", idempotencyKey).addValue("updatedAt", Timestamp.from(updatedAt)), rowMapper);
         return saved.stream().findFirst();
     }
 

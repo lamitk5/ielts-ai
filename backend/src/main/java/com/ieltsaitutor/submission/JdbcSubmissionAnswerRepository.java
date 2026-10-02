@@ -1,6 +1,6 @@
 package com.ieltsaitutor.submission;
 
-import java.sql.Types;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -36,7 +36,7 @@ public class JdbcSubmissionAnswerRepository implements SubmissionAnswerRepositor
                 """, new MapSqlParameterSource().addValue("submissionId", snapshot.submissionId())
                 .addValue("userId", snapshot.userId()).addValue("answers", json(snapshot.answers()))
                 .addValue("contentHash", snapshot.contentHash())
-                .addValue("submittedAt", snapshot.submittedAt(), Types.TIMESTAMP_WITH_TIMEZONE));
+                .addValue("submittedAt", Timestamp.from(snapshot.submittedAt())));
         return findBySubmissionId(snapshot.submissionId()).orElseThrow(() -> new IllegalArgumentException("Answer snapshot not found"));
     }
 

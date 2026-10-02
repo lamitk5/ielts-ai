@@ -1,6 +1,6 @@
 package com.ieltsaitutor.submission;
 
-import java.sql.Types;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -83,7 +83,7 @@ public class JdbcPracticeSubmissionRepository implements PracticeSubmissionRepos
     public PracticeSubmission updateStatus(UUID id, SubmissionStatus status, Instant updatedAt) {
         jdbc.update("UPDATE practice_submissions SET status = :status, updated_at = :updatedAt WHERE id = :id",
                 new MapSqlParameterSource().addValue("id", id).addValue("status", status.name())
-                        .addValue("updatedAt", updatedAt, Types.TIMESTAMP_WITH_TIMEZONE));
+                        .addValue("updatedAt", timestamp(updatedAt)));
         return findById(id).orElseThrow(() -> new IllegalArgumentException("Submission not found"));
     }
 
@@ -95,7 +95,7 @@ public class JdbcPracticeSubmissionRepository implements PracticeSubmissionRepos
                 WHERE id = :id AND autosave_revision = :expectedRevision
                     AND status IN ('DRAFT', 'IN_PROGRESS')
                 """, new MapSqlParameterSource().addValue("id", id)
-                .addValue("expectedRevision", expectedRevision).addValue("savedAt", savedAt, Types.TIMESTAMP_WITH_TIMEZONE));
+                .addValue("expectedRevision", expectedRevision).addValue("savedAt", timestamp(savedAt)));
         return updated == 0 ? Optional.empty() : findById(id);
     }
 
@@ -111,7 +111,7 @@ public class JdbcPracticeSubmissionRepository implements PracticeSubmissionRepos
                 WHERE id = :id AND status IN ('DRAFT', 'IN_PROGRESS')
                 """, new MapSqlParameterSource().addValue("id", id)
                 .addValue("submitKey", submitIdempotencyKey).addValue("contentHash", contentHash)
-                .addValue("submittedAt", submittedAt, Types.TIMESTAMP_WITH_TIMEZONE));
+                .addValue("submittedAt", timestamp(submittedAt)));
         return updated == 0 ? Optional.empty() : findById(id);
     }
 
@@ -133,12 +133,11 @@ public class JdbcPracticeSubmissionRepository implements PracticeSubmissionRepos
     }
 
     private List<PracticeSubmission> query(String where, MapSqlParameterSource params) {
-        return jdbc.query("""
-                SELECT id,user_id,skill,practice_id,practice_version_id,published_set_id,
-                    publication_revision,status,started_at,last_saved_at,submitted_at,scored_at,
-                    autosave_revision,start_idempotency_key,submit_idempotency_key,content_hash,
-                    retryable,created_at,updated_at
-                FROM practice_submissions """ + where, params, MAPPER);
+        return jdbc.query("SELECT id,user_id,skill,practice_id,practice_version_id,published_set_id,"
+                        + "publication_revision,status,started_at,last_saved_at,submitted_at,scored_at,"
+                        + "autosave_revision,start_idempotency_key,submit_idempotency_key,content_hash,"
+                        + "retryable,created_at,updated_at FROM practice_submissions " + where,
+                params, MAPPER);
     }
 
     private MapSqlParameterSource params(PracticeSubmission item) {
@@ -151,16 +150,20 @@ public class JdbcPracticeSubmissionRepository implements PracticeSubmissionRepos
                 .addValue("publishedSetId", item.publishedSetId())
                 .addValue("publicationRevision", item.publicationRevision())
                 .addValue("status", item.status().name())
-                .addValue("startedAt", item.startedAt(), Types.TIMESTAMP_WITH_TIMEZONE)
-                .addValue("lastSavedAt", item.lastSavedAt(), Types.TIMESTAMP_WITH_TIMEZONE)
-                .addValue("submittedAt", item.submittedAt(), Types.TIMESTAMP_WITH_TIMEZONE)
-                .addValue("scoredAt", item.scoredAt(), Types.TIMESTAMP_WITH_TIMEZONE)
+                .addValue("startedAt", timestamp(item.startedAt()))
+                .addValue("lastSavedAt", timestamp(item.lastSavedAt()))
+                .addValue("submittedAt", timestamp(item.submittedAt()))
+                .addValue("scoredAt", timestamp(item.scoredAt()))
                 .addValue("autosaveRevision", item.autosaveRevision())
                 .addValue("startKey", item.startIdempotencyKey())
                 .addValue("submitKey", item.submitIdempotencyKey())
                 .addValue("contentHash", item.contentHash())
                 .addValue("retryable", item.retryable())
-                .addValue("createdAt", item.createdAt(), Types.TIMESTAMP_WITH_TIMEZONE)
-                .addValue("updatedAt", item.updatedAt(), Types.TIMESTAMP_WITH_TIMEZONE);
+                .addValue("createdAt", timestamp(item.createdAt()))
+                .addValue("updatedAt", timestamp(item.updatedAt()));
+    }
+
+    private static Timestamp timestamp(Instant value) {
+        return value == null ? null : Timestamp.from(value);
     }
 }
