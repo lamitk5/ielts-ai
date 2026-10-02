@@ -3413,6 +3413,21 @@ input:focus-visible {
 .practice-result-status { color: var(--success); }
 
 .objective-result-shell { display: grid; gap: 1.5rem; max-width: 58rem; }
+.learner-result-shell { display: grid; gap: 1.25rem; max-width: 58rem; }
+.learner-result-shell > .glass-card { display: grid; gap: .75rem; }
+.learner-result-shell h2,
+.submission-review-panel h2 { margin: 0; }
+.learner-result-shell ul { display: grid; gap: .4rem; margin: 0; padding-left: 1.2rem; color: var(--text-secondary); }
+.learner-result-shell .text-muted { color: var(--text-muted); }
+.submission-history-list { display: grid; gap: 1rem; max-width: 60rem; }
+.submission-history-item { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.submission-history-item h2 { margin: .2rem 0; font-size: 1.25rem; }
+.submission-history-item p { margin: 0; color: var(--text-secondary); }
+.admin-submission-layout { display: grid; grid-template-columns: minmax(14rem, 22rem) minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+.admin-submission-layout > .glass-card { display: grid; gap: .75rem; }
+.submission-review-panel label { display: grid; gap: .4rem; color: var(--text-secondary); }
+.submission-review-panel input,
+.submission-review-panel textarea { width: 100%; border: 1px solid var(--border); border-radius: .75rem; background: var(--surface-raised); color: var(--text); padding: .7rem .8rem; font: inherit; }
 .objective-result-hero { display: grid; gap: .5rem; padding: clamp(1.25rem, 3vw, 2rem); }
 .objective-result-hero h2 { margin: 0; font-size: clamp(1.8rem, 3vw, 2.7rem); }
 .objective-result-score { color: var(--gold-light); font: clamp(3rem, 8vw, 5rem) 'Playfair Display', Georgia, serif; line-height: 1; }
@@ -3432,6 +3447,10 @@ input:focus-visible {
 @media (max-width: 600px) {
   .objective-result-actions { display: grid; }
   .objective-result-actions .button { width: 100%; }
+  .submission-history-item { align-items: stretch; flex-direction: column; }
+}
+@media (max-width: 760px) {
+  .admin-submission-layout { grid-template-columns: 1fr; }
 }
 .practice-error-state { display: grid; gap: .75rem; max-width: 36rem; margin: 2rem auto; padding: 1rem; border: 1px solid var(--border); border-radius: 1rem; color: var(--text-secondary); }
 

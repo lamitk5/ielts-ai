@@ -20,6 +20,8 @@ import PracticeCatalogPage from './pages/PracticeCatalogPage'
 import PracticeDetailPage from './pages/PracticeDetailPage'
 import PracticeAttemptPage from './pages/PracticeAttemptPage'
 import PracticeResultPage from './pages/PracticeResultPage'
+import SubmissionHistoryPage from './pages/SubmissionHistoryPage'
+import AdminSubmissionReviewPage from './pages/AdminSubmissionReviewPage'
 
 function App() {
   return (
@@ -31,9 +33,11 @@ function App() {
           <Route path="admin/rag" element={<RequireAdminRoute allowLegacyToken={Boolean(readAdminToken())}><AdminRagPage /></RequireAdminRoute>} />
           <Route path="admin/practice-generator" element={<RequireAdminRoute><AdminPracticeGeneratorPage /></RequireAdminRoute>} />
           <Route path="admin/practice-generator/sets/:setId" element={<RequireAdminRoute><AdminPracticeReviewPage /></RequireAdminRoute>} />
+          <Route path="admin/submissions" element={<RequireAdminRoute><AdminSubmissionReviewPage /></RequireAdminRoute>} />
           <Route path="assessment" element={<AssessmentPage />} />
           <Route path="practice" element={<PracticeCatalogPage />} />
           <Route path="practice/results/:attemptId" element={<PracticeResultPage />} />
+          <Route path="practice/history" element={<SubmissionHistoryPage />} />
           <Route path="practice/:skill/:setId/attempt" element={<PracticeAttemptPage />} />
           <Route path="practice/:skill/:setId" element={<PracticeDetailPage />} />
           <Route path="practice/search" element={<SearchPage />} />
