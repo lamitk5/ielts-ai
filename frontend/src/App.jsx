@@ -22,6 +22,7 @@ import PracticeAttemptPage from './pages/PracticeAttemptPage'
 import PracticeResultPage from './pages/PracticeResultPage'
 import SubmissionHistoryPage from './pages/SubmissionHistoryPage'
 import AdminSubmissionReviewPage from './pages/AdminSubmissionReviewPage'
+import MockTestPage from './pages/MockTestPage'
 
 function App() {
   return (
@@ -36,6 +37,8 @@ function App() {
           <Route path="admin/submissions" element={<RequireAdminRoute><AdminSubmissionReviewPage /></RequireAdminRoute>} />
           <Route path="assessment" element={<AssessmentPage />} />
           <Route path="practice" element={<PracticeCatalogPage />} />
+          <Route path="practice/mock-test" element={<MockTestPage />} />
+          <Route path="practice/mock-test/:sessionId" element={<MockTestPage />} />
           <Route path="practice/results/:attemptId" element={<PracticeResultPage />} />
           <Route path="practice/history" element={<SubmissionHistoryPage />} />
           <Route path="practice/:skill/:setId/attempt" element={<PracticeAttemptPage />} />
