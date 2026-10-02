@@ -1,4 +1,4 @@
-# Phase 5C — Full Mock Test Implementation Plan
+﻿# Phase 5C â€” Full Mock Test Implementation Plan
 
 > For agentic workers:
 > REQUIRED SUB-SKILL:
@@ -13,7 +13,7 @@
 
 **Spec:** `docs/superpowers/specs/2026-10-01-phase-5-learner-journey-design.md`
 
-**Global Constraints:** Depends on 4A–4E. Label all UI `IELTS-style` and non-official. Reading/Listening stay deterministic; Writing uses Band ước lượng only when available; Speaking keeps manual/text/audio boundary. No overall official score.
+**Global Constraints:** Depends on 4Aâ€“4E. Label all UI `IELTS-style` and non-official. Reading/Listening stay deterministic; Writing uses Band Æ°á»›c lÆ°á»£ng only when available; Speaking keeps manual/text/audio boundary. No overall official score.
 
 **Review Focus:**
 
@@ -149,7 +149,7 @@
 
 **Interfaces:**
 - Consumes: clean database, approved four-skill definitions, mocked AI/STT, two users
-- Produces: create → autosave → refresh → resume → expire/submit → partial/full result with no cross-user access
+- Produces: create â†’ autosave â†’ refresh â†’ resume â†’ expire/submit â†’ partial/full result with no cross-user access
 
 - [ ] Step 1: Write failing cross-module tests for refresh, duplicate submit, expiry, partial grading, and owner isolation.
 - [ ] Step 2: Run acceptance tests and verify RED.
