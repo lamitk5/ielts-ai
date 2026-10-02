@@ -15,6 +15,8 @@ public class SubmissionHistoryService {
 
     public SubmissionHistoryPage list(UUID ownerId, String skill, String status, int page, int size) {
         if (ownerId == null) throw new SubmissionConflictException("Authentication is required");
+        if (page < 0) throw new SubmissionConflictException("Invalid page");
+        if (size < 1 || size > 50) throw new SubmissionConflictException("Invalid page size");
         String normalizedSkill = normalizeSkill(skill);
         SubmissionStatus normalizedStatus = normalizeStatus(status);
         SubmissionHistoryQuery query = new SubmissionHistoryQuery(normalizedSkill, normalizedStatus, page, size);

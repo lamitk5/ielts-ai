@@ -41,6 +41,8 @@ public class AuthInterceptor implements HandlerInterceptor {
         String path = request.getRequestURI();
         return path.equals("/api/auth/me") || path.startsWith("/api/me/")
                 || path.startsWith("/api/submissions")
+                || path.startsWith("/api/results")
+                || path.startsWith("/api/admin/submissions")
                 || path.equals("/api/user/preferences")
                 || path.startsWith("/api/ai/attachments")
                 || path.startsWith("/api/learning/drafts")
@@ -51,7 +53,7 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     private boolean requiresAdmin(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return path.startsWith("/api/admin/practice-generator");
+        return path.startsWith("/api/admin/practice-generator") || path.startsWith("/api/admin/submissions");
     }
 
     private boolean reject(HttpServletResponse response) throws IOException {

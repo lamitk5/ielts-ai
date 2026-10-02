@@ -28,4 +28,8 @@ public interface PracticeSubmissionRepository {
             String contentHash, java.time.Instant submittedAt);
 
     SubmissionHistoryPage findHistory(UUID ownerId, String skill, SubmissionStatus status, int page, int size);
+
+    default SubmissionHistoryPage findAllHistory(AdminSubmissionQuery query) {
+        return new SubmissionHistoryPage(java.util.List.of(), query.page(), query.size(), 0);
+    }
 }
