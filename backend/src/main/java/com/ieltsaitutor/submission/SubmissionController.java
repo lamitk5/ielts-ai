@@ -57,11 +57,6 @@ public class SubmissionController {
         return SubmissionView.from(service.submit(principal.userId(), submissionId, request.payload(), request.idempotencyKey()));
     }
 
-    @GetMapping("/{submissionId}/result")
-    public SubmissionView result(@PathVariable UUID submissionId, HttpServletRequest httpRequest) {
-        return SubmissionView.from(service.get(principal(httpRequest).userId(), submissionId));
-    }
-
     @ExceptionHandler(SubmissionConflictException.class)
     public ResponseEntity<Map<String, String>> conflict(SubmissionConflictException error) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("code", "SUBMISSION_CONFLICT", "message", error.getMessage()));
