@@ -86,14 +86,14 @@ class OnboardingProfileServiceTest {
         service.get(userId);
 
         LearnerOnboardingProfile skipped = service.complete(userId, OnboardingState.SKIPPED, 0);
-        LearnerOnboardingProfile again = service.complete(userId, OnboardingState.SKIPPED, 1);
+        LearnerOnboardingProfile again = service.complete(userId, OnboardingState.SKIPPED, skipped.version());
 
         assertThat(skipped.state()).isEqualTo(OnboardingState.SKIPPED);
         assertThat(skipped.selfReportedLevel()).isNull();
         assertThat(skipped.targetBand()).isNull();
         assertThat(skipped.dailyStudyMinutes()).isNull();
         assertThat(again.state()).isEqualTo(OnboardingState.SKIPPED);
-        assertThat(again.version()).isEqualTo(2);
+        assertThat(again.version()).isEqualTo(skipped.version());
     }
 
     @Test

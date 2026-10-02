@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +29,7 @@ public class LearnerOnboardingService {
     private final LearnerOnboardingRepository repository;
     private final Clock clock;
 
+    @Autowired
     public LearnerOnboardingService(LearnerOnboardingRepository repository) {
         this(repository, Clock.systemUTC());
     }
@@ -71,6 +73,9 @@ public class LearnerOnboardingService {
             throw invalid();
         }
         LearnerOnboardingProfile current = get(userId);
+        if (current.state() == state) {
+            return current;
+        }
         return save(userId, new OnboardingGoalCommand(current.selfReportedLevel(), current.targetBand(),
                 current.targetExamDate(), current.perceivedWeakestSkill(), current.dailyStudyMinutes(),
                 current.studyDaysPerWeek(), state), expectedVersion);

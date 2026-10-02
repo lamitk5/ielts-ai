@@ -26,7 +26,7 @@ public class JdbcLearnerOnboardingRepository implements LearnerOnboardingReposit
     public LearnerOnboardingProfile find(UUID userId) {
         return jdbc.query("SELECT " + COLUMNS + " FROM learner_onboarding_profiles WHERE user_id=:userId",
                 new MapSqlParameterSource("userId", userId), (rs, row) -> new LearnerOnboardingProfile(
-                        userId, rs.getString("self_reported_level"), (Double) rs.getObject("target_band"),
+                        userId, rs.getString("self_reported_level"), nullableDouble(rs, "target_band"),
                         date(rs.getObject("target_exam_date")), skill(rs.getString("perceived_weakest_skill")),
                         nullableInt(rs, "daily_study_minutes"), nullableInt(rs, "study_days_per_week"),
                         OnboardingState.valueOf(rs.getString("state")), rs.getString("source"),
@@ -85,6 +85,11 @@ public class JdbcLearnerOnboardingRepository implements LearnerOnboardingReposit
     }
 
     private static Skill skill(String value) { return value == null ? null : Skill.valueOf(value); }
+
+    private static Double nullableDouble(java.sql.ResultSet rs, String column) throws java.sql.SQLException {
+        double value = rs.getDouble(column);
+        return rs.wasNull() ? null : value;
+    }
 
     private static LocalDate date(Object value) {
         return value == null ? null : ((java.sql.Date) value).toLocalDate();
