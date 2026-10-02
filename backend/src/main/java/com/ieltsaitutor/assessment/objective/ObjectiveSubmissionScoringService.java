@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.ieltsaitutor.practice.PracticeSet;
 import com.ieltsaitutor.practice.SyntheticPracticeCatalog;
+import com.ieltsaitutor.practice.catalog.ApprovedPracticeCatalogService;
 import com.ieltsaitutor.submission.PracticeSubmission;
 import com.ieltsaitutor.submission.PracticeSubmissionRepository;
 import com.ieltsaitutor.submission.SubmissionAnswerRepository;
@@ -26,28 +27,36 @@ public class ObjectiveSubmissionScoringService {
     private final SyntheticPracticeCatalog catalog;
     private final DeterministicObjectiveScorer scorer;
     private final ObjectiveResultPublisher publisher;
+    private final ApprovedPracticeCatalogService approvedCatalog;
+
+    public ObjectiveSubmissionScoringService(PracticeSubmissionRepository submissions, SubmissionAnswerRepository answers,
+            QuestionResultRepository results, SyntheticPracticeCatalog catalog, DeterministicObjectiveScorer scorer,
+            ObjectiveResultPublisher publisher) {
+        this(submissions, answers, results, catalog, scorer, publisher, null, true);
+    }
 
     @Autowired
     public ObjectiveSubmissionScoringService(PracticeSubmissionRepository submissions, SubmissionAnswerRepository answers,
             QuestionResultRepository results, SyntheticPracticeCatalog catalog, DeterministicObjectiveScorer scorer,
-            ObjectiveResultPublisher publisher) {
-        this(submissions, answers, results, catalog, scorer, publisher, true);
+            ObjectiveResultPublisher publisher, ApprovedPracticeCatalogService approvedCatalog) {
+        this(submissions, answers, results, catalog, scorer, publisher, approvedCatalog, true);
     }
 
     public ObjectiveSubmissionScoringService(PracticeSubmissionRepository submissions, SubmissionAnswerRepository answers,
             QuestionResultRepository results, SyntheticPracticeCatalog catalog, DeterministicObjectiveScorer scorer) {
-        this(submissions, answers, results, catalog, scorer, null, false);
+        this(submissions, answers, results, catalog, scorer, null, null, false);
     }
 
     private ObjectiveSubmissionScoringService(PracticeSubmissionRepository submissions, SubmissionAnswerRepository answers,
             QuestionResultRepository results, SyntheticPracticeCatalog catalog, DeterministicObjectiveScorer scorer,
-            ObjectiveResultPublisher publisher, boolean ignored) {
+            ObjectiveResultPublisher publisher, ApprovedPracticeCatalogService approvedCatalog, boolean ignored) {
         this.submissions = submissions;
         this.answers = answers;
         this.results = results;
         this.catalog = catalog;
         this.scorer = scorer;
         this.publisher = publisher;
+        this.approvedCatalog = approvedCatalog;
     }
 
     @Transactional
@@ -55,6 +64,9 @@ public class ObjectiveSubmissionScoringService {
         PracticeSubmission submission = submissions.findByOwnerAndId(ownerId, submissionId)
                 .orElseThrow(() -> new SubmissionConflictException("Submission is not available"));
         if (!isObjective(submission.skill())) throw new SubmissionConflictException("Objective scoring is unavailable for this skill");
+        if (approvedCatalog != null && approvedCatalog.findActive(submission.publishedSetId()).isEmpty()) {
+            throw new SubmissionConflictException("Practice is not available for scoring");
+        }
         List<QuestionResult> existing = results.findByOwnedSubmission(ownerId, submissionId);
         if (submission.status() == SubmissionStatus.GRADED && !existing.isEmpty()) {
             return new ObjectiveSubmissionResult(submission, summarize(existing));
