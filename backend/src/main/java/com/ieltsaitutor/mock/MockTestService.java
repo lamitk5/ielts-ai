@@ -130,8 +130,11 @@ public class MockTestService {
         MockTestSession next = stateMachine.transition(current, command);
 
         Instant completedAt = (next.status() == MockTestSessionStatus.SUBMITTED || next.status() == MockTestSessionStatus.COMPLETED || next.status() == MockTestSessionStatus.EXPIRED)
-                ? Instant.now()
+                ? (next.completedAt() != null ? next.completedAt() : Instant.now())
                 : null;
+        if (completedAt != null && next.completedAt() == null) {
+            next = next.withCompletedAt(completedAt);
+        }
 
         sessionRepository.save(next);
         if (completedAt != null) {

@@ -37,9 +37,20 @@ public record MockTestSession(
     }
 
     public MockTestSession withStatus(MockTestSessionStatus newStatus) {
+        Instant completed = completedAt;
+        if (newStatus.isTerminal() && completed == null) {
+            completed = Instant.now();
+        }
         return new MockTestSession(
                 id, userId, mockTestId, mockTestVersion, newStatus, currentSectionIndex,
-                totalTimeLimitSeconds, elapsedSeconds, startedAt, expiresAt, completedAt, createdAt, Instant.now(), sections
+                totalTimeLimitSeconds, elapsedSeconds, startedAt, expiresAt, completed, createdAt, Instant.now(), sections
+        );
+    }
+
+    public MockTestSession withCompletedAt(Instant newCompletedAt) {
+        return new MockTestSession(
+                id, userId, mockTestId, mockTestVersion, status, currentSectionIndex,
+                totalTimeLimitSeconds, elapsedSeconds, startedAt, expiresAt, newCompletedAt, createdAt, Instant.now(), sections
         );
     }
 

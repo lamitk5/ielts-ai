@@ -9,7 +9,7 @@ public enum MockTestSessionStatus {
     EXPIRED;
 
     public boolean isTerminal() {
-        return this == COMPLETED || this == EXPIRED;
+        return this == SUBMITTED || this == COMPLETED || this == EXPIRED;
     }
 
     public boolean isMutable() {
