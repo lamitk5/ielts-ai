@@ -6,6 +6,10 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.ieltsaitutor.assessment.objective.ObjectiveSubmissionResult;
+import com.ieltsaitutor.assessment.objective.ObjectiveSubmissionScoringService;
 
 @Service
 public class CanonicalSubmissionService {
@@ -13,14 +17,23 @@ public class CanonicalSubmissionService {
     private final SubmissionPracticeResolver practiceResolver;
     private final SubmissionDraftService draftService;
     private final SubmissionFinalizationService finalizationService;
+    private final ObjectiveSubmissionScoringService scoringService;
 
+    @Autowired
     public CanonicalSubmissionService(PracticeSubmissionRepository repository,
             SubmissionPracticeResolver practiceResolver, SubmissionDraftService draftService,
             SubmissionFinalizationService finalizationService) {
+        this(repository, practiceResolver, draftService, finalizationService, null);
+    }
+
+    public CanonicalSubmissionService(PracticeSubmissionRepository repository,
+            SubmissionPracticeResolver practiceResolver, SubmissionDraftService draftService,
+            SubmissionFinalizationService finalizationService, ObjectiveSubmissionScoringService scoringService) {
         this.repository = repository;
         this.practiceResolver = practiceResolver;
         this.draftService = draftService;
         this.finalizationService = finalizationService;
+        this.scoringService = scoringService;
     }
 
     @Transactional
@@ -43,8 +56,13 @@ public class CanonicalSubmissionService {
     }
 
     public PracticeSubmission submit(UUID ownerId, UUID submissionId, Map<String, String> payload, String idempotencyKey) {
-        return finalizationService.finalizeSubmission(ownerId, submissionId, payload, idempotencyKey);
+        PracticeSubmission finalized = finalizationService.finalizeSubmission(ownerId, submissionId, payload, idempotencyKey);
+        if (scoringService == null || !isObjective(finalized.skill())) return finalized;
+        ObjectiveSubmissionResult scored = scoringService.score(ownerId, submissionId);
+        return scored.submission();
     }
+
+    private boolean isObjective(String skill) { return "READING".equalsIgnoreCase(skill) || "LISTENING".equalsIgnoreCase(skill); }
 
     private PracticeSubmission create(UUID ownerId, SubmissionStartCommand command) {
         ResolvedPracticeVersion resolved = practiceResolver.resolve(command.publishedSetId(), command.skill());
