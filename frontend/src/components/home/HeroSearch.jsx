@@ -97,11 +97,11 @@ function HeroSearch() {
     submitTimerRef.current = window.setTimeout(() => {
       setIsSubmitting(false)
       submitTimerRef.current = null
-    }, 450)
+    }, 520)
     navigationTimerRef.current = window.setTimeout(() => {
       navigationTimerRef.current = null
       navigate(`/practice/search?q=${encodeURIComponent(trimmedQuery)}`)
-    }, 90)
+    }, 450)
   }
 
   return (
@@ -119,10 +119,13 @@ function HeroSearch() {
           ref={controlRef}
           className={`hero-search-control${isFocused ? ' hero-search-control-focused' : ''}${isSubmitting ? ' hero-search-control-submitting' : ''}`}
           data-search-focused={isFocused ? 'true' : undefined}
+          data-search-submitting={isSubmitting ? 'true' : undefined}
+          data-has-query={query.trim().length > 0 ? 'true' : undefined}
           onPointerLeave={resetPointer}
           onPointerMove={handlePointerMove}
           style={{ '--search-pointer-x': '50%', '--search-pointer-y': '50%' }}
         >
+          <div className="hero-search-sweep-beam" aria-hidden="true" />
           <Search aria-hidden="true" className="hero-search-icon" size={19} />
           <input
             id="hero-search-input"

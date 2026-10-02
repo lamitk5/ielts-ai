@@ -171,7 +171,7 @@ describe('premium hero', () => {
       expect(screen.getByRole('search')).toBeInTheDocument()
 
       act(() => {
-        vi.advanceTimersByTime(90)
+        vi.advanceTimersByTime(450)
       })
 
       expect(screen.getByRole('heading', { name: 'Tìm bài luyện tập' })).toBeInTheDocument()
