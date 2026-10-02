@@ -42,6 +42,7 @@ function HomePage() {
         isAuthenticated={showMemberProgress}
         state={homepageState}
         loading={isAuthenticated && !isMemberDemo && learning.status === LEARNING_STATE_STATUS.LOADING}
+        enableTodaysPlan={isAuthenticated && !isMemberDemo}
       />
       <TutorPreviewSection />
       <OnboardingEntry />
