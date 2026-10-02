@@ -3411,6 +3411,28 @@ input:focus-visible {
 .practice-result-summary span,
 .practice-result-summary small { color: var(--text-secondary); }
 .practice-result-status { color: var(--success); }
+
+.objective-result-shell { display: grid; gap: 1.5rem; max-width: 58rem; }
+.objective-result-hero { display: grid; gap: .5rem; padding: clamp(1.25rem, 3vw, 2rem); }
+.objective-result-hero h2 { margin: 0; font-size: clamp(1.8rem, 3vw, 2.7rem); }
+.objective-result-score { color: var(--gold-light); font: clamp(3rem, 8vw, 5rem) 'Playfair Display', Georgia, serif; line-height: 1; }
+.objective-question-results { display: grid; gap: .8rem; }
+.objective-question-results h2 { margin: 0; font-size: clamp(1.45rem, 3vw, 2rem); }
+.objective-question-results-list { display: grid; gap: .8rem; }
+.objective-question-result { display: grid; gap: .45rem; padding: 1rem 1.15rem; }
+.objective-question-result p { margin: 0; color: var(--text-secondary); }
+.objective-question-result-header { display: flex; justify-content: space-between; gap: 1rem; }
+.objective-question-result.is-correct .objective-question-result-header span { color: var(--success); }
+.objective-question-result.is-incorrect .objective-question-result-header span { color: var(--gold-light); }
+.objective-question-evidence { border-left: 2px solid var(--gold); padding-left: .7rem; }
+.objective-question-result small { color: var(--text-muted); }
+.objective-result-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+.practice-result-empty { color: var(--text-secondary); }
+
+@media (max-width: 600px) {
+  .objective-result-actions { display: grid; }
+  .objective-result-actions .button { width: 100%; }
+}
 .practice-error-state { display: grid; gap: .75rem; max-width: 36rem; margin: 2rem auto; padding: 1rem; border: 1px solid var(--border); border-radius: 1rem; color: var(--text-secondary); }
 
 @media (max-width: 680px) {
