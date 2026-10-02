@@ -86,7 +86,9 @@ public class DefaultPracticeBankHydrationService implements PracticeBankHydratio
                         q.prompt(),
                         q.options(),
                         q.answerKey(),
-                        q.explanation() != null ? q.explanation() : ""
+                        q.explanation() != null ? q.explanation() : "",
+                        q.taskType(),
+                        q.evidenceSpan()
                 ))
                 .toList();
 
