@@ -24,12 +24,8 @@ public class JdbcWritingEvaluationRepository implements WritingEvaluationReposit
     private final RowMapper<WritingEvaluationResult> rowMapper;
 
     public JdbcWritingEvaluationRepository(JdbcTemplate jdbcTemplate) {
-        this(jdbcTemplate, new ObjectMapper());
-    }
-
-    public JdbcWritingEvaluationRepository(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
         this.jdbcTemplate = jdbcTemplate;
-        this.objectMapper = objectMapper;
+        this.objectMapper = new ObjectMapper();
         this.rowMapper = (rs, rowNum) -> {
             try {
                 UUID id = (UUID) rs.getObject("id");

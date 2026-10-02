@@ -1,7 +1,7 @@
 CREATE TABLE submission_reviews (
     id UUID PRIMARY KEY,
     submission_id UUID NOT NULL REFERENCES practice_submissions(id) ON DELETE CASCADE,
-    reviewer_user_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    reviewer_user_id UUID NOT NULL REFERENCES app_users(id) ON DELETE RESTRICT,
     review_version INTEGER NOT NULL DEFAULT 1 CHECK (review_version > 0),
     overall_band NUMERIC(3,1) CHECK (overall_band IS NULL OR (overall_band >= 0.0 AND overall_band <= 9.0)),
     fluency_coherence NUMERIC(3,1) CHECK (fluency_coherence IS NULL OR (fluency_coherence >= 0.0 AND fluency_coherence <= 9.0)),
