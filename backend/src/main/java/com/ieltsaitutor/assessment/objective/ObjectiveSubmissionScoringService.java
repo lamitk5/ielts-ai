@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.ieltsaitutor.practice.PracticeSet;
 import com.ieltsaitutor.practice.SyntheticPracticeCatalog;
@@ -24,14 +25,29 @@ public class ObjectiveSubmissionScoringService {
     private final QuestionResultRepository results;
     private final SyntheticPracticeCatalog catalog;
     private final DeterministicObjectiveScorer scorer;
+    private final ObjectiveResultPublisher publisher;
+
+    @Autowired
+    public ObjectiveSubmissionScoringService(PracticeSubmissionRepository submissions, SubmissionAnswerRepository answers,
+            QuestionResultRepository results, SyntheticPracticeCatalog catalog, DeterministicObjectiveScorer scorer,
+            ObjectiveResultPublisher publisher) {
+        this(submissions, answers, results, catalog, scorer, publisher, true);
+    }
 
     public ObjectiveSubmissionScoringService(PracticeSubmissionRepository submissions, SubmissionAnswerRepository answers,
             QuestionResultRepository results, SyntheticPracticeCatalog catalog, DeterministicObjectiveScorer scorer) {
+        this(submissions, answers, results, catalog, scorer, null, false);
+    }
+
+    private ObjectiveSubmissionScoringService(PracticeSubmissionRepository submissions, SubmissionAnswerRepository answers,
+            QuestionResultRepository results, SyntheticPracticeCatalog catalog, DeterministicObjectiveScorer scorer,
+            ObjectiveResultPublisher publisher, boolean ignored) {
         this.submissions = submissions;
         this.answers = answers;
         this.results = results;
         this.catalog = catalog;
         this.scorer = scorer;
+        this.publisher = publisher;
     }
 
     @Transactional
@@ -57,6 +73,7 @@ public class ObjectiveSubmissionScoringService {
                 item.normalizedLearnerAnswer(), item.correctAnswer(), item.correct(), item.evidenceReference(),
                 item.explanation(), score.scoringPolicyVersion(), Instant.now())).toList();
         results.saveAll(questionResults);
+        if (publisher != null) publisher.publish(submission, score, Instant.now());
         PracticeSubmission graded = submissions.markScored(submissionId, Instant.now());
         return new ObjectiveSubmissionResult(graded, score);
     }
