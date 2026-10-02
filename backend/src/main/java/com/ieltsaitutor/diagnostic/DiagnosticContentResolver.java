@@ -2,6 +2,9 @@ package com.ieltsaitutor.diagnostic;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.ieltsaitutor.learning.intelligence.Skill;
 
 /**
@@ -9,9 +12,15 @@ import com.ieltsaitutor.learning.intelligence.Skill;
  * catalog. A skill without approved content becomes an explicitly unavailable
  * section instead of borrowing content from another skill.
  */
+@Component
 public class DiagnosticContentResolver {
     private final DiagnosticContentSource source;
     private final String definitionVersion;
+
+    @Autowired
+    public DiagnosticContentResolver(DiagnosticContentSource source) {
+        this(source, "diagnostic-v1");
+    }
 
     public DiagnosticContentResolver(DiagnosticContentSource source, String definitionVersion) {
         this.source = source;
