@@ -31,6 +31,7 @@ class MockTestControllerSecurityTest {
 
     private MockTestService mockTestService;
     private CanonicalSubmissionService submissionService;
+    private MockTestGradingService gradingService;
     private MockMvc mvc;
 
     private final UUID ownerId = UUID.randomUUID();
@@ -40,7 +41,8 @@ class MockTestControllerSecurityTest {
     void setUp() {
         mockTestService = mock(MockTestService.class);
         submissionService = mock(CanonicalSubmissionService.class);
-        MockTestController controller = new MockTestController(mockTestService, submissionService);
+        gradingService = mock(MockTestGradingService.class);
+        MockTestController controller = new MockTestController(mockTestService, submissionService, gradingService);
         mvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
 

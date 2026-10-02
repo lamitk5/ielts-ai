@@ -27,12 +27,15 @@ public class MockTestController {
 
     private final MockTestService mockTestService;
     private final CanonicalSubmissionService submissionService;
+    private final MockTestGradingService gradingService;
 
     public MockTestController(
             MockTestService mockTestService,
-            @org.springframework.beans.factory.annotation.Autowired(required = false) CanonicalSubmissionService submissionService) {
+            @org.springframework.beans.factory.annotation.Autowired(required = false) CanonicalSubmissionService submissionService,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) MockTestGradingService gradingService) {
         this.mockTestService = mockTestService;
         this.submissionService = submissionService;
+        this.gradingService = gradingService;
     }
 
     public record StartSessionRequest(String mockTestId) {}
@@ -175,6 +178,21 @@ public class MockTestController {
                 request.expectedRevision(),
                 request.idempotencyKey() != null ? request.idempotencyKey() : "draft-" + UUID.randomUUID()
         );
+    }
+
+    @GetMapping("/{sessionId}/result")
+    public MockTestResult getResult(
+            @PathVariable UUID sessionId,
+            HttpServletRequest httpRequest) {
+        AuthPrincipal principal = principal(httpRequest);
+        if (gradingService == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED, "Grading service is not available");
+        }
+        try {
+            return gradingService.getResult(principal.userId(), sessionId);
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
+        }
     }
 
     @GetMapping
