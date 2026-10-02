@@ -216,7 +216,8 @@ public class TutorOrchestrator {
         String taskId = "writing".equals(skill) ? source.exerciseId() : null;
         String promptId = "speaking".equals(skill)
                 ? (source.promptId() == null ? source.exerciseId() : source.promptId()) : null;
-        return new TutorContextRequest(skill, setId, source.questionId(), attempt, taskId, promptId);
+        UUID resultId = parseUuid(source.resultId());
+        return new TutorContextRequest(skill, setId, source.questionId(), attempt, taskId, promptId, resultId);
     }
 
     private UUID parseUuid(String value) {

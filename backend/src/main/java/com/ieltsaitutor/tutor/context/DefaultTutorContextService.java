@@ -12,6 +12,8 @@ import com.ieltsaitutor.speaking.SpeakingAttempt;
 import com.ieltsaitutor.speaking.SpeakingRepository;
 import com.ieltsaitutor.writing.WritingAssessment;
 import com.ieltsaitutor.writing.WritingRepository;
+import com.ieltsaitutor.results.LearnerResult;
+import com.ieltsaitutor.results.LearnerResultService;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -25,20 +27,28 @@ public class DefaultTutorContextService implements TutorContextService {
     private final WritingRepository writing;
     private final SpeakingRepository speaking;
     private final PracticeAttemptStore attempts;
+    private final LearnerResultService results;
 
-    @Autowired
     public DefaultTutorContextService(SyntheticPracticeCatalog catalog, LearningRepository learning,
             WritingRepository writing, SpeakingRepository speaking) {
-        this(catalog, learning, writing, speaking, null);
+        this(catalog, learning, writing, speaking, null, null);
     }
 
     public DefaultTutorContextService(SyntheticPracticeCatalog catalog, LearningRepository learning,
             WritingRepository writing, SpeakingRepository speaking, PracticeAttemptStore attempts) {
+        this(catalog, learning, writing, speaking, attempts, null);
+    }
+
+    @Autowired
+    public DefaultTutorContextService(SyntheticPracticeCatalog catalog, LearningRepository learning,
+            WritingRepository writing, SpeakingRepository speaking, PracticeAttemptStore attempts,
+            LearnerResultService results) {
         this.catalog = catalog;
         this.learning = learning;
         this.writing = writing;
         this.speaking = speaking;
         this.attempts = attempts;
+        this.results = results;
     }
 
     @Override
@@ -47,11 +57,41 @@ public class DefaultTutorContextService implements TutorContextService {
         if (principal == null && privateReference(request)) {
             throw new TutorContextException("TUTOR_CONTEXT_UNAUTHORIZED", 401, "Đăng nhập để xem ngữ cảnh cá nhân.");
         }
+        if (request.resultId() != null) return result(principal, request);
         if (isPractice(request)) return practice(principal, request);
         if ("writing".equals(request.skill())) return writing(principal, request);
         if ("speaking".equals(request.skill())) return speaking(principal, request);
         if (principal != null && noReference(request)) return progress(principal);
         return TutorLearningContext.absent(request.skill());
+    }
+
+    private TutorLearningContext result(AuthPrincipal principal, TutorContextRequest request) {
+        if (principal == null || results == null) return TutorLearningContext.absent(request.skill());
+        LearnerResult item;
+        try {
+            item = results.get(principal.userId(), request.resultId());
+        } catch (RuntimeException exception) {
+            return TutorLearningContext.absent(request.skill());
+        }
+        if (item == null) return TutorLearningContext.absent(request.skill());
+        StringBuilder text = new StringBuilder("Kết quả bài làm ")
+                .append(item.skill()).append("; trạng thái: ").append(item.status());
+        if (item.score() != null && item.total() != null) text.append("; điểm: ").append(item.score()).append('/').append(item.total());
+        if (item.accuracy() != null) text.append("; độ chính xác: ").append(item.accuracy()).append('%');
+        if (item.availabilityMessage() != null) text.append("; ghi chú: ").append(item.availabilityMessage());
+        if (item.aiEvaluation() != null) {
+            appendList(text, "Điểm mạnh", item.aiEvaluation().strengths());
+            appendList(text, "Cần cải thiện", item.aiEvaluation().issues());
+        }
+        if (item.humanReview() != null && item.humanReview().feedback() != null)
+            text.append("; nhận xét người chấm: ").append(item.humanReview().feedback());
+        return new TutorLearningContext(true, request.skill(), text.toString(), null, null, null, null, null,
+                item.score(), item.total(), null, null, null, null, List.of(), null);
+    }
+
+    private void appendList(StringBuilder text, String label, List<String> values) {
+        if (values != null && !values.isEmpty()) text.append("; ").append(label).append(": ")
+                .append(String.join(", ", values.stream().limit(5).toList()));
     }
 
     private TutorLearningContext practice(AuthPrincipal principal, TutorContextRequest request) {
@@ -108,11 +148,12 @@ public class DefaultTutorContextService implements TutorContextService {
     }
 
     private boolean privateReference(TutorContextRequest request) {
-        return request.attemptId() != null || request.taskId() != null || request.promptId() != null;
+        return request.attemptId() != null || request.taskId() != null || request.promptId() != null
+                || request.resultId() != null;
     }
 
     private boolean noReference(TutorContextRequest request) {
         return request.attemptId() == null && request.setId() == null && request.questionId() == null
-                && request.taskId() == null && request.promptId() == null;
+                && request.taskId() == null && request.promptId() == null && request.resultId() == null;
     }
 }
