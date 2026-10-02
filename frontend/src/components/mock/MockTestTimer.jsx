@@ -23,10 +23,6 @@ export default function MockTestTimer({
   const [elapsed, setElapsed] = useState(initialElapsedSeconds)
 
   useEffect(() => {
-    setElapsed(initialElapsedSeconds)
-  }, [initialElapsedSeconds])
-
-  useEffect(() => {
     if (isPaused) return
 
     const timer = setInterval(() => {

@@ -17,7 +17,6 @@ export default function MockTestShell({
 }) {
   const isPaused = session?.status === 'PAUSED'
   const isCompleted = session?.status === 'COMPLETED' || session?.status === 'EXPIRED'
-  const currentSection = session?.sections?.[currentSectionIndex]
   const isLastSection = session?.sections ? currentSectionIndex >= session.sections.length - 1 : false
 
   return (

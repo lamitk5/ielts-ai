@@ -25,7 +25,6 @@ export default function MockTestResult({
 
   const isFullyGraded = result.resultStatus === 'READY' && result.estimatedOverallBand != null
   const isPartial = result.resultStatus === 'PARTIALLY_AVAILABLE' || (result.resultStatus === 'READY' && result.estimatedOverallBand == null)
-  const isFailed = result.resultStatus === 'FAILED'
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 py-6 px-4">
