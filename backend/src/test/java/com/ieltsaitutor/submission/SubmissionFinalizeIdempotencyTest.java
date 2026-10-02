@@ -59,6 +59,24 @@ class SubmissionFinalizeIdempotencyTest {
         verify(answers, never()).save(any());
     }
 
+    @Test
+    void repeatedSubmitAfterObjectiveGradeReturnsOriginalResult() {
+        UUID owner = UUID.randomUUID();
+        UUID submissionId = UUID.randomUUID();
+        String hash = SubmissionFinalizationService.contentHash(Map.of("q1", "B"));
+        PracticeSubmission graded = submission(owner, submissionId, SubmissionStatus.GRADED,
+                "submit-1", hash, Instant.parse("2026-10-01T10:01:30Z"));
+        PracticeSubmissionRepository submissions = mock(PracticeSubmissionRepository.class);
+        SubmissionAnswerRepository answers = mock(SubmissionAnswerRepository.class);
+        when(submissions.findByOwnerAndId(owner, submissionId)).thenReturn(Optional.of(graded));
+
+        SubmissionFinalizationService service = new SubmissionFinalizationService(submissions, answers, Instant::now);
+
+        assertEquals(graded, service.finalizeSubmission(owner, submissionId, Map.of("q1", "B"), "submit-1"));
+        verify(submissions, never()).finalizeIfEditable(any(), any(), any(), any());
+        verify(answers, never()).save(any());
+    }
+
     private static PracticeSubmission submission(UUID owner, UUID id, SubmissionStatus status,
             String submitKey, String hash, Instant submittedAt) {
         Instant started = Instant.parse("2026-10-01T10:00:00Z");

@@ -21,6 +21,10 @@ export function startAttempt({ practiceId, practiceVersion = 'v1', skill, idempo
 
 export function getAttempt(attemptId) { return request(`/api/attempts/${encodeURIComponent(attemptId)}`) }
 
+export function getObjectiveResult(submissionId) {
+  return request(`/api/submissions/${encodeURIComponent(submissionId)}/result`)
+}
+
 export function saveAttemptAnswers(attemptId, answers) {
   return request(`/api/attempts/${encodeURIComponent(attemptId)}/answers`, { method: 'PUT', body: JSON.stringify({ answers }) })
 }

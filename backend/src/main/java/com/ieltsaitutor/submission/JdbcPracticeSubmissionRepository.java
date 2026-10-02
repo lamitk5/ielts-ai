@@ -88,6 +88,13 @@ public class JdbcPracticeSubmissionRepository implements PracticeSubmissionRepos
     }
 
     @Override
+    public PracticeSubmission markScored(UUID id, Instant scoredAt) {
+        jdbc.update("UPDATE practice_submissions SET status = 'GRADED', scored_at = :scoredAt, updated_at = :scoredAt WHERE id = :id",
+                new MapSqlParameterSource().addValue("id", id).addValue("scoredAt", timestamp(scoredAt)));
+        return findById(id).orElseThrow(() -> new IllegalArgumentException("Submission not found"));
+    }
+
+    @Override
     public Optional<PracticeSubmission> updateAutosaveIfRevision(UUID id, long expectedRevision, Instant savedAt) {
         int updated = jdbc.update("""
                 UPDATE practice_submissions

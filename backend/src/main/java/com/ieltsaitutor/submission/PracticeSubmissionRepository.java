@@ -18,6 +18,10 @@ public interface PracticeSubmissionRepository {
 
     PracticeSubmission updateStatus(UUID id, SubmissionStatus status, Instant updatedAt);
 
+    default PracticeSubmission markScored(UUID id, Instant scoredAt) {
+        return updateStatus(id, SubmissionStatus.GRADED, scoredAt);
+    }
+
     Optional<PracticeSubmission> updateAutosaveIfRevision(UUID id, long expectedRevision, Instant savedAt);
 
     Optional<PracticeSubmission> finalizeIfEditable(UUID id, String submitIdempotencyKey,

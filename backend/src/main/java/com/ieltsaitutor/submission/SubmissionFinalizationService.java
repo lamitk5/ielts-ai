@@ -46,7 +46,7 @@ public class SubmissionFinalizationService {
                 .orElseThrow(() -> new SubmissionConflictException("Submission is not available"));
 
         if (!current.editable()) {
-            if (current.status() == SubmissionStatus.SUBMITTED
+            if ((current.status() == SubmissionStatus.SUBMITTED || current.status() == SubmissionStatus.GRADED)
                     && Objects.equals(current.submitIdempotencyKey(), normalizedKey)
                     && Objects.equals(current.contentHash(), hash)) return current;
             throw new SubmissionConflictException("Submission is already finalized");
