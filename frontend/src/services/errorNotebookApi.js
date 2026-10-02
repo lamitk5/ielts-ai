@@ -1,0 +1,4 @@
+function authHeaders() { try { const s = JSON.parse(localStorage.getItem('ielts-ai-tutor.session') ?? 'null'); return s?.token ? { Authorization: `Bearer ${s.token}` } : {} } catch { return {} } }
+async function request(url, options = {}) { const r = await fetch(url, { ...options, headers: { Accept: 'application/json', ...authHeaders(), ...(options.headers || {}) } }); const b = await r.json().catch(() => null); if (!r.ok) throw new Error(b?.message || 'Không thể tải sổ lỗi sai.'); return b }
+export const getErrorNotebook = (params = {}) => { const q = new URLSearchParams({ page: String(params.page ?? 0), size: String(params.size ?? 20) }); if (params.skill) q.set('skill', params.skill); return request(`/api/me/error-notebook?${q}`) }
+export const acknowledgeMistake = (id) => request(`/api/me/error-notebook/${encodeURIComponent(id)}/acknowledge`, { method: 'POST' })

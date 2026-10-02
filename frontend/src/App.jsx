@@ -22,6 +22,8 @@ import PracticeAttemptPage from './pages/PracticeAttemptPage'
 import PracticeResultPage from './pages/PracticeResultPage'
 import SubmissionHistoryPage from './pages/SubmissionHistoryPage'
 import AdminSubmissionReviewPage from './pages/AdminSubmissionReviewPage'
+import DiagnosticPage from './pages/DiagnosticPage'
+import ErrorNotebookPage from './pages/ErrorNotebookPage'
 
 function App() {
   return (
@@ -35,6 +37,8 @@ function App() {
           <Route path="admin/practice-generator/sets/:setId" element={<RequireAdminRoute><AdminPracticeReviewPage /></RequireAdminRoute>} />
           <Route path="admin/submissions" element={<RequireAdminRoute><AdminSubmissionReviewPage /></RequireAdminRoute>} />
           <Route path="assessment" element={<AssessmentPage />} />
+          <Route path="diagnostic" element={<DiagnosticPage />} />
+          <Route path="error-notebook" element={<ErrorNotebookPage />} />
           <Route path="practice" element={<PracticeCatalogPage />} />
           <Route path="practice/results/:attemptId" element={<PracticeResultPage />} />
           <Route path="practice/history" element={<SubmissionHistoryPage />} />

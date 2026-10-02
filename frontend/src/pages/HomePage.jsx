@@ -7,6 +7,7 @@ import TutorPreviewSection from '../components/home/TutorPreviewSection'
 import FloatingTutor from '../components/tutor/FloatingTutor'
 import { guestDemo, memberDemo, skillCards } from '../data/homepageMockData'
 import { useAuth } from '../features/auth/AuthProvider'
+import { OnboardingEntry } from '../components/onboarding/OnboardingEntry'
 import { LEARNING_STATE_STATUS, useLearningIntelligence } from '../features/learning/learningIntelligenceState'
 
 function HomePage() {
@@ -41,8 +42,10 @@ function HomePage() {
         isAuthenticated={showMemberProgress}
         state={homepageState}
         loading={isAuthenticated && !isMemberDemo && learning.status === LEARNING_STATE_STATUS.LOADING}
+        enableTodaysPlan={isAuthenticated && !isMemberDemo}
       />
       <TutorPreviewSection />
+      <OnboardingEntry />
       <CTASection />
       <FloatingTutor />
     </>

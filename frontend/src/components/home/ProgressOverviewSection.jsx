@@ -11,8 +11,9 @@ import StreakCard from '../learning/StreakCard'
 import SkillEnergyGrid from '../learning/SkillEnergyGrid'
 import { calculateMeaningfulStreak } from '../../features/learning/streakRules'
 import { Link } from 'react-router-dom'
+import TodaysPlanSection from '../learning/TodaysPlanSection'
 
-function ProgressOverviewSection({ isAuthenticated, state, loading = false }) {
+function ProgressOverviewSection({ isAuthenticated, state, loading = false, enableTodaysPlan = false }) {
   const hasMeasuredProgress = Array.isArray(state?.progress)
     && state.progress.some(({ band }) => Number.isFinite(band))
   const showMemberProgress = isAuthenticated && hasMeasuredProgress
@@ -25,6 +26,7 @@ function ProgressOverviewSection({ isAuthenticated, state, loading = false }) {
       aria-label="Tiến độ luyện tập của bạn"
     >
       <div className="progress-inner">
+        <TodaysPlanSection enabled={enableTodaysPlan && !loading} />
         <SectionTitle
           eyebrow="THEO DÕI TIẾN BỘ"
           title="Tiến độ luyện tập của bạn"
