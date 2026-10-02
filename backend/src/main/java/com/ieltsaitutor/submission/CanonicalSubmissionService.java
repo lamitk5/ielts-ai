@@ -19,13 +19,13 @@ public class CanonicalSubmissionService {
     private final SubmissionFinalizationService finalizationService;
     private final ObjectiveSubmissionScoringService scoringService;
 
-    @Autowired
     public CanonicalSubmissionService(PracticeSubmissionRepository repository,
             SubmissionPracticeResolver practiceResolver, SubmissionDraftService draftService,
             SubmissionFinalizationService finalizationService) {
         this(repository, practiceResolver, draftService, finalizationService, null);
     }
 
+    @Autowired
     public CanonicalSubmissionService(PracticeSubmissionRepository repository,
             SubmissionPracticeResolver practiceResolver, SubmissionDraftService draftService,
             SubmissionFinalizationService finalizationService, ObjectiveSubmissionScoringService scoringService) {
