@@ -10,7 +10,9 @@ export default function AdminKnowledgePage() {
   const [saving, setSaving] = useState(false)
   const [notice, setNotice] = useState('')
   const load = () => adminPortalApi.prompts().then((items) => setState({ loading: false, error: '', items })).catch((error) => setState({ loading: false, error: error.message, items: [] }))
-  useEffect(load, [])
+  useEffect(() => {
+    void load()
+  }, [])
   async function createDraft(event) {
     event.preventDefault(); setSaving(true); setNotice('')
     try { await adminPortalApi.createDraft(draft); setDraft({ promptKey: '', name: '', purpose: '', content: '' }); setNotice('Đã tạo bản nháp prompt.'); load() }
