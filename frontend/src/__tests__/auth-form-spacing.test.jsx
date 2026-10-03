@@ -23,12 +23,12 @@ describe('auth form action spacing', () => {
   test.each([
     [LoginPage, 'Chưa có tài khoản?'],
     [RegisterPage, 'Đã có tài khoản?'],
-  ])('keeps %s action footer 2rem below the form on desktop', (Page, footerText) => {
+  ])('keeps %s action footer at the approved spacing below the form', (Page, footerText) => {
     renderAuth(Page)
 
     const footer = screen.getByText(footerText, { exact: false }).closest('.auth-footer-copy')
 
     expect(footer).not.toBeNull()
-    expect(getComputedStyle(footer).marginTop).toBe('2rem')
+    expect(getComputedStyle(footer).marginTop).toBe('2.25rem')
   })
 })

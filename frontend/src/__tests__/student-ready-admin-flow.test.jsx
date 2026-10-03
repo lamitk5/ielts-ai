@@ -12,6 +12,6 @@ describe('student-ready admin flow', () => {
 
     render(<MemoryRouter initialEntries={['/admin/practice-generator']}><App /></MemoryRouter>)
 
-    expect(screen.getByRole('heading', { name: 'Trung tâm Tạo & Kiểm duyệt Đề thi AI' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Trình tạo bài luyện bằng AI' })).toBeInTheDocument()
   })
 })

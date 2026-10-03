@@ -72,6 +72,18 @@ class GroqAiProviderTest {
     }
 
     @Test
+    void allocatesEnoughOutputBudgetForPracticeGenerationJson() {
+        server.createContext("/openai/v1/chat/completions", exchange -> respond(exchange, 200,
+                "{\"choices\":[{\"message\":{\"content\":\"{}\"}}]}"));
+        server.start();
+
+        provider.chat(new AiChatCommand("Generate a practice set", new AiChatContext(
+                "READING", null, null, null, "practice-generation", null, null), List.of()));
+
+        assertThat(body.get()).contains("\"max_completion_tokens\":6000");
+    }
+
+    @Test
     void advertisesTextDocumentContextCapability() {
         assertThat(provider.capabilities()).contains(ProviderCapability.CHAT, ProviderCapability.DOCUMENT_CONTEXT);
     }

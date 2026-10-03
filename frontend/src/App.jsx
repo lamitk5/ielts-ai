@@ -27,12 +27,33 @@ import ErrorNotebookPage from './pages/ErrorNotebookPage'
 import MockTestPage from './pages/MockTestPage'
 import SavedPracticesPage from './pages/SavedPracticesPage'
 import ProfilePage from './pages/ProfilePage'
+import AdminLayout from './components/admin/AdminLayout'
+import AdminDashboardPage from './pages/AdminDashboardPage'
+import AdminPracticeBankPage from './pages/AdminPracticeBankPage'
+import AdminKnowledgePage from './pages/AdminKnowledgePage'
+import AdminReviewQueuePage from './pages/AdminReviewQueuePage'
+import AdminLearnersPage from './pages/AdminLearnersPage'
+import AdminUsagePage from './pages/AdminUsagePage'
+import AdminAuditPage from './pages/AdminAuditPage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
 
 function App() {
   return (
     <AuthProvider>
       <PreferenceProvider>
         <Routes>
+          <Route path="admin" element={<RequireAdminRoute><AdminLayout /></RequireAdminRoute>}>
+            <Route index element={<AdminDashboardPage />} />
+            <Route path="generator" element={<AdminPracticeGeneratorPage />} />
+            <Route path="generator/sets/:setId" element={<AdminPracticeReviewPage />} />
+            <Route path="practices" element={<AdminPracticeBankPage />} />
+            <Route path="knowledge" element={<AdminKnowledgePage />} />
+            <Route path="knowledge/rag" element={<AdminRagPage />} />
+            <Route path="reviews" element={<AdminReviewQueuePage />} />
+            <Route path="learners" element={<AdminLearnersPage />} />
+            <Route path="usage" element={<AdminUsagePage />} />
+            <Route path="audit" element={<AdminAuditPage />} />
+          </Route>
           <Route element={<AppLayout />}>
           <Route index element={<HomePage />} />
           <Route path="admin/rag" element={<RequireAdminRoute allowLegacyToken={Boolean(readAdminToken())}><AdminRagPage /></RequireAdminRoute>} />
@@ -58,6 +79,7 @@ function App() {
           <Route path="saved" element={<SavedPracticesPage />} />
           <Route path="login" element={<LoginPage />} />
           <Route path="register" element={<RegisterPage />} />
+          <Route path="forgot-password" element={<ForgotPasswordPage />} />
           <Route
             path="*"
             element={

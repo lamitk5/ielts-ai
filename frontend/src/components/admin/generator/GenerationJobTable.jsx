@@ -8,7 +8,7 @@ export default function GenerationJobTable({ jobs = [], sets = [] }) {
     return (
       <div className="p-8 text-center rounded-xl bg-zinc-900/40 border border-zinc-800 space-y-2">
         <p className="text-sm text-zinc-400">Chưa có tác vụ tạo đề nào.</p>
-        <p className="text-xs text-zinc-500">Bấm "Tạo bộ đề mới" ở trên để bắt đầu quy trình trích xuất blueprint và tạo đề.</p>
+      <p className="text-xs text-zinc-500">Bấm "Tạo bộ đề mới" ở trên để bắt đầu quy trình trích xuất bản thiết kế và tạo đề.</p>
       </div>
     )
   }
@@ -32,7 +32,7 @@ export default function GenerationJobTable({ jobs = [], sets = [] }) {
             return (
               <tr key={set.id} className="hover:bg-zinc-800/30 transition-colors">
                 <td className="p-3">
-                  <div className="font-semibold text-zinc-200">{set.title || 'Untitled Set'}</div>
+                  <div className="font-semibold text-zinc-200">{set.title || 'Bộ đề chưa đặt tên'}</div>
                   <div className="text-[11px] text-zinc-500 flex items-center gap-2">
                     <span className="uppercase text-amber-400/80 font-mono">{set.skill}</span>
                     <span>•</span>
@@ -53,10 +53,10 @@ export default function GenerationJobTable({ jobs = [], sets = [] }) {
                   ) : set.state === 'GENERATING' ? (
                     <span className="text-amber-400 animate-pulse flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5" />
-                      Đang xử lý mô hình AI...
+                      AI đang tạo nội dung...
                     </span>
                   ) : (
-                    <span className="text-zinc-400">Sẵn sàng kiểm duyệt</span>
+                    <span className="text-zinc-400">Sẵn sàng để quản trị viên duyệt</span>
                   )}
                 </td>
                 <td className="p-3 text-zinc-500 text-[11px]">
@@ -66,7 +66,7 @@ export default function GenerationJobTable({ jobs = [], sets = [] }) {
                   <Link to={`/admin/practice-generator/sets/${set.id}`}>
                     <Button variant="secondary" className="py-1 px-2.5 text-xs inline-flex items-center gap-1.5">
                       <Eye className="w-3.5 h-3.5 text-amber-400" />
-                      Kiểm duyệt
+                      Mở đánh giá
                     </Button>
                   </Link>
                 </td>

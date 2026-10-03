@@ -27,7 +27,7 @@ function Navbar() {
   const [settingsRoute, setSettingsRoute] = useState(null)
   const [isScrolled, setIsScrolled] = useState(() => window.scrollY > 12)
   const settingsOpenerRef = useRef(null)
-  const { isAuthenticated, logout } = useAuth()
+  const { isAuthenticated, user, logout } = useAuth()
   const preferenceContext = useOptionalPreferences()
   const translate = preferenceContext?.translate ?? ((_key, fallback) => fallback)
   const location = useLocation()
@@ -95,6 +95,7 @@ function Navbar() {
           <div className="nav-settings">
             <SettingsButton openerRef={settingsOpenerRef} expanded={isSettingsOpen} onClick={() => { setIsMenuOpen(false); setSettingsRoute(location.key) }} />
           </div>
+          {user?.role === 'ADMIN' ? <Link className="nav-link admin-nav-entry" to="/admin" onClick={closeMenu}>Quản trị</Link> : null}
           {isAuthenticated ? (
             <div className="account-menu">
               <button
@@ -112,6 +113,7 @@ function Navbar() {
               {isAccountOpen ? (
                 <div className="account-panel" role="menu" aria-label="Menu tài khoản">
                   <span className="account-email" role="presentation">Tài khoản học tập</span>
+                  {user?.role === 'ADMIN' ? <Link className="account-menu-item" role="menuitem" to="/admin" onClick={() => { closeMenu(); setIsAccountOpen(false) }}>Quản trị</Link> : null}
                   <button className="account-menu-item" role="menuitem" type="button" onClick={handleLogout}>
                     Đăng xuất
                   </button>

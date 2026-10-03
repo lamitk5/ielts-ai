@@ -100,11 +100,11 @@ describe('AdminGeneratorFlowIntegration', () => {
     )
 
     // 1. Verify dashboard renders
-    expect(screen.getByText(/Trung tâm Tạo & Kiểm duyệt Đề thi AI/i)).toBeInTheDocument()
+    expect(screen.getByText(/Trình tạo bài luyện bằng AI/i)).toBeInTheDocument()
     expect(await screen.findByText('Ecosystem Resilience in Coral Reefs')).toBeInTheDocument()
 
-    // 2. Click "Kiểm duyệt"
-    const reviewLink = screen.getByRole('link', { name: /Kiểm duyệt/i })
+    // 2. Mở không gian đánh giá
+    const reviewLink = screen.getByRole('link', { name: /Mở đánh giá/i })
     fireEvent.click(reviewLink)
 
     // 3. Verify Review workspace loaded

@@ -42,15 +42,15 @@ export default function AdminPracticeReviewPage() {
       {/* Top navigation header */}
       <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4">
         <div className="flex items-center gap-3">
-          <Link to="/admin/practice-generator">
+          <Link to="/admin/generator">
             <Button variant="secondary" className="p-2 text-xs">
               <ArrowLeft className="w-4 h-4" />
             </Button>
           </Link>
           <div>
-            <div className="text-[11px] font-mono uppercase text-amber-400">Không gian Kiểm duyệt Bài tập</div>
+            <div className="text-[11px] font-mono uppercase text-amber-400">Không gian đánh giá bài luyện</div>
             <h2 className="text-base font-serif font-bold text-zinc-100">
-              {payload?.practiceSet?.title || 'Kiểm duyệt Đề thi AI'}
+              {payload?.practiceSet?.title || 'Đánh giá bài luyện AI'}
             </h2>
           </div>
         </div>
@@ -74,7 +74,7 @@ export default function AdminPracticeReviewPage() {
       )}
 
       {loading && !payload ? (
-        <SkeletonBlock className="h-96 w-full rounded-2xl" label="Đang tải dữ liệu kiểm duyệt..." />
+          <SkeletonBlock className="h-96 w-full rounded-2xl" label="Đang tải dữ liệu đánh giá..." />
       ) : (
         <PracticeReviewCanvas
           payload={payload}

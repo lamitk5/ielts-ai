@@ -31,12 +31,6 @@
   box-shadow: var(--shadow-sm, 0 12px 30px rgba(6, 11, 22, 0.12));
 }
 
-/* Keep ambient decoration behind the writing surface and its readable controls. */
-.writing-workspace-editorial {
-  position: relative;
-  z-index: 1;
-}
-
 .writing-workspace-editorial .workspace-pane {
   background: var(--surface-1, var(--surface));
 }

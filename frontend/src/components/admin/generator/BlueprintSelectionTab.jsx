@@ -53,7 +53,7 @@ export default function BlueprintSelectionTab({ blueprints = [], selectedBluepri
         </div>
       )}
 
-      <div className="text-xs font-medium text-zinc-400">Hoặc chọn một Blueprint chuẩn từ Catalog:</div>
+      <div className="text-xs font-medium text-zinc-400">Hoặc chọn một Blueprint chuẩn từ danh mục:</div>
 
       <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
         {blueprints.length === 0 ? (

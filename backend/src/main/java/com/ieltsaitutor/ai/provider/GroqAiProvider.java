@@ -119,6 +119,9 @@ public class GroqAiProvider implements AiProviderAdapter {
     private String buildRequest(AiChatCommand command) {
         ObjectNode root = objectMapper.createObjectNode();
         root.put("model", properties.getChatModel());
+        if (command.context() != null && "practice-generation".equals(command.context().taskType())) {
+            root.put("max_completion_tokens", 6000);
+        }
         ArrayNode messages = root.putArray("messages");
         messages.addObject().put("role", "system").put("content", TutorSystemInstruction.TEXT);
         compactHistory(command.history()).forEach(history -> messages.addObject()

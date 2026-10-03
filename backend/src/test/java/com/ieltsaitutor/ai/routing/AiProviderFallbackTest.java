@@ -1,11 +1,14 @@
 package com.ieltsaitutor.ai.routing;
 
 import com.ieltsaitutor.ai.exception.AiProviderException;
+import com.ieltsaitutor.ai.config.AiProviderProperties;
 import com.ieltsaitutor.ai.model.AiChatCommand;
 import com.ieltsaitutor.ai.model.AiChatResult;
 import com.ieltsaitutor.ai.provider.ProviderCapability;
 import com.ieltsaitutor.ai.provider.ProviderId;
+import com.ieltsaitutor.admin.portal.ApiUsageService;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.DataAccessResourceFailureException;
 
 import java.util.List;
 import java.util.Set;
@@ -77,6 +80,23 @@ class AiProviderFallbackTest {
                     assertThat(exception.code()).isEqualTo("AI_TEMPORARILY_UNAVAILABLE");
                     assertThat(exception.status()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
                 });
+    }
+
+    @Test
+    void telemetryFailureDoesNotTurnSuccessfulProviderResponseIntoProviderFailure() {
+        AiProviderAdapter groq = successful(ProviderId.GROQ, "groq");
+        AiProviderProperties properties = new AiProviderProperties();
+        ApiUsageService usage = mock(ApiUsageService.class);
+        doThrow(new DataAccessResourceFailureException("telemetry table unavailable"))
+                .when(usage).record(anyString(), isNull(), anyString(), anyString(), anyLong(), anyBoolean());
+
+        AiProviderRouter router = new AiProviderRouter(
+                List.of(groq),
+                properties,
+                new ProviderHealthRegistry(properties.getHealth(), java.time.Clock.systemUTC()),
+                usage);
+
+        assertThat(router.chat(command).answer()).isEqualTo("groq");
     }
 
     private AiProviderAdapter successful(ProviderId id, String answer) {

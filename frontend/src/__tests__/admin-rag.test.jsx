@@ -35,7 +35,7 @@ describe('temporary RAG admin CMS', () => {
 
     renderApp()
 
-    expect(await screen.findByRole('heading', { name: 'Quản trị học liệu IELTS' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Kho tri thức' })).toBeInTheDocument()
     expect(screen.queryByLabelText(/admin token/i)).not.toBeInTheDocument()
     expect(fetchMock.mock.calls[0][1].headers.Authorization).toBe('Bearer admin-session')
   })
@@ -88,7 +88,7 @@ describe('temporary RAG admin CMS', () => {
     renderApp()
     await userEvent.setup().click(await screen.findByRole('button', { name: /xem/i }))
     expect(await screen.findByText('bounded preview')).toBeInTheDocument()
-    expect(screen.getAllByText('INDEXED').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Đã lập chỉ mục').length).toBeGreaterThan(0)
   })
 
   test('handles 401 and 403', async () => {
@@ -106,10 +106,10 @@ describe('temporary RAG admin CMS', () => {
     vi.stubGlobal('fetch', fetchMock)
     const user = userEvent.setup()
     renderApp()
-    await screen.findByRole('heading', { name: 'Quản trị học liệu IELTS' })
+    await screen.findByRole('heading', { name: 'Kho tri thức' })
     await user.type(screen.getByLabelText('Tiêu đề'), 'Guide')
     await user.type(screen.getByLabelText('Ghi chú quyền sử dụng'), 'Owned fixture')
-    await user.upload(screen.getByLabelText('File'), new File(['text'], 'guide.txt', { type: 'text/plain' }))
+    await user.upload(screen.getByLabelText('Tệp tài liệu'), new File(['text'], 'guide.txt', { type: 'text/plain' }))
     fireEvent.submit(screen.getByRole('button', { name: 'Tải lên chờ duyệt' }).closest('form'))
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(3))

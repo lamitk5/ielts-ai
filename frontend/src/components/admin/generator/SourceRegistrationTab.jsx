@@ -3,6 +3,8 @@ import { AlertTriangle, CheckCircle2, FileText, Upload } from 'lucide-react'
 import Button from '../../common/Button'
 import { RIGHTS_STATUSES } from '../../../features/practice-generator/generatorStateConstants'
 
+const RIGHTS_LABELS = { APPROVED: 'Đã duyệt', PENDING_REVIEW: 'Chờ duyệt', RESTRICTED: 'Hạn chế', REJECTED: 'Từ chối' }
+
 export default function SourceRegistrationTab({ onRegistered, onSelectExisting, sources = [] }) {
   const [mode, setMode] = useState('select') // 'select' | 'new'
   const [title, setTitle] = useState('')
@@ -89,7 +91,7 @@ export default function SourceRegistrationTab({ onRegistered, onSelectExisting, 
                     <span className="text-xs font-semibold text-zinc-200">{s.title}</span>
                   </div>
                   <div className="text-[11px] text-zinc-500">
-                    Checksum: {s.checksum?.substring(0, 10)}... | Tạo lúc: {new Date(s.createdAt).toLocaleDateString()}
+                    Mã kiểm tra: {s.checksum?.substring(0, 10)}... | Tạo lúc: {new Date(s.createdAt).toLocaleDateString('vi-VN')}
                   </div>
                 </div>
                 <div>
@@ -100,7 +102,7 @@ export default function SourceRegistrationTab({ onRegistered, onSelectExisting, 
                         : 'bg-rose-950/60 text-rose-300 border-rose-800'
                     }`}
                   >
-                    {s.rightsStatus}
+                    {RIGHTS_LABELS[s.rightsStatus] || s.rightsStatus}
                   </span>
                 </div>
               </div>
@@ -124,16 +126,16 @@ export default function SourceRegistrationTab({ onRegistered, onSelectExisting, 
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-zinc-400 mb-1">Trạng thái bản quyền (Rights Status)</label>
+              <label className="block text-xs text-zinc-400 mb-1">Trạng thái quyền sử dụng</label>
               <select
                 value={rightsStatus}
                 onChange={(e) => setRightsStatus(e.target.value)}
                 className="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-amber-500"
               >
-                <option value={RIGHTS_STATUSES.APPROVED}>APPROVED (Đã duyệt bản quyền)</option>
-                <option value={RIGHTS_STATUSES.PENDING_REVIEW}>PENDING_REVIEW (Chờ duyệt)</option>
-                <option value={RIGHTS_STATUSES.RESTRICTED}>RESTRICTED (Hạn chế)</option>
-                <option value={RIGHTS_STATUSES.REJECTED}>REJECTED (Từ chối)</option>
+                <option value={RIGHTS_STATUSES.APPROVED}>Đã duyệt bản quyền</option>
+                <option value={RIGHTS_STATUSES.PENDING_REVIEW}>Chờ duyệt quyền sử dụng</option>
+                <option value={RIGHTS_STATUSES.RESTRICTED}>Hạn chế</option>
+                <option value={RIGHTS_STATUSES.REJECTED}>Từ chối</option>
               </select>
             </div>
             <div>
@@ -153,7 +155,7 @@ export default function SourceRegistrationTab({ onRegistered, onSelectExisting, 
             <div className="flex items-start gap-2 p-2.5 rounded-lg bg-amber-950/40 border border-amber-800 text-amber-300 text-[11px]">
               <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
               <span>
-                Cảnh báo: Chỉ tài liệu ở trạng thái <strong>APPROVED</strong> mới có thể kích hoạt bộ tạo đề. Tài liệu
+                Cảnh báo: Chỉ tài liệu ở trạng thái <strong>Đã duyệt</strong> mới có thể kích hoạt bộ tạo đề. Tài liệu
                 này sẽ được lưu nhưng chưa thể tạo đề ngay.
               </span>
             </div>
@@ -176,7 +178,7 @@ export default function SourceRegistrationTab({ onRegistered, onSelectExisting, 
           </div>
 
           <Button type="submit" disabled={submitting || !title || !rawText} className="w-full py-1.5 text-xs">
-            {submitting ? 'Đang lưu...' : 'Lưu và Sử dụng Nguồn này'}
+            {submitting ? 'Đang lưu...' : 'Lưu và sử dụng nguồn này'}
           </Button>
         </form>
       )}

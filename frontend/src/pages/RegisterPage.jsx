@@ -40,11 +40,11 @@ function RegisterPage() {
 
   return (
     <AuthCinematicShell labelledBy="register-title">
-      {({ isLampOn }) => <div className="auth-card">
+      {({ isLampOn }) => <div className="auth-card auth-card-register">
         <p className="eyebrow">LUMEN IELTS · AI TUTOR</p>
         <h1 id="register-title" className="font-display">{translate('register', 'Tạo tài khoản')}</h1>
         <p className="foundation-copy">{translate('registerCopy', 'Lưu bài luyện và theo dõi tiến bộ bốn kỹ năng trong một lộ trình riêng.')}</p>
-        <form className="auth-form" aria-describedby={!isLampOn ? 'auth-lamp-lock-message' : undefined} onSubmit={(event) => handleSubmit(event, isLampOn)}>
+        <form className="auth-form auth-form-register" aria-describedby={!isLampOn ? 'auth-lamp-lock-message' : undefined} onSubmit={(event) => handleSubmit(event, isLampOn)}>
           <fieldset disabled={!isLampOn}>
             <label htmlFor="register-name">{translate('displayName', 'Tên hiển thị')}</label>
             <input id="register-name" type="text" autoComplete="given-name" value={firstName} onChange={(event) => setFirstName(event.target.value)} required />
