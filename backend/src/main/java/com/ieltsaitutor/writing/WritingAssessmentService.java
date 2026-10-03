@@ -75,7 +75,7 @@ public class WritingAssessmentService {
         if (taskType == null) return unavailable(userId, taskId);
         try {
             AiChatResult result = provider.chat(new AiChatCommand(
-                    "Assess this IELTS writing response. Return JSON only with overallBandEstimate, criteria, strengths, issues, suggestions.",
+                    assessmentPrompt(responseText),
                     new AiChatContext("WRITING", null, taskId, null, taskType, null, responseText, null, taskId),
                     List.of()));
             if (!"ANSWERED".equals(result.status())) return persistIfNeeded(userId, taskId, unavailable(userId, taskId, responseText), persist);
@@ -101,7 +101,9 @@ public class WritingAssessmentService {
         try {
             JsonNode root = objectMapper.readTree(raw);
             JsonNode estimate = root.get("overallBandEstimate");
-            if (estimate == null || !estimate.isNumber() || estimate.doubleValue() < 0 || estimate.doubleValue() > 9) throw new IllegalArgumentException("Invalid estimate");
+            if (estimate == null || !estimate.isNumber() || estimate.doubleValue() < 0 || estimate.doubleValue() > 9) {
+                throw new IllegalArgumentException("Invalid estimate");
+            }
             Map<String, String> criteria = new LinkedHashMap<>();
             root.path("criteria").fields().forEachRemaining(entry -> criteria.put(entry.getKey(), entry.getValue().asText()));
             return new WritingAssessment("ANSWERED", userId, taskId, estimate.doubleValue(), criteria,
@@ -110,6 +112,11 @@ public class WritingAssessmentService {
         } catch (Exception exception) {
             return unavailable(userId, taskId, responseText);
         }
+    }
+
+    private String assessmentPrompt(String responseText) {
+        return "Assess this IELTS writing response. Return JSON only with overallBandEstimate, criteria, strengths, issues, suggestions."
+                + "\n\nWriting response:\n" + (responseText == null ? "" : responseText);
     }
 
     private int wordCount(String responseText) { return responseText == null || responseText.isBlank() ? 0 : responseText.trim().split("\\s+").length; }

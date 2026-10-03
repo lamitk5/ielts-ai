@@ -18,7 +18,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class JdbcWritingRepository implements WritingRepository {
     private final NamedParameterJdbcTemplate jdbc;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
     @Autowired
     public JdbcWritingRepository(NamedParameterJdbcTemplate jdbc) {
         this.jdbc = jdbc;
