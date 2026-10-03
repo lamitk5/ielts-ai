@@ -1082,6 +1082,9 @@ input:focus-visible {
 }
 
 .hero-search-control {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: flex;
   min-height: 3.5rem;
   align-items: center;
@@ -1092,11 +1095,162 @@ input:focus-visible {
   background: var(--surface-1);
   box-shadow: var(--shadow-md);
   backdrop-filter: blur(10px);
+  transition: border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
+}
+
+.hero-search-control::before,
+.hero-search-control::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  content: '';
+}
+
+.hero-search-control::before {
+  z-index: 0;
+  background: radial-gradient(
+    circle 8rem at var(--search-pointer-x, 50%) var(--search-pointer-y, 50%),
+    rgba(255, 243, 204, 0.72) 0%,
+    rgba(235, 203, 130, 0.45) 28%,
+    rgba(212, 175, 55, 0.22) 55%,
+    transparent 82%
+  );
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.hero-search-control::after {
+  z-index: 0;
+  inset: -1.5px;
+  padding: 1.5px;
+  background:
+    radial-gradient(
+      circle 9rem at var(--search-pointer-x, 50%) var(--search-pointer-y, 50%),
+      rgba(255, 248, 220, 0.98) 0%,
+      rgba(235, 203, 130, 0.85) 32%,
+      rgba(212, 175, 55, 0.45) 60%,
+      transparent 85%
+    );
+  opacity: 0;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  transition: opacity 200ms ease;
+}
+
+.hero-search-sweep-beam {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 3;
+  overflow: hidden;
+  opacity: 0;
+}
+
+.hero-search-control.hero-search-control-submitting .hero-search-sweep-beam {
+  opacity: 1;
+}
+
+.hero-search-control.hero-search-control-submitting .hero-search-sweep-beam::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  bottom: -30%;
+  left: 0;
+  width: 40%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(235, 203, 130, 0.4) 20%,
+    rgba(255, 248, 220, 0.98) 50%,
+    rgba(235, 203, 130, 0.4) 80%,
+    transparent 100%
+  );
+  filter: blur(4px);
+  box-shadow: 0 0 28px rgba(255, 235, 170, 0.9);
+  transform: skewX(-22deg) translateX(-160%);
+  animation: hero-search-full-sweep 480ms cubic-bezier(0.16, 0.84, 0.3, 1) forwards;
+}
+
+@keyframes hero-search-full-sweep {
+  0% {
+    transform: skewX(-22deg) translateX(-160%);
+    opacity: 0.2;
+  }
+  25% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    transform: skewX(-22deg) translateX(360%);
+    opacity: 0;
+  }
+}
+
+.hero-search-control > * {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-search-control.hero-search-control-focused {
+  border-color: var(--accent-hover);
+  background: color-mix(in srgb, var(--surface-1) 80%, var(--accent-soft));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 55%, transparent), 0 0 2.4rem color-mix(in srgb, var(--accent) 48%, transparent), var(--shadow-md);
+  transform: scale(1.015);
+}
+
+.hero-search-control.hero-search-control-focused::before {
+  opacity: 1;
+}
+
+.hero-search-control.hero-search-control-focused::after {
+  opacity: 1;
+  background:
+    radial-gradient(
+      circle 10rem at var(--search-pointer-x, 50%) var(--search-pointer-y, 50%),
+      rgba(255, 248, 220, 0.98) 0%,
+      rgba(235, 203, 130, 0.85) 35%,
+      rgba(212, 175, 55, 0.5) 65%,
+      transparent 85%
+    ),
+    linear-gradient(
+      108deg,
+      rgba(212, 175, 55, 0.35) 0%,
+      rgba(255, 235, 170, 0.85) 50%,
+      rgba(212, 175, 55, 0.35) 100%
+    );
+  background-size: auto, 200% 100%;
+  animation: hero-search-liquid-trace 3s ease-in-out infinite;
+}
+
+.hero-search-control.hero-search-control-submitting {
+  border-color: var(--accent-hover);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 60%, transparent), 0 0 32px color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+.hero-search-control[data-has-query='true'].hero-search-control-focused {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 60%, transparent), 0 0 2.8rem color-mix(in srgb, var(--accent) 52%, transparent), var(--shadow-md);
+}
+
+@keyframes hero-search-liquid-trace {
+  0%, 100% { background-position: 120% 0; }
+  50% { background-position: -20% 0; }
 }
 
 .hero-search-icon {
   flex: 0 0 auto;
   color: var(--accent-hover);
+  transition: color 180ms ease, filter 180ms ease, transform 180ms ease;
+}
+
+.hero-search-control.hero-search-control-focused .hero-search-icon {
+  color: var(--accent-hover);
+  filter: drop-shadow(0 0 0.45rem var(--accent-soft));
+  transform: translateX(1px) scale(1.08);
 }
 
 .hero-search-control input {
@@ -1108,6 +1262,12 @@ input:focus-visible {
   color: var(--text-primary);
   font: inherit;
   font-size: 0.95rem;
+  transition: background-color 180ms ease;
+}
+
+.hero-search-control.hero-search-control-focused input {
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--accent-soft) 58%, transparent);
 }
 
 .hero-search-control input::placeholder {
@@ -1147,6 +1307,59 @@ input:focus-visible {
   margin: 0.6rem 0 0;
   color: var(--gold-light);
   font-size: 0.85rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hero-search-control:hover {
+    border-color: color-mix(in srgb, var(--accent-hover) 85%, var(--border-strong));
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 45%, transparent), 0 0 24px color-mix(in srgb, var(--accent) 40%, transparent), var(--shadow-md);
+  }
+
+  .hero-search-control:hover::before,
+  .hero-search-control[data-pointer-active='true']::before {
+    opacity: 1;
+  }
+
+  .hero-search-control:hover::after,
+  .hero-search-control[data-pointer-active='true']::after {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-search-control {
+    transition: border-color 0.01ms linear, box-shadow 0.01ms linear;
+  }
+
+  .hero-search-control.hero-search-control-focused {
+    transform: none;
+  }
+
+  .hero-search-control.hero-search-control-focused::after {
+    animation: none;
+  }
+
+  .hero-search-sweep-beam::before {
+    animation: none;
+    display: none;
+  }
+}
+
+:root[data-reduced-motion='true'] .hero-search-control {
+  transition: border-color 0.01ms linear, box-shadow 0.01ms linear;
+}
+
+:root[data-reduced-motion='true'] .hero-search-control.hero-search-control-focused {
+  transform: none;
+}
+
+:root[data-reduced-motion='true'] .hero-search-control.hero-search-control-focused::after {
+  animation: none;
+}
+
+:root[data-reduced-motion='true'] .hero-search-sweep-beam::before {
+  animation: none;
+  display: none;
 }
 
 .hero-suggestions {
@@ -5761,4 +5974,56 @@ input:focus-visible {
   border-color: var(--accent);
   background: var(--surface-glass);
   box-shadow: 0 14px 32px rgba(74, 56, 31, 0.16), 0 0 22px var(--accent-soft);
+}
+
+/* Keep the interactive liquid-gold state visible after light-theme surface tokens. */
+[data-theme='light'] .hero-search-control {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--border-strong));
+}
+
+[data-theme='light'] .hero-search-control::before {
+  background: radial-gradient(
+    circle 8rem at var(--search-pointer-x, 50%) var(--search-pointer-y, 50%),
+    rgba(212, 175, 55, 0.38) 0%,
+    rgba(184, 134, 11, 0.22) 32%,
+    rgba(139, 90, 43, 0.10) 60%,
+    transparent 85%
+  );
+}
+
+[data-theme='light'] .hero-search-control::after {
+  background:
+    radial-gradient(
+      circle 9rem at var(--search-pointer-x, 50%) var(--search-pointer-y, 50%),
+      rgba(184, 134, 11, 0.95) 0%,
+      rgba(212, 175, 55, 0.70) 35%,
+      transparent 80%
+    );
+}
+
+[data-theme='light'] .hero-search-control.hero-search-control-focused {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--surface-raised) 86%, var(--accent-soft));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 60%, transparent), 0 0 2.4rem color-mix(in srgb, var(--accent) 42%, transparent), var(--shadow-soft);
+}
+
+[data-theme='light'] .hero-search-control:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 48%, transparent), 0 0 2.2rem color-mix(in srgb, var(--accent) 36%, transparent), var(--shadow-soft);
+}
+
+[data-theme='light'] .hero-search-control.hero-search-control-focused input {
+  background: color-mix(in srgb, var(--accent-soft) 72%, transparent);
+}
+
+[data-theme='light'] .hero-search-control.hero-search-control-submitting .hero-search-sweep-beam::before {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(212, 175, 55, 0.4) 20%,
+    rgba(240, 215, 140, 0.95) 50%,
+    rgba(212, 175, 55, 0.4) 80%,
+    transparent 100%
+  );
+  box-shadow: 0 0 24px rgba(212, 175, 55, 0.6);
 }
