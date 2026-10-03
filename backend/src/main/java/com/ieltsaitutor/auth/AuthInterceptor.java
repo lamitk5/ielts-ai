@@ -39,6 +39,7 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     private boolean requiresAuthentication(HttpServletRequest request) {
         String path = request.getRequestURI();
+        if (path.startsWith("/api/admin/rag/")) return false;
         return path.equals("/api/auth/me") || path.startsWith("/api/me/")
                 || path.startsWith("/api/submissions")
                 || path.startsWith("/api/results")
@@ -53,6 +54,7 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     private boolean requiresAdmin(HttpServletRequest request) {
         String path = request.getRequestURI();
+        if (path.startsWith("/api/admin/rag/")) return false;
         return path.startsWith("/api/admin/");
     }
 

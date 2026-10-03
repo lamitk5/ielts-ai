@@ -35,4 +35,13 @@ class AdminRouteSecurityTest {
         assertEquals(false, interceptor.preHandle(request, response, new Object()));
         assertEquals(403, response.getStatus());
     }
+
+    @Test
+    void legacyRagTokenRouteIsLeftForItsDedicatedInterceptor() throws Exception {
+        AuthInterceptor interceptor = new AuthInterceptor(mock(AuthService.class));
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/admin/rag/documents");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        assertEquals(true, interceptor.preHandle(request, response, new Object()));
+    }
 }
