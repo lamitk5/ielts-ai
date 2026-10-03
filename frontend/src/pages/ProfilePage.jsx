@@ -1,11 +1,60 @@
-import { Award, Calendar, Check, Clock, Key, LogOut, Shield, User } from 'lucide-react'
+import { Check, Key, LogOut, User } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Button from '../components/common/Button'
 import GlassCard from '../components/common/GlassCard'
 import { useAuth } from '../features/auth/AuthProvider'
 import { usePreferences } from '../features/preferences/PreferenceProvider'
+import PreferenceControlGroup from '../components/settings/PreferenceControlGroup'
 import { changePassword, getProfile, updateProfile } from '../services/profileApi'
+
+const MIN_DAILY_MINUTES = 5
+const MAX_DAILY_MINUTES = 240
+const MIN_STUDY_DAYS = 1
+const MAX_STUDY_DAYS = 7
+
+function localIsoDate() {
+  const now = new Date()
+  const offset = now.getTimezoneOffset() * 60_000
+  return new Date(now.getTime() - offset).toISOString().slice(0, 10)
+}
+
+function profileValues(data) {
+  return {
+    firstName: data?.firstName || '',
+    targetBand: data?.targetBand != null ? String(data.targetBand) : '',
+    targetExamDate: data?.targetExamDate || '',
+    perceivedWeakestSkill: data?.perceivedWeakestSkill || '',
+    dailyStudyMinutes: data?.dailyStudyMinutes != null ? String(data.dailyStudyMinutes) : '30',
+    studyDaysPerWeek: data?.studyDaysPerWeek != null ? String(data.studyDaysPerWeek) : '5',
+  }
+}
+
+function validateProfile(values) {
+  const errors = {}
+  if (values.targetBand !== '') {
+    const band = Number(values.targetBand)
+    if (!Number.isFinite(band) || band < 0 || band > 9 || Math.abs(band * 2 - Math.round(band * 2)) > 1e-9) {
+      errors.targetBand = 'Mục tiêu Band phải nằm trong khoảng 0.0–9.0 và tăng theo 0.5.'
+    }
+  }
+  if (values.targetExamDate && values.targetExamDate < localIsoDate()) {
+    errors.targetExamDate = 'Ngày thi dự kiến phải là hôm nay hoặc trong tương lai.'
+  }
+  if (values.dailyStudyMinutes !== '') {
+    const minutes = Number(values.dailyStudyMinutes)
+    if (!Number.isInteger(minutes) || minutes < MIN_DAILY_MINUTES || minutes > MAX_DAILY_MINUTES) {
+      errors.dailyStudyMinutes = `Thời gian học phải từ ${MIN_DAILY_MINUTES} đến ${MAX_DAILY_MINUTES} phút.`
+    }
+  }
+  if (values.studyDaysPerWeek !== '') {
+    const days = Number(values.studyDaysPerWeek)
+    if (!Number.isInteger(days) || days < MIN_STUDY_DAYS || days > MAX_STUDY_DAYS) {
+      errors.studyDaysPerWeek = `Số ngày học phải từ ${MIN_STUDY_DAYS} đến ${MAX_STUDY_DAYS}.`
+    }
+  }
+  return errors
+}
 
 export default function ProfilePage() {
   const { user, logout } = useAuth()
@@ -13,6 +62,8 @@ export default function ProfilePage() {
   const { preferences, updatePreference } = usePreferences()
 
   const [profile, setProfile] = useState(null)
+  const [initialValues, setInitialValues] = useState(null)
+  const [fieldErrors, setFieldErrors] = useState({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState({ type: '', text: '' })
@@ -40,12 +91,14 @@ export default function ProfilePage() {
       .then((data) => {
         if (!active) return
         setProfile(data)
-        setFirstName(data.firstName || '')
-        setTargetBand(data.targetBand != null ? String(data.targetBand) : '')
-        setTargetExamDate(data.targetExamDate || '')
-        setPerceivedWeakestSkill(data.perceivedWeakestSkill || '')
-        setDailyStudyMinutes(data.dailyStudyMinutes != null ? String(data.dailyStudyMinutes) : '30')
-        setStudyDaysPerWeek(data.studyDaysPerWeek != null ? String(data.studyDaysPerWeek) : '5')
+        const values = profileValues(data)
+        setInitialValues(values)
+        setFirstName(values.firstName)
+        setTargetBand(values.targetBand)
+        setTargetExamDate(values.targetExamDate)
+        setPerceivedWeakestSkill(values.perceivedWeakestSkill)
+        setDailyStudyMinutes(values.dailyStudyMinutes)
+        setStudyDaysPerWeek(values.studyDaysPerWeek)
         setSelfReportedLevel(data.selfReportedLevel || 'INTERMEDIATE')
       })
       .catch((err) => {
@@ -62,6 +115,10 @@ export default function ProfilePage() {
   async function handleSaveProfile(event) {
     event.preventDefault()
     setMessage({ type: '', text: '' })
+    const values = { firstName, targetBand, targetExamDate, perceivedWeakestSkill, dailyStudyMinutes, studyDaysPerWeek }
+    const errors = validateProfile(values)
+    setFieldErrors(errors)
+    if (Object.keys(errors).length > 0) return
     setSaving(true)
 
     try {
@@ -76,9 +133,17 @@ export default function ProfilePage() {
         onboardingVersion: profile?.onboardingVersion,
       })
       setProfile(updated)
-      setMessage({ type: 'success', text: 'Cập nhật thông tin hồ sơ thành công!' })
+      const nextValues = profileValues(updated)
+      setInitialValues(nextValues)
+      setFirstName(nextValues.firstName)
+      setTargetBand(nextValues.targetBand)
+      setTargetExamDate(nextValues.targetExamDate)
+      setPerceivedWeakestSkill(nextValues.perceivedWeakestSkill)
+      setDailyStudyMinutes(nextValues.dailyStudyMinutes)
+      setStudyDaysPerWeek(nextValues.studyDaysPerWeek)
+      setMessage({ type: 'success', text: 'Đã lưu thay đổi.' })
     } catch (err) {
-      setMessage({ type: 'error', text: err.message || 'Cập nhật thất bại. Vui lòng thử lại.' })
+      setMessage({ type: 'error', text: err.message || 'Không thể lưu thay đổi lúc này. Vui lòng thử lại.' })
     } finally {
       setSaving(false)
     }
@@ -117,12 +182,15 @@ export default function ProfilePage() {
     navigate('/login')
   }
 
+  const currentValues = { firstName, targetBand, targetExamDate, perceivedWeakestSkill, dailyStudyMinutes, studyDaysPerWeek }
+  const isDirty = initialValues ? JSON.stringify(currentValues) !== JSON.stringify(initialValues) : false
+
   return (
-    <section className="profile-page" aria-labelledby="profile-title" style={{ padding: '2rem 1rem', maxWidth: '960px', margin: '0 auto' }}>
+    <section className="profile-page" aria-labelledby="profile-title">
       <div className="search-page-header" style={{ marginBottom: '2rem' }}>
         <p className="eyebrow">HỒ SƠ HỌC VIÊN</p>
         <h1 id="profile-title" className="font-display" style={{ fontSize: '2.25rem', marginBottom: '0.5rem' }}>
-          Tài khoản & Thiết lập
+          Hồ sơ &amp; Cài đặt
         </h1>
         <p className="foundation-copy">
           Quản lý thông tin cá nhân, mục tiêu IELTS và tùy biến trải nghiệm luyện tập.
@@ -155,7 +223,7 @@ export default function ProfilePage() {
           {/* Section 1: Personal Info & Goals */}
           <GlassCard className="profile-section-card">
             <h2 style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
-              <User size={20} style={{ color: '#d97706' }} /> Thông tin cá nhân & Mục tiêu
+              <User size={20} style={{ color: '#d97706' }} /> Hồ sơ &amp; Mục tiêu
             </h2>
 
             <form onSubmit={handleSaveProfile} style={{ display: 'grid', gap: '1.25rem' }}>
@@ -217,6 +285,7 @@ export default function ProfilePage() {
                     value={targetBand}
                     onChange={(e) => setTargetBand(e.target.value)}
                     placeholder="7.0"
+                    aria-invalid={Boolean(fieldErrors.targetBand)}
                     style={{
                       width: '100%',
                       padding: '0.65rem 0.875rem',
@@ -226,6 +295,7 @@ export default function ProfilePage() {
                       color: '#fff',
                     }}
                   />
+                  {fieldErrors.targetBand && <p className="profile-field-error" role="alert">{fieldErrors.targetBand}</p>}
                 </div>
 
                 <div>
@@ -236,7 +306,18 @@ export default function ProfilePage() {
                     id="profile-exam-date"
                     type="date"
                     value={targetExamDate}
-                    onChange={(e) => setTargetExamDate(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      setTargetExamDate(value)
+                      setFieldErrors((current) => ({
+                        ...current,
+                        targetExamDate: value && value < localIsoDate()
+                          ? 'Ngày thi dự kiến phải là hôm nay hoặc trong tương lai.'
+                          : undefined,
+                      }))
+                    }}
+                    min={localIsoDate()}
+                    aria-invalid={Boolean(fieldErrors.targetExamDate)}
                     style={{
                       width: '100%',
                       padding: '0.65rem 0.875rem',
@@ -246,11 +327,12 @@ export default function ProfilePage() {
                       color: '#fff',
                     }}
                   />
+                  {fieldErrors.targetExamDate && <p className="profile-field-error" role="alert">{fieldErrors.targetExamDate}</p>}
                 </div>
 
                 <div>
                   <label htmlFor="profile-weak-skill" style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.35rem', color: 'rgba(255, 255, 255, 0.8)' }}>
-                    Kỹ năng cần cải thiện nhất
+                    Kỹ năng muốn ưu tiên
                   </label>
                   <select
                     id="profile-weak-skill"
@@ -271,6 +353,7 @@ export default function ProfilePage() {
                     <option value="WRITING">Writing</option>
                     <option value="SPEAKING">Speaking</option>
                   </select>
+                  <p className="profile-helper-text">Đây là lựa chọn của bạn; hệ thống vẫn phân tích điểm yếu dựa trên kết quả luyện tập.</p>
                 </div>
               </div>
 
@@ -286,6 +369,7 @@ export default function ProfilePage() {
                     max="240"
                     value={dailyStudyMinutes}
                     onChange={(e) => setDailyStudyMinutes(e.target.value)}
+                    aria-invalid={Boolean(fieldErrors.dailyStudyMinutes)}
                     style={{
                       width: '100%',
                       padding: '0.65rem 0.875rem',
@@ -295,6 +379,7 @@ export default function ProfilePage() {
                       color: '#fff',
                     }}
                   />
+                  {fieldErrors.dailyStudyMinutes && <p className="profile-field-error" role="alert">{fieldErrors.dailyStudyMinutes}</p>}
                 </div>
 
                 <div>
@@ -308,6 +393,7 @@ export default function ProfilePage() {
                     max="7"
                     value={studyDaysPerWeek}
                     onChange={(e) => setStudyDaysPerWeek(e.target.value)}
+                    aria-invalid={Boolean(fieldErrors.studyDaysPerWeek)}
                     style={{
                       width: '100%',
                       padding: '0.65rem 0.875rem',
@@ -317,22 +403,29 @@ export default function ProfilePage() {
                       color: '#fff',
                     }}
                   />
+                  {fieldErrors.studyDaysPerWeek && <p className="profile-field-error" role="alert">{fieldErrors.studyDaysPerWeek}</p>}
                 </div>
               </div>
 
               <div style={{ marginTop: '0.5rem' }}>
-                <Button variant="primary" size="md" type="submit" disabled={saving}>
+                <Button variant="primary" size="md" type="submit" disabled={!isDirty || saving}>
                   {saving ? 'Đang lưu…' : 'Lưu thay đổi hồ sơ'}
                 </Button>
               </div>
             </form>
           </GlassCard>
 
-          {/* Section 2: Change Password */}
+          <GlassCard className="profile-preferences-card">
+            <h2 className="profile-card-heading">Tùy chọn học tập</h2>
+            <PreferenceControlGroup preferences={preferences} updatePreference={updatePreference} />
+          </GlassCard>
+
+          {/* Section 3: Security */}
           <GlassCard className="profile-password-card">
             <h2 style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
-              <Key size={20} style={{ color: '#d97706' }} /> Đổi mật khẩu
+              <Key size={20} style={{ color: '#d97706' }} /> Bảo mật
             </h2>
+            <p className="profile-helper-text">Đổi mật khẩu và bảo vệ tài khoản của bạn.</p>
 
             {passwordMessage.text && (
               <div

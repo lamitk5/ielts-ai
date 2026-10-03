@@ -1,5 +1,11 @@
 function authHeaders() {
-  const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
+  let sessionToken = null
+  try {
+    sessionToken = JSON.parse(localStorage.getItem('ielts-ai-tutor.session') ?? 'null')?.token
+  } catch {
+    sessionToken = null
+  }
+  const token = sessionToken || localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
   const headers = { 'Content-Type': 'application/json' }
   if (token) headers.Authorization = `Bearer ${token}`
   return headers

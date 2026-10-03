@@ -82,15 +82,9 @@ describe('app shell and routing', () => {
   })
 
   test('provider composition exposes accessible Settings drawer for guest and authenticated learners', async () => {
-    const user = userEvent.setup()
     renderApp('/')
 
-    const settingsBtn = screen.getByRole('button', { name: /mở cài đặt|cài đặt/i })
-    expect(settingsBtn).toBeInTheDocument()
-
-    await user.click(settingsBtn)
-    expect(screen.getByRole('dialog', { name: 'Cài đặt' })).toBeInTheDocument()
-    expect(screen.getByText('Tùy chỉnh trải nghiệm học của bạn.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Cài đặt' })).not.toBeInTheDocument()
   })
 
   test('guest opening Tutor on writing practice sees personalized auth guidance with returnTo path', async () => {
@@ -107,18 +101,14 @@ describe('app shell and routing', () => {
     expect(screen.queryByRole('textbox', { name: 'Tin nhắn cho Én' })).not.toBeInTheDocument()
   })
 
-  test('mobile navigation and settings drawer coordinate open states without conflicting', async () => {
+  test('mobile navigation remains usable without a duplicate settings utility', async () => {
     const user = userEvent.setup()
     renderApp('/')
 
     const menuToggle = screen.getByRole('button', { name: /open navigation menu/i })
     await user.click(menuToggle)
     expect(menuToggle).toHaveAttribute('aria-expanded', 'true')
-
-    const settingsBtn = screen.getByRole('button', { name: /mở cài đặt|cài đặt/i })
-    await user.click(settingsBtn)
-    expect(screen.getByRole('dialog', { name: 'Cài đặt' })).toBeInTheDocument()
-    expect(menuToggle).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('button', { name: 'Cài đặt' })).not.toBeInTheDocument()
   })
 
   test('authenticated learners get a compact account menu with logout inside it', async () => {
@@ -132,30 +122,20 @@ describe('app shell and routing', () => {
     expect(accountButton).toBeInTheDocument()
     await user.click(accountButton)
     expect(screen.getByRole('menu')).toBeInTheDocument()
-    expect(screen.getByRole('menuitem', { name: 'Hồ sơ cá nhân' })).toHaveAttribute('href', '/profile')
+    expect(screen.getByRole('menuitem', { name: 'Hồ sơ & Cài đặt' })).toHaveAttribute('href', '/profile')
     expect(screen.getByRole('menuitem', { name: 'Bài đã lưu' })).toHaveAttribute('href', '/practice/saved')
-    expect(screen.getByRole('menuitem', { name: 'Cài đặt' })).toBeInTheDocument()
+    expect(screen.queryByRole('menuitem', { name: 'Cài đặt' })).not.toBeInTheDocument()
     expect(screen.getByRole('menuitem', { name: 'Đăng xuất' })).toBeInTheDocument()
   })
 
   test('shell keeps theme, motion, landmarks, and overlay cleanup keyboard-safe', async () => {
-    const user = userEvent.setup()
     renderApp('/')
     expect(screen.getByRole('link', { name: 'Bỏ qua đến nội dung chính' })).toHaveAttribute('href', '#main-content')
     expect(screen.getByRole('banner')).toBeInTheDocument()
     expect(screen.getByRole('main')).toHaveAttribute('id', 'main-content')
     expect(screen.getByRole('contentinfo')).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: 'Cài đặt' }))
-    const dialog = screen.getByRole('dialog', { name: 'Cài đặt' })
-    await user.click(within(dialog).getByRole('button', { name: 'Sáng' }))
-    expect(document.documentElement.style.getPropertyValue('--bg-page')).toBe('#f3ecdf')
-    await user.click(within(dialog).getByRole('button', { name: 'Tối' }))
-    expect(document.documentElement.style.getPropertyValue('--bg-page')).toBe('#060b16')
-    await user.click(within(dialog).getByRole('checkbox', { name: 'Cho phép hiệu ứng giao diện (Animation)' }))
-    expect(document.documentElement).toHaveAttribute('data-reduced-motion', 'true')
-    await user.keyboard('{Escape}')
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Cài đặt' })).not.toBeInTheDocument()
     expect(document.body.style.overflow).toBe('')
   })
 })

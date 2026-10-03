@@ -1,11 +1,9 @@
 import { ChevronDown, Menu, UserCircle, X } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from '../../features/auth/AuthProvider'
-import { PreferenceProvider, applyPreferenceTokens, useOptionalPreferences } from '../../features/preferences/PreferenceProvider'
+import { applyPreferenceTokens, useOptionalPreferences } from '../../features/preferences/PreferenceProvider'
 import { DEFAULT_PREFERENCES } from '../../features/preferences/preferenceDefaults'
-import SettingsButton from '../settings/SettingsButton'
-import SettingsDrawer from '../settings/SettingsDrawer'
 import LumenLogo from './LumenLogo'
 
 const links = [
@@ -24,14 +22,11 @@ function isAnchorActive(link, location) {
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isAccountOpen, setIsAccountOpen] = useState(false)
-  const [settingsRoute, setSettingsRoute] = useState(null)
   const [isScrolled, setIsScrolled] = useState(() => window.scrollY > 12)
-  const settingsOpenerRef = useRef(null)
   const { isAuthenticated, user, logout } = useAuth()
   const preferenceContext = useOptionalPreferences()
   const translate = preferenceContext?.translate ?? ((_key, fallback) => fallback)
   const location = useLocation()
-  const isSettingsOpen = settingsRoute === location.key
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 12)
@@ -55,12 +50,6 @@ function Navbar() {
     closeMenu()
     setIsAccountOpen(false)
     try { await logout() } finally { applyPreferenceTokens(DEFAULT_PREFERENCES) }
-  }
-
-  const handleAccountSettings = () => {
-    closeMenu()
-    setIsAccountOpen(false)
-    setSettingsRoute(location.key)
   }
 
   return (
@@ -98,9 +87,6 @@ function Navbar() {
               </Link>
             ))}
           </div>
-          <div className="nav-settings">
-            <SettingsButton openerRef={settingsOpenerRef} expanded={isSettingsOpen} onClick={() => { setIsMenuOpen(false); setSettingsRoute(location.key) }} />
-          </div>
           {user?.role === 'ADMIN' ? <Link className="nav-link admin-nav-entry" to="/admin" onClick={closeMenu}>Quản trị</Link> : null}
           {isAuthenticated ? (
             <div className="account-menu">
@@ -120,14 +106,11 @@ function Navbar() {
                 <div className="account-panel" role="menu" aria-label="Menu tài khoản">
                   <span className="account-email" role="presentation">Tài khoản học tập</span>
                   <Link className="account-menu-item" role="menuitem" to="/profile" onClick={() => { closeMenu(); setIsAccountOpen(false) }}>
-                    Hồ sơ cá nhân
+                    Hồ sơ &amp; Cài đặt
                   </Link>
                   <Link className="account-menu-item" role="menuitem" to="/practice/saved" onClick={() => { closeMenu(); setIsAccountOpen(false) }}>
                     Bài đã lưu
                   </Link>
-                  <button className="account-menu-item" role="menuitem" type="button" onClick={handleAccountSettings}>
-                    Cài đặt
-                  </button>
                   {user?.role === 'ADMIN' ? <Link className="account-menu-item" role="menuitem" to="/admin" onClick={() => { closeMenu(); setIsAccountOpen(false) }}>Quản trị</Link> : null}
                   <button className="account-menu-item" role="menuitem" type="button" onClick={handleLogout}>
                     Đăng xuất
@@ -142,11 +125,6 @@ function Navbar() {
           )}
         </div>
       </nav>
-      {(isAuthenticated || isSettingsOpen) && (
-        <PreferenceProvider>
-          <SettingsDrawer open={isSettingsOpen} onClose={() => setSettingsRoute(null)} openerRef={settingsOpenerRef} />
-        </PreferenceProvider>
-      )}
     </header>
   )
 }

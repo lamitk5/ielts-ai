@@ -1,8 +1,19 @@
 function authHeaders() {
-  const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
+  let sessionToken = null
+  try {
+    sessionToken = JSON.parse(localStorage.getItem('ielts-ai-tutor.session') ?? 'null')?.token
+  } catch {
+    sessionToken = null
+  }
+  const token = sessionToken || localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
   const headers = { 'Content-Type': 'application/json' }
   if (token) headers.Authorization = `Bearer ${token}`
   return headers
+}
+
+async function readError(response, fallback) {
+  const error = await response.json().catch(() => null)
+  return new Error(error?.error?.message || error?.message || fallback)
 }
 
 export async function getProfile() {
@@ -10,8 +21,7 @@ export async function getProfile() {
     headers: authHeaders(),
   })
   if (!response.ok) {
-    const error = await response.json().catch(() => null)
-    throw new Error(error?.message || 'Không thể tải thông tin cá nhân.')
+    throw await readError(response, 'Không thể tải thông tin cá nhân.')
   }
   return response.json()
 }
@@ -23,8 +33,7 @@ export async function updateProfile(data) {
     body: JSON.stringify(data),
   })
   if (!response.ok) {
-    const error = await response.json().catch(() => null)
-    throw new Error(error?.message || 'Không thể cập nhật hồ sơ.')
+    throw await readError(response, 'Không thể cập nhật hồ sơ.')
   }
   return response.json()
 }
@@ -36,8 +45,7 @@ export async function changePassword(currentPassword, newPassword) {
     body: JSON.stringify({ currentPassword, newPassword }),
   })
   if (!response.ok) {
-    const error = await response.json().catch(() => null)
-    throw new Error(error?.message || 'Không thể đổi mật khẩu.')
+    throw await readError(response, 'Không thể đổi mật khẩu.')
   }
   return response.json()
 }

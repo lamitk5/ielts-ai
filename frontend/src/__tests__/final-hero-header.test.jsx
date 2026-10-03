@@ -28,7 +28,7 @@ describe('final hero and LUMEN header polish', () => {
     const navigation = screen.getByRole('navigation', { name: 'Primary navigation' })
     expect(within(navigation).getByRole('link', { name: 'LUMEN IELTS AI Tutor' })).toHaveClass('brand')
     expect(within(navigation).getByTestId('lumen-logo-mark')).toBeInTheDocument()
-    expect(within(navigation).getByRole('button', { name: 'Cài đặt' })).toHaveClass('settings-trigger-utility')
+    expect(within(navigation).queryByRole('button', { name: 'Cài đặt' })).not.toBeInTheDocument()
   })
 
   test('keeps active navigation and keyboard mobile menu semantics', async () => {

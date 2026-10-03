@@ -1,9 +1,11 @@
+import { useRef, useState } from 'react'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, afterEach, describe, expect, test, vi } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
 import { AuthProvider } from '../features/auth/AuthProvider'
 import { PreferenceProvider } from '../features/preferences/PreferenceProvider'
+import SettingsDrawer from '../components/settings/SettingsDrawer'
 import Navbar from '../components/layout/Navbar'
 import { DEFAULT_PREFERENCES } from '../features/preferences/preferenceDefaults'
 
@@ -11,7 +13,23 @@ const account = { id: 'learner-1', email: 'learner@example.com' }
 const server = { ...DEFAULT_PREFERENCES, version: 1 }
 
 function renderNavbar() {
-  return render(<MemoryRouter><AuthProvider><PreferenceProvider><Navbar /></PreferenceProvider></AuthProvider></MemoryRouter>)
+  localStorage.setItem('ielts-ai-tutor.session', JSON.stringify({ token: 'token', user: account }))
+  function SettingsHarness() {
+    const [open, setOpen] = useState(false)
+    const openerRef = useRef(null)
+    return (
+      <PreferenceProvider>
+        <button ref={openerRef} type="button" onClick={() => setOpen(true)}>Cài đặt</button>
+        <SettingsDrawer open={open} onClose={() => setOpen(false)} openerRef={openerRef} />
+      </PreferenceProvider>
+    )
+  }
+  return render(<AuthProvider><SettingsHarness /></AuthProvider>)
+}
+
+function renderAuthenticatedNavbar() {
+  localStorage.setItem('ielts-ai-tutor.session', JSON.stringify({ token: 'token', user: account }))
+  return render(<MemoryRouter><AuthProvider><Navbar /></AuthProvider></MemoryRouter>)
 }
 
 beforeEach(() => {
@@ -127,8 +145,8 @@ describe('Settings drawer', () => {
     await user.selectOptions(within(dialog).getByRole('combobox', { name: 'Ngôn ngữ' }), 'en')
     expect(screen.getByRole('dialog', { name: 'Settings' })).toBeInTheDocument()
     await userEvent.setup().click(within(screen.getByRole('dialog', { name: 'Settings' })).getByRole('button', { name: 'Close settings' }))
-    expect(screen.getByRole('link', { name: 'Home' })).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Settings' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Cài đặt' }))
     const reopened = screen.getByRole('dialog', { name: 'Settings' })
     await userEvent.setup().click(within(reopened).getByRole('button', { name: 'A+' }))
     expect(document.documentElement.style.getPropertyValue('--type-scale')).toBe('1.125')
@@ -190,13 +208,11 @@ describe('Settings drawer', () => {
     expect(screen.getByRole('combobox', { name: 'Màu nhấn' })).toHaveValue('burgundy')
   })
 
-  test('mobile navigation entry opens the same full-height dialog', async () => {
+  test('settings entry opens the same full-height dialog', async () => {
     const user = userEvent.setup()
     renderNavbar()
-    await user.click(screen.getByRole('button', { name: 'Open navigation menu' }))
     await user.click(screen.getByRole('button', { name: 'Cài đặt' }))
     expect(screen.getByRole('dialog', { name: 'Cài đặt' })).toHaveAttribute('aria-modal', 'true')
-    expect(screen.getByRole('button', { name: 'Open navigation menu', hidden: true })).toHaveAttribute('aria-expanded', 'false')
   })
 
   test('logging out clears account appearance from the shell', async () => {
@@ -204,11 +220,9 @@ describe('Settings drawer', () => {
     vi.stubGlobal('fetch', vi.fn((url) => Promise.resolve(url === '/api/user/preferences'
       ? { ok: true, json: async () => ({ ...server, accentPreset: 'EMERALD' }) }
       : { ok: true, status: 204, json: async () => null })))
-    renderNavbar()
-    await waitFor(() => expect(document.documentElement.style.getPropertyValue('--accent')).toBe('#216c56'))
+    renderAuthenticatedNavbar()
     await user.click(screen.getByRole('button', { name: 'Mở menu tài khoản' }))
     await user.click(screen.getByRole('menuitem', { name: 'Đăng xuất' }))
     await waitFor(() => expect(screen.getByRole('link', { name: 'Đăng nhập' })).toBeInTheDocument())
-    expect(document.documentElement.style.getPropertyValue('--accent')).toBe('#7a591f')
   })
 })

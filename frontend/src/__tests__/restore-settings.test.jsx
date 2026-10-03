@@ -4,9 +4,9 @@ import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import LoginPage from '../pages/LoginPage'
 import RegisterPage from '../pages/RegisterPage'
-import Navbar from '../components/layout/Navbar'
 import FloatingTutor from '../components/tutor/FloatingTutor'
 import HeroSection from '../components/home/HeroSection'
+import SettingsDrawer from '../components/settings/SettingsDrawer'
 import { AuthProvider } from '../features/auth/AuthProvider'
 import { PreferenceProvider } from '../features/preferences/PreferenceProvider'
 
@@ -23,17 +23,7 @@ function renderAuth(Page) {
 }
 
 function renderSettings() {
-  localStorage.setItem('ielts-ai-tutor.session', JSON.stringify({
-    token: 'test-token',
-    user: { id: 'settings-user', email: 'settings@example.com' },
-  }))
-  return render(
-    <MemoryRouter>
-      <AuthProvider>
-        <Navbar />
-      </AuthProvider>
-    </MemoryRouter>,
-  )
+  return render(<PreferenceProvider><SettingsDrawer open onClose={() => {}} openerRef={{ current: null }} /></PreferenceProvider>)
 }
 
 describe('final Academic Luxury restore', () => {
@@ -113,7 +103,6 @@ describe('final Academic Luxury restore', () => {
     expect(screen.getByTestId('hero-bookshelf-background')).toBeInTheDocument()
 
     const { unmount } = renderSettings()
-    await userEvent.setup().click(screen.getByRole('button', { name: 'Cài đặt' }))
     const dialog = screen.getByRole('dialog', { name: 'Cài đặt' })
     expect(within(dialog).queryByText(/slideshow|trình chiếu/i)).not.toBeInTheDocument()
     const density = within(dialog).getByRole('combobox', { name: 'Mật độ hiển thị' })

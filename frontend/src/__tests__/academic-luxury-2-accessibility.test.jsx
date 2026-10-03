@@ -19,20 +19,11 @@ beforeEach(() => {
 })
 
 describe('Academic Luxury 2.0 accessibility and responsive matrix', () => {
-  test('theme controls preserve readable landmarks and reduced-motion state', async () => {
-    const user = userEvent.setup()
+  test('shell preserves readable landmarks without a duplicate settings utility', () => {
     renderApp('/')
 
     expect(screen.getByRole('link', { name: 'Bỏ qua đến nội dung chính' })).toHaveAttribute('href', '#main-content')
-    await user.click(screen.getByRole('button', { name: 'Cài đặt' }))
-    const dialog = screen.getByRole('dialog', { name: 'Cài đặt' })
-
-    await user.click(within(dialog).getByRole('button', { name: 'Sáng' }))
-    expect(document.documentElement.style.getPropertyValue('--bg-page')).toBe('#f3ecdf')
-    await user.click(within(dialog).getByRole('checkbox', { name: 'Cho phép hiệu ứng giao diện (Animation)' }))
-    expect(document.documentElement).toHaveAttribute('data-reduced-motion', 'true')
-    await user.keyboard('{Escape}')
-    expect(screen.queryByRole('dialog', { name: 'Cài đặt' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Cài đặt' })).not.toBeInTheDocument()
     expect(document.body.style.overflow).toBe('')
   })
 

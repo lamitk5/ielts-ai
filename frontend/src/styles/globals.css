@@ -353,7 +353,7 @@ input:focus-visible {
   cursor: pointer;
 }
 
-.account-menu { position: relative; }
+.account-menu { position: relative; margin-left: auto; }
 .account-trigger {
   display: inline-flex;
   min-height: 2.75rem;
@@ -6077,3 +6077,42 @@ input:focus-visible {
   border: 1px solid color-mix(in srgb, var(--danger) 42%, var(--border-soft));
 }
 [data-theme='light'] .generator-modal { box-shadow: 0 1.5rem 4rem rgba(25, 35, 55, .18); }
+
+/* Unified learner profile and settings workspace */
+.profile-page {
+  width: min(100% - 2rem, 960px);
+  margin: 0 auto;
+  padding: clamp(3.5rem, 6vw, 5.5rem) 0 3rem;
+}
+.profile-page > .search-page-header { margin-bottom: 2rem; }
+.profile-card-heading {
+  display: flex;
+  align-items: center;
+  min-height: 1.75rem;
+  margin: 0 0 1.25rem;
+  color: var(--text);
+  font-size: 1.25rem;
+}
+.profile-helper-text {
+  margin: 0.45rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+.profile-field-error {
+  margin: 0.4rem 0 0;
+  color: var(--danger, #dc6b68);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+.profile-page input[aria-invalid='true'],
+.profile-page select[aria-invalid='true'] {
+  border-color: var(--danger, #dc6b68) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger, #dc6b68) 18%, transparent);
+}
+@media (max-width: 760px) {
+  .profile-page {
+    width: min(100% - 1.25rem, 960px);
+    padding-top: 2.5rem;
+  }
+}

@@ -223,7 +223,7 @@ describe('AI Tutor mascot launcher', () => {
     expect(screen.getByRole('dialog', { name: 'Én' })).toHaveClass('tutor-shell-compact-panel')
   })
 
-  test('exposes premium interaction contracts for logo, settings, and functional buttons', () => {
+  test('exposes premium interaction contracts for logo and functional buttons', () => {
     render(
       <MemoryRouter initialEntries={['/']}>
         <App />
@@ -231,7 +231,7 @@ describe('AI Tutor mascot launcher', () => {
     )
 
     expect(screen.getByRole('link', { name: 'LUMEN IELTS AI Tutor' })).toHaveClass('brand', 'brand-interactive')
-    expect(screen.getByRole('button', { name: 'Cài đặt' })).toHaveClass('settings-trigger-utility', 'settings-trigger-interactive')
+    expect(screen.queryByRole('button', { name: 'Cài đặt' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Làm bài Test đánh giá năng lực' })).toHaveClass('button', 'button-interactive')
     expect(screen.getByRole('button', { name: 'Tìm bài luyện' })).toHaveClass('button-interactive')
   })
