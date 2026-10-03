@@ -231,7 +231,7 @@ describe('AI Tutor mascot launcher', () => {
     )
 
     expect(screen.getByRole('link', { name: 'LUMEN IELTS AI Tutor' })).toHaveClass('brand', 'brand-interactive')
-    expect(screen.queryByRole('button', { name: 'Cài đặt' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Cài đặt' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Làm bài Test đánh giá năng lực' })).toHaveClass('button', 'button-interactive')
     expect(screen.getByRole('button', { name: 'Tìm bài luyện' })).toHaveClass('button-interactive')
   })

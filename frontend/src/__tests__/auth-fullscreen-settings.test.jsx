@@ -65,21 +65,22 @@ describe('auth fullscreen and approved settings panel', () => {
     expect(screen.getAllByRole('button', { name: /Hiện mật khẩu/ })).toHaveLength(2)
   })
 
-  test('exposes profile settings through the account menu without a duplicate icon', async () => {
+  test('keeps settings outside the account menu and exposes the learner profile separately', async () => {
     const user = userEvent.setup()
     renderAuthenticatedNavbar()
     const navigation = screen.getByRole('navigation', { name: 'Primary navigation' })
-    expect(within(navigation).queryByRole('button', { name: 'Cài đặt' })).not.toBeInTheDocument()
+    expect(within(navigation).getByRole('button', { name: 'Cài đặt' })).toBeInTheDocument()
     const account = within(navigation).getByRole('button', { name: 'Mở menu tài khoản' })
     await user.click(account)
-    expect(screen.getByRole('menuitem', { name: 'Hồ sơ & Cài đặt' })).toHaveAttribute('href', '/profile')
+    expect(screen.getByRole('menuitem', { name: 'Hồ sơ cá nhân' })).toHaveAttribute('href', '/profile')
     expect(screen.getByRole('menuitem', { name: 'Bài đã lưu' })).toHaveAttribute('href', '/practice/saved')
+    expect(screen.queryByRole('menuitem', { name: 'Cài đặt' })).not.toBeInTheDocument()
   })
 
-  test('keeps the account menu free of a standalone settings action', async () => {
+  test('opens the standalone settings drawer from the navbar', async () => {
     const user = userEvent.setup()
     renderAuthenticatedNavbar()
-    await user.click(screen.getByRole('button', { name: 'Mở menu tài khoản' }))
-    expect(screen.queryByRole('menuitem', { name: 'Cài đặt' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Cài đặt' }))
+    expect(screen.getByRole('dialog', { name: 'Cài đặt' })).toBeInTheDocument()
   })
 })

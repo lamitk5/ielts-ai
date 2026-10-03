@@ -81,10 +81,10 @@ describe('app shell and routing', () => {
     expect(screen.getByText(/unknown/)).toBeInTheDocument()
   })
 
-  test('provider composition exposes accessible Settings drawer for guest and authenticated learners', async () => {
+  test('provider composition exposes accessible standalone Settings drawer for guest and authenticated learners', async () => {
     renderApp('/')
 
-    expect(screen.queryByRole('button', { name: 'Cài đặt' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Cài đặt' })).toBeInTheDocument()
   })
 
   test('guest opening Tutor on writing practice sees personalized auth guidance with returnTo path', async () => {
@@ -101,14 +101,14 @@ describe('app shell and routing', () => {
     expect(screen.queryByRole('textbox', { name: 'Tin nhắn cho Én' })).not.toBeInTheDocument()
   })
 
-  test('mobile navigation remains usable without a duplicate settings utility', async () => {
+  test('mobile navigation keeps the standalone settings utility usable', async () => {
     const user = userEvent.setup()
     renderApp('/')
 
     const menuToggle = screen.getByRole('button', { name: /open navigation menu/i })
     await user.click(menuToggle)
     expect(menuToggle).toHaveAttribute('aria-expanded', 'true')
-    expect(screen.queryByRole('button', { name: 'Cài đặt' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Cài đặt' })).toBeInTheDocument()
   })
 
   test('authenticated learners get a compact account menu with logout inside it', async () => {
@@ -122,7 +122,7 @@ describe('app shell and routing', () => {
     expect(accountButton).toBeInTheDocument()
     await user.click(accountButton)
     expect(screen.getByRole('menu')).toBeInTheDocument()
-    expect(screen.getByRole('menuitem', { name: 'Hồ sơ & Cài đặt' })).toHaveAttribute('href', '/profile')
+    expect(screen.getByRole('menuitem', { name: 'Hồ sơ cá nhân' })).toHaveAttribute('href', '/profile')
     expect(screen.getByRole('menuitem', { name: 'Bài đã lưu' })).toHaveAttribute('href', '/practice/saved')
     expect(screen.queryByRole('menuitem', { name: 'Cài đặt' })).not.toBeInTheDocument()
     expect(screen.getByRole('menuitem', { name: 'Đăng xuất' })).toBeInTheDocument()
@@ -135,7 +135,7 @@ describe('app shell and routing', () => {
     expect(screen.getByRole('main')).toHaveAttribute('id', 'main-content')
     expect(screen.getByRole('contentinfo')).toBeInTheDocument()
 
-    expect(screen.queryByRole('button', { name: 'Cài đặt' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Cài đặt' })).toBeInTheDocument()
     expect(document.body.style.overflow).toBe('')
   })
 })

@@ -19,11 +19,11 @@ beforeEach(() => {
 })
 
 describe('Academic Luxury 2.0 accessibility and responsive matrix', () => {
-  test('shell preserves readable landmarks without a duplicate settings utility', () => {
+  test('shell preserves readable landmarks with a standalone settings utility', () => {
     renderApp('/')
 
     expect(screen.getByRole('link', { name: 'Bỏ qua đến nội dung chính' })).toHaveAttribute('href', '#main-content')
-    expect(screen.queryByRole('button', { name: 'Cài đặt' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Cài đặt' })).toBeInTheDocument()
     expect(document.body.style.overflow).toBe('')
   })
 
