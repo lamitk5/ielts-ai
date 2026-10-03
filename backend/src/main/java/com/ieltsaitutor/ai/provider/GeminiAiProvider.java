@@ -145,6 +145,9 @@ public class GeminiAiProvider implements AiProvider, AiProviderAdapter {
         addContent(contents, "user", buildUserPrompt(command), command.attachments());
         ObjectNode generationConfig = root.putObject("generationConfig");
         generationConfig.putObject("thinkingConfig").put("thinkingLevel", "low");
+        if (command.context() != null && "practice-generation".equals(command.context().taskType())) {
+            generationConfig.put("maxOutputTokens", 6000);
+        }
         generationConfig.put("temperature", 0.4);
         return root.toString();
     }

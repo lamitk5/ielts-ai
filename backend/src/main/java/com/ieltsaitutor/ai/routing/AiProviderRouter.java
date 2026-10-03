@@ -11,6 +11,8 @@ import com.ieltsaitutor.admin.portal.ApiUsageService;
 import org.springframework.context.annotation.Primary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -23,6 +25,7 @@ import java.util.stream.Collectors;
 @Component
 @Primary
 public class AiProviderRouter implements AiProvider {
+    private static final Logger log = LoggerFactory.getLogger(AiProviderRouter.class);
     private final Map<ProviderId, AiProviderAdapter> adapters;
     private final List<ProviderId> configuredOrder;
     private final ProviderRoutingPolicy policy;
@@ -60,7 +63,15 @@ public class AiProviderRouter implements AiProvider {
                 long started = System.nanoTime();
                 AiChatResult result = adapter.chat(command);
                 health.recordSuccess(providerId);
-                if (usage != null) usage.record(providerId.name(), null, "TEXT_CHAT", "SUCCESS", (System.nanoTime() - started) / 1_000_000, attempt > 0);
+                if (usage != null) {
+                    try {
+                        usage.record(providerId.name(), null, "TEXT_CHAT", "SUCCESS",
+                                (System.nanoTime() - started) / 1_000_000, attempt > 0);
+                    } catch (RuntimeException telemetryFailure) {
+                        log.warn("AI usage telemetry skipped provider={} reason={}", providerId,
+                                telemetryFailure.getClass().getSimpleName());
+                    }
+                }
                 return result;
             } catch (AiProviderException exception) {
                 ProviderFailure failure = policy.classify(providerId, exception);

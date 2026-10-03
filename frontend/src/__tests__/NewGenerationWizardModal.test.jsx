@@ -60,4 +60,37 @@ describe('NewGenerationWizardModal', () => {
       expect(onClose).toHaveBeenCalled()
     })
   })
+
+  test('keeps generator confirmation content readable and reports a contextual launch error', async () => {
+    const onCreateJob = vi.fn().mockRejectedValue({
+      code: 'AI_PROVIDER_ERROR',
+      message: 'Trợ giảng AI chưa thể trả lời lúc này.',
+    })
+
+    render(
+      <NewGenerationWizardModal
+        isOpen={true}
+        onClose={vi.fn()}
+        sources={mockSources}
+        blueprints={mockBlueprints}
+        onCreateJob={onCreateJob}
+      />
+    )
+
+    fireEvent.click(screen.getByText('Climate Change In The Arctic'))
+    fireEvent.click(await screen.findByText('Reading Passage 2 Academic'))
+
+    expect(screen.getByText('Quy trình 3 bước: Nguồn dữ liệu → Cấu trúc Blueprint → AI tạo và kiểm tra tự động'))
+      .toHaveClass('generator-modal-subtitle')
+    expect(screen.getByText('Nguồn tài liệu:')).toHaveClass('generator-field-label')
+    expect(screen.getByText('Sẵn sàng tạo bài với cấu hình:')).toHaveClass('generator-confirm-title')
+    expect(screen.getByPlaceholderText('VD: Environmental biotechnology in ocean conservation'))
+      .toHaveClass('generator-field-input')
+
+    fireEvent.click(screen.getByRole('button', { name: /Bắt đầu tạo bài AI/i }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Không thể tạo bài bằng AI lúc này. Vui lòng thử lại.'
+    )
+  })
 })

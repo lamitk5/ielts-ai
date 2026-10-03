@@ -90,6 +90,18 @@ class GeminiAiProviderTest {
     }
 
     @Test
+    void allocatesEnoughOutputBudgetForPracticeGenerationJson() {
+        server.createContext("/v1beta/models/gemini-test:generateContent", exchange -> respond(exchange, 200,
+                "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"{}\"}]}}]}"));
+        server.start();
+
+        provider.chat(new AiChatCommand("Generate a practice set", new AiChatContext(
+                "READING", null, null, null, "practice-generation", null, null), List.of()));
+
+        assertThat(requestBody.get()).contains("\"maxOutputTokens\":6000");
+    }
+
+    @Test
     void allowsAtMostTwoTransientRetries() {
         properties.setMaxRetries(2);
         server.createContext("/v1beta/models/gemini-test:generateContent", exchange -> {
