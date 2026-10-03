@@ -1,4 +1,6 @@
+import { Bookmark } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import SectionTitle from '../components/common/SectionTitle'
 import AnimatedSection from '../components/common/AnimatedSection'
 import PracticeCatalogCard from '../components/practice/PracticeCatalogCard'
@@ -17,7 +19,12 @@ function PracticeCatalogPage() {
 
   return (
     <section className="practice-catalog-page" aria-labelledby="practice-catalog-title">
-      <SectionTitle titleId="practice-catalog-title" eyebrow="PRACTICE LIBRARY" title="Luyện tập theo 4 kỹ năng" description="Chọn một kỹ năng để bắt đầu hoặc tiếp tục lượt luyện tập đã lưu." />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+        <SectionTitle titleId="practice-catalog-title" eyebrow="PRACTICE LIBRARY" title="Luyện tập theo 4 kỹ năng" description="Chọn một kỹ năng để bắt đầu hoặc tiếp tục lượt luyện tập đã lưu." />
+        <Link to="/practice/saved" className="button button-secondary button-sm" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', marginTop: '1rem' }}>
+          <Bookmark size={15} /> <span>Bài đã lưu</span>
+        </Link>
+      </div>
       {error ? <PracticeErrorState message={error} onRetry={load} /> : null}
       <AnimatedSection className="practice-catalog-grid">
         {SKILLS.map(([id, label]) => {

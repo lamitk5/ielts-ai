@@ -25,6 +25,8 @@ import AdminSubmissionReviewPage from './pages/AdminSubmissionReviewPage'
 import DiagnosticPage from './pages/DiagnosticPage'
 import ErrorNotebookPage from './pages/ErrorNotebookPage'
 import MockTestPage from './pages/MockTestPage'
+import SavedPracticesPage from './pages/SavedPracticesPage'
+import ProfilePage from './pages/ProfilePage'
 
 function App() {
   return (
@@ -41,6 +43,7 @@ function App() {
           <Route path="diagnostic" element={<DiagnosticPage />} />
           <Route path="error-notebook" element={<ErrorNotebookPage />} />
           <Route path="practice" element={<PracticeCatalogPage />} />
+          <Route path="practice/saved" element={<SavedPracticesPage />} />
           <Route path="practice/mock-test" element={<MockTestPage />} />
           <Route path="practice/mock-test/:sessionId" element={<MockTestPage />} />
           <Route path="practice/results/:attemptId" element={<PracticeResultPage />} />
@@ -51,6 +54,8 @@ function App() {
           <Route path="practice/writing" element={<WritingPage />} />
           <Route path="practice/speaking" element={<SpeakingPage />} />
           <Route path="practice/:skill" element={<PracticePage />} />
+          <Route path="profile" element={<ProfilePage />} />
+          <Route path="saved" element={<SavedPracticesPage />} />
           <Route path="login" element={<LoginPage />} />
           <Route path="register" element={<RegisterPage />} />
           <Route
