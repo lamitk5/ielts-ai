@@ -37,7 +37,7 @@ describe('AdminPracticeGeneratorPage', () => {
       </MemoryRouter>
     )
 
-    expect(screen.getByText(/Trung tâm Tạo & Kiểm duyệt Đề thi AI/i)).toBeInTheDocument()
+    expect(screen.getByText(/Trình tạo bài luyện bằng AI/i)).toBeInTheDocument()
     expect(await screen.findByText('Polar Exploration Set')).toBeInTheDocument()
     expect(screen.getByText('Chờ biên tập viên duyệt')).toBeInTheDocument()
   })

@@ -50,7 +50,7 @@ function AdminRagPage() {
   }
 
   return <section className="admin-page" aria-labelledby="admin-title">
-    <div className="admin-page-header"><SectionTitle eyebrow="RAG ADMIN CMS" title="Quản trị học liệu IELTS" description="Upload, review và kiểm soát nguồn trước khi đưa vào Tutor." /></div>
+    <div className="admin-page-header"><SectionTitle eyebrow="QUẢN TRỊ RAG" title="Kho tri thức" description="Tải tài liệu, đánh giá và kiểm soát nguồn trước khi đưa vào Én." /></div>
     {error ? <p role="alert" className="admin-error">{error}</p> : null}
     <div className="admin-layout"><RagUploadForm onUpload={upload} /><RagDocumentDetail detail={detail} /><RagJobList jobs={jobs} /></div>
     {loading ? <SkeletonBlock className="admin-loading" label="Đang tải danh sách học liệu" /> : <RagDocumentTable documents={documents} onSelect={select} onAction={action} />}

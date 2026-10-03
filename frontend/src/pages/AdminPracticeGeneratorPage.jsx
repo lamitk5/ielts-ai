@@ -38,8 +38,8 @@ export default function AdminPracticeGeneratorPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-800/80 pb-6">
         <div>
           <SectionTitle
-            eyebrow="EDITORIAL WORKSPACE"
-            title="Trung tâm Tạo & Kiểm duyệt Đề thi AI"
+            eyebrow="KHÔNG GIAN BIÊN TẬP"
+            title="Trình tạo bài luyện bằng AI"
             description="Tạo bài tập IELTS Reading/Listening từ nguồn đã duyệt bản quyền, kiểm định đa tầng tự động và phê duyệt vào ngân hàng đề học viên."
           />
         </div>
@@ -78,21 +78,21 @@ export default function AdminPracticeGeneratorPage() {
             <Layers className="w-4 h-4 text-amber-400" />
           </div>
           <div className="text-2xl font-bold text-zinc-100 font-serif">{sets.length}</div>
-          <div className="text-[11px] text-zinc-500">Tất cả trạng thái vòng đời</div>
+          <div className="text-[11px] text-zinc-500">Tất cả trạng thái quy trình</div>
         </GlassCard>
 
         <GlassCard className="p-4 border-zinc-800/80 space-y-1">
           <div className="flex items-center justify-between text-zinc-400 text-xs">
-            <span>Chờ kiểm duyệt</span>
+            <span>Chờ quản trị viên duyệt</span>
             <Sparkles className="w-4 h-4 text-indigo-400" />
           </div>
           <div className="text-2xl font-bold text-indigo-300 font-serif">{pendingReviewCount}</div>
-          <div className="text-[11px] text-zinc-500">Cần biên tập viên phê duyệt</div>
+          <div className="text-[11px] text-zinc-500">Cần quản trị viên phê duyệt</div>
         </GlassCard>
 
         <GlassCard className="p-4 border-zinc-800/80 space-y-1">
           <div className="flex items-center justify-between text-zinc-400 text-xs">
-            <span>Đã vào ngân hàng đề</span>
+            <span>Đã xuất bản</span>
             <FileCheck className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="text-2xl font-bold text-emerald-300 font-serif">{approvedCount}</div>
@@ -101,7 +101,7 @@ export default function AdminPracticeGeneratorPage() {
 
         <GlassCard className="p-4 border-zinc-800/80 space-y-1">
           <div className="flex items-center justify-between text-zinc-400 text-xs">
-            <span>Nguồn học liệu</span>
+            <span>Nguồn dữ liệu</span>
             <Layers className="w-4 h-4 text-amber-400" />
           </div>
           <div className="text-2xl font-bold text-amber-300 font-serif">{sources.length}</div>
@@ -113,7 +113,7 @@ export default function AdminPracticeGeneratorPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-zinc-200 uppercase tracking-wider font-mono">
-            Danh sách bộ đề & Tác vụ tạo
+            Danh sách bộ đề & tác vụ tạo
           </h3>
           <span className="text-xs text-zinc-500">Tự động đồng bộ mỗi 3 giây</span>
         </div>

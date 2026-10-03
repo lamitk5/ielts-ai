@@ -48,9 +48,9 @@ export default function AdminPracticeReviewPage() {
             </Button>
           </Link>
           <div>
-            <div className="text-[11px] font-mono uppercase text-amber-400">Không gian Kiểm duyệt Bài tập</div>
+            <div className="text-[11px] font-mono uppercase text-amber-400">Không gian đánh giá bài luyện</div>
             <h2 className="text-base font-serif font-bold text-zinc-100">
-              {payload?.practiceSet?.title || 'Kiểm duyệt Đề thi AI'}
+              {payload?.practiceSet?.title || 'Đánh giá bài luyện AI'}
             </h2>
           </div>
         </div>
@@ -74,7 +74,7 @@ export default function AdminPracticeReviewPage() {
       )}
 
       {loading && !payload ? (
-        <SkeletonBlock className="h-96 w-full rounded-2xl" label="Đang tải dữ liệu kiểm duyệt..." />
+          <SkeletonBlock className="h-96 w-full rounded-2xl" label="Đang tải dữ liệu đánh giá..." />
       ) : (
         <PracticeReviewCanvas
           payload={payload}

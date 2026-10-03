@@ -21,7 +21,7 @@ describe('RAG admin accessibility verification', () => {
   test('admin route is keyboard reachable', async () => {
     const user = userEvent.setup()
     renderAdmin()
-    const heading = screen.getByRole('heading', { name: /quản trị học liệu/i })
+    const heading = screen.getByRole('heading', { name: /kho tri thức/i })
     for (let index = 0; index < 12 && !screen.getByRole('button', { name: 'Tải lên chờ duyệt' }).matches(':focus'); index += 1) await user.tab()
     expect(heading).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Tải lên chờ duyệt' })).toBeInTheDocument()
@@ -35,11 +35,11 @@ describe('RAG admin accessibility verification', () => {
     renderAdmin()
     const row = await screen.findByRole('row', { name: /Guide/ })
     expect(within(row).getByRole('button', { name: 'Duyệt' })).toBeEnabled()
-    expect(within(row).getByRole('button', { name: 'Index' })).toBeDisabled()
+    expect(within(row).getByRole('button', { name: 'Lập chỉ mục' })).toBeDisabled()
   })
 
   test('reduced motion does not require animation', () => {
     renderAdmin()
-    expect(screen.getByRole('heading', { name: /quản trị học liệu/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /kho tri thức/i })).toBeInTheDocument()
   })
 })

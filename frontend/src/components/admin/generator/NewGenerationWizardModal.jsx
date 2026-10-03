@@ -5,6 +5,8 @@ import GlassCard from '../../common/GlassCard'
 import SourceRegistrationTab from './SourceRegistrationTab'
 import BlueprintSelectionTab from './BlueprintSelectionTab'
 
+const RIGHTS_LABELS = { APPROVED: 'Đã duyệt', PENDING_REVIEW: 'Chờ duyệt', RESTRICTED: 'Hạn chế', REJECTED: 'Từ chối' }
+
 export default function NewGenerationWizardModal({
   isOpen,
   onClose,
@@ -57,7 +59,7 @@ export default function NewGenerationWizardModal({
                 <h3 className="text-base font-serif font-bold text-zinc-100">Khởi tạo đề thi IELTS AI mới</h3>
               </div>
               <p className="text-xs text-zinc-400 mt-0.5">
-                Quy trình 3 bước: Nguồn học liệu &rarr; Cấu trúc Blueprint &rarr; Tổng hợp & Kiểm định tự động
+                Quy trình 3 bước: Nguồn dữ liệu &rarr; Cấu trúc Blueprint &rarr; AI tạo và kiểm tra tự động
               </p>
             </div>
             <button
@@ -90,7 +92,7 @@ export default function NewGenerationWizardModal({
               >
                 2
               </div>
-              <span className="text-xs font-medium">Blueprint</span>
+                <span className="text-xs font-medium">Bản thiết kế</span>
             </div>
             <div className={`h-px flex-1 mx-4 ${step >= 3 ? 'bg-amber-500/50' : 'bg-zinc-800'}`} />
             <div className={`flex items-center gap-2 ${step >= 3 ? 'text-amber-400' : 'text-zinc-600'}`}>
@@ -148,7 +150,7 @@ export default function NewGenerationWizardModal({
               <div className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-3">
                 <div className="text-xs font-semibold text-amber-300 flex items-center gap-1.5">
                   <Check className="w-4 h-4 text-emerald-400" />
-                  Sẵn sàng tổng hợp đề thi với cấu hình:
+                  Sẵn sàng tạo bài với cấu hình:
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
@@ -157,12 +159,12 @@ export default function NewGenerationWizardModal({
                   </div>
                   <div>
                     <span className="text-zinc-500">Trạng thái bản quyền:</span>
-                    <p className="font-medium text-emerald-400">{selectedSource?.rightsStatus}</p>
+                    <p className="font-medium text-emerald-400">{RIGHTS_LABELS[selectedSource?.rightsStatus] || selectedSource?.rightsStatus}</p>
                   </div>
                   <div>
-                    <span className="text-zinc-500">Blueprint mục tiêu:</span>
+                    <span className="text-zinc-500">Bản thiết kế mục tiêu:</span>
                     <p className="font-medium text-zinc-200">
-                      {selectedBlueprint ? selectedBlueprint.title : 'Tự động trích xuất theo nguồn'}
+                      {selectedBlueprint ? selectedBlueprint.title : 'Tự động trích xuất từ nguồn'}
                     </p>
                   </div>
                   <div>
@@ -218,7 +220,7 @@ export default function NewGenerationWizardModal({
                 className="py-1.5 px-4 text-xs flex items-center gap-1.5 bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold"
               >
                 <Sparkles className="w-3.5 h-3.5" />
-                {submitting ? 'Đang khởi động...' : 'Khởi động tạo đề AI'}
+                {submitting ? 'Đang khởi động...' : 'Bắt đầu tạo bài AI'}
               </Button>
             )}
           </div>
