@@ -78,7 +78,7 @@ describe('SavedPracticesPage', () => {
     fireEvent.click(deleteButton)
 
     await waitFor(() => {
-      expect(screen.getByText('Chưa có bài luyện nào được lưu')).toBeInTheDocument()
+      expect(screen.getByText('Bạn chưa lưu bài luyện nào.')).toBeInTheDocument()
     })
   })
 })

@@ -132,6 +132,9 @@ describe('app shell and routing', () => {
     expect(accountButton).toBeInTheDocument()
     await user.click(accountButton)
     expect(screen.getByRole('menu')).toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: 'Hồ sơ cá nhân' })).toHaveAttribute('href', '/profile')
+    expect(screen.getByRole('menuitem', { name: 'Bài đã lưu' })).toHaveAttribute('href', '/practice/saved')
+    expect(screen.getByRole('menuitem', { name: 'Cài đặt' })).toBeInTheDocument()
     expect(screen.getByRole('menuitem', { name: 'Đăng xuất' })).toBeInTheDocument()
   })
 

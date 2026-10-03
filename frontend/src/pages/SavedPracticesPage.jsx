@@ -144,7 +144,7 @@ export default function SavedPracticesPage() {
       {!loading && !error && items.length === 0 && (
         <GlassCard className="search-empty" role="status" style={{ textAlign: 'center', padding: '3rem 1.5rem' }}>
           <BookmarkCheck size={36} style={{ color: '#d97706', margin: '0 auto 1rem auto' }} />
-          <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Chưa có bài luyện nào được lưu</h2>
+          <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Bạn chưa lưu bài luyện nào.</h2>
           <p style={{ color: 'rgba(255, 255, 255, 0.7)', marginBottom: '1.5rem' }}>
             Hãy duyệt qua kho bài luyện tập hoặc tìm kiếm các chủ đề IELTS để lưu lại luyện sau.
           </p>

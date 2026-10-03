@@ -57,6 +57,12 @@ function Navbar() {
     try { await logout() } finally { applyPreferenceTokens(DEFAULT_PREFERENCES) }
   }
 
+  const handleAccountSettings = () => {
+    closeMenu()
+    setIsAccountOpen(false)
+    setSettingsRoute(location.key)
+  }
+
   return (
     <header className={`site-header site-header-glass ${isScrolled ? 'site-header-scrolled' : ''}`.trim()}>
       <nav className="site-nav" aria-label="Primary navigation" data-menu-open={isMenuOpen ? 'true' : 'false'}>
@@ -113,6 +119,15 @@ function Navbar() {
               {isAccountOpen ? (
                 <div className="account-panel" role="menu" aria-label="Menu tài khoản">
                   <span className="account-email" role="presentation">Tài khoản học tập</span>
+                  <Link className="account-menu-item" role="menuitem" to="/profile" onClick={() => { closeMenu(); setIsAccountOpen(false) }}>
+                    Hồ sơ cá nhân
+                  </Link>
+                  <Link className="account-menu-item" role="menuitem" to="/practice/saved" onClick={() => { closeMenu(); setIsAccountOpen(false) }}>
+                    Bài đã lưu
+                  </Link>
+                  <button className="account-menu-item" role="menuitem" type="button" onClick={handleAccountSettings}>
+                    Cài đặt
+                  </button>
                   {user?.role === 'ADMIN' ? <Link className="account-menu-item" role="menuitem" to="/admin" onClick={() => { closeMenu(); setIsAccountOpen(false) }}>Quản trị</Link> : null}
                   <button className="account-menu-item" role="menuitem" type="button" onClick={handleLogout}>
                     Đăng xuất
