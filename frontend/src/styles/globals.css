@@ -3733,6 +3733,14 @@ input:focus-visible {
 .auth-footer-copy a {
   color: var(--gold-light);
 }
+.auth-reset-link { margin: .35rem 0 0; text-align: right; font-size: .78rem; }
+.auth-reset-link a { color: var(--gold-light); }
+.auth-honest-state { margin-top: 1.5rem; padding: 1rem; border: 1px solid var(--border); border-radius: .8rem; color: var(--text-secondary); background: var(--surface-alt); font-size: .86rem; line-height: 1.6; }
+
+.auth-form-login .password-flashlight-field,
+.auth-form-register .password-flashlight-field { margin-bottom: 1.25rem; }
+.auth-card-login .auth-footer-copy,
+.auth-card-register .auth-footer-copy { margin-top: 2.25rem; }
 
 .assessment-page {
   width: min(100% - 2rem, 1180px);
@@ -4542,8 +4550,56 @@ input:focus-visible {
   .auth-lamp-pull-control { top: 7.3rem; left: calc(50% + 2.1rem); transform: translateX(-50%) translateY(var(--pull-distance)) scale(.9); }
   .auth-lamp-pull-control.is-pulling { transform: translateX(-50%) translateY(var(--pull-distance)) scale(.9); }
   .auth-cinematic-card { width: min(100%, 31rem); }
-  .auth-footer-copy { margin-top: 1.5rem; }
+  .auth-card-login .auth-footer-copy,
+  .auth-card-register .auth-footer-copy { margin-top: 1.375rem; }
 }
+
+.admin-shell { min-height: 100vh; display: grid; grid-template-columns: 16rem minmax(0, 1fr); background: var(--background); color: var(--text); }
+.admin-sidebar { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; gap: 1.5rem; padding: 1.5rem 1rem; border-right: 1px solid var(--border); background: color-mix(in srgb, var(--surface) 94%, transparent); z-index: 20; }
+.admin-brand { display: grid; gap: .25rem; color: var(--text); text-decoration: none; padding: .5rem .65rem 1rem; border-bottom: 1px solid var(--border); }
+.admin-brand strong { font-family: var(--font-display, Georgia, serif); font-size: 1.25rem; font-weight: 600; }
+.admin-nav-group { display: grid; gap: .25rem; margin-bottom: .8rem; }
+.admin-nav-label { padding: 0 .65rem; color: var(--muted); font-size: .62rem; letter-spacing: .15em; font-weight: 700; }
+.admin-nav-link { display: flex; align-items: center; gap: .65rem; border-radius: .65rem; padding: .62rem .65rem; color: var(--text-secondary); text-decoration: none; font-size: .82rem; transition: background 180ms ease, color 180ms ease; }
+.admin-nav-link svg { width: 1rem; height: 1rem; color: var(--gold-light); }
+.admin-nav-link:hover, .admin-nav-link.active { background: color-mix(in srgb, var(--gold) 14%, transparent); color: var(--text); }
+.admin-back-link { margin-top: auto; color: var(--muted); font-size: .75rem; text-decoration: none; padding: .65rem; }
+.admin-main { min-width: 0; }
+.admin-topbar { min-height: 4.25rem; display: flex; align-items: center; justify-content: space-between; padding: 0 clamp(1rem, 3vw, 3rem); border-bottom: 1px solid var(--border); color: var(--text-secondary); font-size: .8rem; }
+.admin-status { display: inline-flex; align-items: center; gap: .45rem; color: var(--muted); font-size: .7rem; }
+.admin-status i { width: .45rem; height: .45rem; border-radius: 50%; background: var(--success); box-shadow: 0 0 .6rem var(--success); }
+.admin-page-content { width: min(100% - 2rem, 78rem); margin: 0 auto; padding: clamp(2rem, 5vw, 4rem) 0; }
+.admin-heading { max-width: 50rem; margin-bottom: 2rem; }
+.admin-heading h1 { margin: .35rem 0 .75rem; font-size: clamp(2rem, 4vw, 3.6rem); }
+.admin-heading p:last-child { color: var(--text-secondary); max-width: 62ch; }
+.admin-kpi-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1rem; }
+.admin-kpi { display: grid; gap: .55rem; padding: 1.25rem; }
+.admin-kpi span { color: var(--muted); font-size: .75rem; }
+.admin-kpi strong { color: var(--gold-light); font: 600 2rem var(--font-display, Georgia, serif); }
+.admin-quick-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 1rem; }
+.admin-quick-grid > * { display: grid; gap: .8rem; padding: 1.5rem; }
+.admin-quick-grid h2 { margin: 0; font-size: 1.1rem; }
+.admin-quick-grid p { margin: 0; color: var(--text-secondary); }
+.admin-data-loading { min-height: 12rem; }
+.admin-empty { display: grid; gap: .45rem; padding: 3rem 1rem; border: 1px dashed var(--border); border-radius: 1rem; text-align: center; color: var(--text-secondary); }
+.admin-empty strong { color: var(--text); }
+.admin-error { padding: 1rem; border: 1px solid color-mix(in srgb, var(--danger) 55%, transparent); border-radius: .75rem; color: var(--danger); background: color-mix(in srgb, var(--danger) 8%, transparent); }
+.admin-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 1rem; background: var(--surface-glass); }
+.admin-table { width: 100%; border-collapse: collapse; min-width: 42rem; font-size: .82rem; }
+.admin-table th, .admin-table td { padding: .9rem 1rem; border-bottom: 1px solid var(--border); text-align: left; vertical-align: middle; }
+.admin-table th { color: var(--muted); font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; }
+.admin-table tr:last-child td { border-bottom: 0; }
+.admin-table a { color: var(--gold-light); }
+.admin-status-pill { color: var(--gold-light); font-size: .72rem; }
+.admin-filter { display: grid; gap: .4rem; width: min(100%, 16rem); margin-bottom: 1.25rem; color: var(--text-secondary); font-size: .8rem; }
+.admin-filter select { min-height: 2.5rem; border: 1px solid var(--border); border-radius: .65rem; padding: 0 .7rem; color: var(--text); background: var(--surface-alt); }
+.admin-prompt-form { display: grid; gap: 1rem; margin-bottom: 1.5rem; padding: 1.25rem; border: 1px solid var(--border); border-radius: 1rem; background: var(--surface-glass); }
+.admin-prompt-form h2 { margin: 0; font-size: 1.1rem; }
+.admin-prompt-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .85rem; }
+.admin-prompt-grid label { display: grid; gap: .35rem; color: var(--text-secondary); font-size: .78rem; }
+.admin-prompt-grid input, .admin-prompt-grid textarea { width: 100%; border: 1px solid var(--border); border-radius: .6rem; padding: .65rem .7rem; color: var(--text); background: var(--surface-alt); font: inherit; }
+.admin-prompt-grid label:last-child { grid-column: 1 / -1; }
+.admin-mobile-toggle { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .auth-cinematic *, .auth-cinematic *::before, .auth-cinematic *::after, .password-flashlight-beam, .ai-tutor-mascot-pupil { transition: none !important; animation: none !important; }
@@ -5273,6 +5329,35 @@ input:focus-visible {
 
   .auth-full-bleed .auth-lamp-column { min-height: 17rem; }
 .auth-full-bleed .auth-cinematic-card { width: min(100%, 31rem); justify-self: center; }
+}
+
+@media (max-width: 980px) {
+  .admin-shell { grid-template-columns: 4.5rem minmax(0, 1fr); }
+  .admin-sidebar { padding-inline: .55rem; }
+  .admin-brand strong, .admin-brand .eyebrow, .admin-nav-label, .admin-nav-link:not(.active)::after, .admin-back-link { display: none; }
+  .admin-nav-link { justify-content: center; padding: .7rem; }
+  .admin-nav-link svg { width: 1.2rem; height: 1.2rem; }
+  .admin-kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 640px) {
+  .admin-shell { display: block; }
+  .admin-mobile-toggle { position: fixed; top: .85rem; left: .85rem; z-index: 30; display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border: 1px solid var(--border); border-radius: .7rem; color: var(--text); background: var(--surface); }
+  .admin-mobile-toggle svg { width: 1.2rem; }
+  .admin-sidebar { position: fixed; inset: 0 auto 0 0; width: min(18rem, 85vw); transform: translateX(-105%); transition: transform 200ms ease; box-shadow: var(--shadow-lg); }
+  .admin-sidebar.is-open { transform: translateX(0); }
+  .admin-brand strong, .admin-brand .eyebrow, .admin-nav-label, .admin-back-link { display: block; }
+  .admin-nav-link { justify-content: flex-start; }
+  .admin-topbar { padding-left: 4rem; }
+  .admin-kpi-grid, .admin-quick-grid { grid-template-columns: 1fr 1fr; }
+  .admin-kpi strong { font-size: 1.5rem; }
+}
+
+@media (max-width: 420px) {
+  .admin-kpi-grid, .admin-quick-grid { grid-template-columns: 1fr; }
+  .admin-page-content { width: min(100% - 1.25rem, 78rem); }
+  .admin-prompt-grid { grid-template-columns: 1fr; }
+  .admin-prompt-grid label:last-child { grid-column: auto; }
 }
 
 /* LUMEN Scholar SVG overrides */

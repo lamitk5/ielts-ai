@@ -34,11 +34,11 @@ function LoginPage() {
 
   return (
     <AuthCinematicShell labelledBy="login-title">
-      {({ isLampOn }) => <div className="auth-card">
+      {({ isLampOn }) => <div className="auth-card auth-card-login">
         <p className="eyebrow">LUMEN IELTS · AI TUTOR</p>
         <h1 id="login-title" className="font-display">{translate('login', 'Đăng nhập')}</h1>
         <p className="foundation-copy">{translate('loginCopy', 'Tiếp tục lộ trình bốn kỹ năng và xem tiến bộ của bạn.')}</p>
-        <form className="auth-form" aria-describedby={!isLampOn ? 'auth-lamp-lock-message' : undefined} onSubmit={(event) => handleSubmit(event, isLampOn)}>
+        <form className="auth-form auth-form-login" aria-describedby={!isLampOn ? 'auth-lamp-lock-message' : undefined} onSubmit={(event) => handleSubmit(event, isLampOn)}>
           <fieldset disabled={!isLampOn}>
             <label htmlFor="login-email">Email</label>
             <input id="login-email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
@@ -59,6 +59,7 @@ function LoginPage() {
           </fieldset>
         </form>
         <p className="auth-footer-copy">{translate('noAccount', 'Chưa có tài khoản?')} <Link to="/register">{translate('createAccount', 'Tạo tài khoản')}</Link></p>
+        <p className="auth-reset-link"><Link to="/forgot-password">Quên mật khẩu?</Link></p>
       </div>}
     </AuthCinematicShell>
   )

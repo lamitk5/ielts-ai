@@ -48,12 +48,12 @@ public class AuthInterceptor implements HandlerInterceptor {
                 || path.startsWith("/api/learning/drafts")
                 || path.matches("/api/practice/[^/]+/attempts") || path.startsWith("/api/practice/writing/submissions")
                 || path.startsWith("/api/practice/speaking/attempts")
-                || path.startsWith("/api/admin/practice-generator");
+                || path.startsWith("/api/admin/");
     }
 
     private boolean requiresAdmin(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return path.startsWith("/api/admin/practice-generator") || path.startsWith("/api/admin/submissions");
+        return path.startsWith("/api/admin/");
     }
 
     private boolean reject(HttpServletResponse response) throws IOException {

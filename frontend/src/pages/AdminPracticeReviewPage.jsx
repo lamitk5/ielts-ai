@@ -42,7 +42,7 @@ export default function AdminPracticeReviewPage() {
       {/* Top navigation header */}
       <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4">
         <div className="flex items-center gap-3">
-          <Link to="/admin/practice-generator">
+          <Link to="/admin/generator">
             <Button variant="secondary" className="p-2 text-xs">
               <ArrowLeft className="w-4 h-4" />
             </Button>
