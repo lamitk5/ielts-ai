@@ -2,19 +2,20 @@
 
 ## Final status
 
-**INCOMPLETE — runtime/database gate blocked in the current environment.**
+**INCOMPLETE — core runtime gate PASS; authenticated and live-provider acceptance remains unverified.**
 
-The integrated source and automated frontend regression are ready for the next
-QA gate, but the application cannot be truthfully marked production/demo-ready
-until PostgreSQL/Flyway startup and browser smoke are rerun with Docker
-available.
+The local database, Flyway chain, backend, frontend, automated suites and
+anonymous browser smoke are healthy. Authenticated learner/admin E2E and live
+AI/RAG/upload acceptance are not claimed because no documented local test
+credentials are present and creating accounts was outside this acceptance run.
 
 ## Branch and integration
 
 - Branch: `feature/final-learning-platform`
-- Starting baseline: `master` at `291fa11f0009e50df125d256f8e2f2573d1156de`
-- Integrated release source: `integration/final-release-candidate` at `9a6a41c6033e7035b34b78da15e17bd777db2921`
-- Integration commit: `23be491`
+- Acceptance HEAD before this report update: `630a6cc3ab75ad87c218d65783a6ebe3ab7caa2c`
+- Integrated release source: `integration/final-release-candidate`
+- Docker database: `ielts_ai_tutor` in `ielts-ai-tutor-postgres`
+- Legacy/shared databases were not touched.
 
 ## Features present in source
 
@@ -22,50 +23,75 @@ available.
 - Reading and Listening practice catalog, attempts, autosave, deterministic scoring, results and history.
 - Writing submission versions, retryable AI evaluation, structured criteria and truthful estimated-band labeling.
 - Speaking prompt/recording boundary, transcript submission and manual review boundary without fabricated pronunciation scoring.
-- Tutor conversations, contextual orchestration, deterministic tools, RAG citations/insufficient-evidence behavior and attachment processing for supported files.
+- Tutor conversations, contextual orchestration, deterministic tools, RAG citations/insufficient-evidence behavior and supported attachment processing.
 - Saved practice, search, progress, today's plan, error notebook, diagnostic and mock-test flows.
 - Admin portal, RAG management, practice generator, validation, review and explicit approval before learner publication.
 - Responsive Academic Luxury frontend with settings, reduced-motion behavior and accessibility tests.
 
-## Database and API
+## Runtime environment
 
-- Flyway migrations are present through V70 in the current source tree.
-- PostgreSQL + pgvector is configured through `backend/docker-compose.yml` and environment-driven datasource settings.
-- Backend APIs are under `/api`; frontend uses same-origin requests and Vite proxies them to `VITE_API_PROXY_TARGET`, defaulting to `http://127.0.0.1:8081`.
-- No migration or database mutation was performed during this audit.
+| Check | Result |
+|---|---|
+| Docker Engine | PASS — Docker Desktop Linux engine, server 29.6.2 |
+| Docker Compose | PASS — v5.3.1 |
+| PostgreSQL container | PASS — `ielts-ai-tutor-postgres`, healthy, pgvector/pg16 |
+| PostgreSQL port | PASS — `127.0.0.1:5432` reachable |
+| Datasource | PASS — `jdbc:postgresql://127.0.0.1:5432/ielts_ai_tutor` |
+| Backend runtime | PASS — Spring Boot on `http://127.0.0.1:8081` |
+| Frontend runtime | PASS — Vite on `http://127.0.0.1:5173` |
+
+## Database and Flyway
+
+| Check | Result |
+|---|---|
+| First startup | PASS — 29 migrations applied through schema version V70 |
+| Flyway validation | PASS — 29 migrations validated |
+| Second startup | PASS — schema V70 up to date; no migration necessary |
+| Flyway failures | NONE |
+| Legacy database | UNTOUCHED |
 
 ## Verification executed
 
 | Check | Result |
 |---|---|
-| Baseline frontend on old `master` | 7 files / 45 tests passed |
-| Integrated frontend tests | 98 files / 548 tests passed |
-| Frontend lint | PASS with existing warnings |
-| Frontend build | PASS; Vite emitted chunk-size warning |
-| Integrated backend tests | 718 run / 0 failures / 5 errors / 8 skipped; all 5 errors are Spring context/Flyway connection refusals on `localhost:5432` |
-| Local backend/frontend port contract test | 1/1 passed after fixing the default from 8080 to 8081 |
-| Backend package with tests | FAIL: Maven reached the same 5 database-gated context errors; no assertion failures |
-| Backend package with tests skipped | PASS; compilation and JAR packaging completed |
-| Flyway first/second startup | BLOCKED: Docker/PostgreSQL unavailable |
-| Docker/Compose runtime | BLOCKED: Docker client is installed, but Docker Engine named pipe is unavailable; compose could not start `postgres` |
-| Local PostgreSQL runtime | NOT AVAILABLE: no `psql`, `postgres`, `pg_ctl`, or PostgreSQL Windows service found |
-| Browser E2E/runtime | NOT EXECUTED: backend/database unavailable; no Playwright configuration exists in the repository |
-| Direct Groq provider smoke | PASS transport-level: HTTP 200 with configured `openai/gpt-oss-120b`; the one-word probe was not an exact `LUMEN` match |
-| Real Én chat/provider integration | BLOCKED: backend could not start without PostgreSQL |
-| RAG/grounded chat runtime | BLOCKED: backend/database unavailable; no live document flow was claimed |
-| Upload/image attachment runtime | NOT EXECUTED: backend/database unavailable; automated provider/attachment boundary tests remain covered |
-| Security runtime/API checks | NOT EXECUTED: backend/database unavailable; automated ownership/authorization tests remain covered |
-| Responsive browser UI smoke | NOT EXECUTED: no browser E2E configuration and backend unavailable |
-| `git diff --check` | PASS for the current source diff |
+| Integrated frontend tests | PASS — 98 files / 548 tests |
+| Frontend lint | PASS — exit 0; existing non-blocking warnings only |
+| Frontend build | PASS — Vite build completed; chunk-size warning only |
+| Backend full tests | PASS — 718 run / 0 failures / 0 errors / 8 skipped |
+| Backend package | PASS — tests and executable JAR packaging completed |
+| Backend health | PASS — `GET /api/health` returned HTTP 200 |
+| Frontend proxy health | PASS — `GET /api/health` via port 5173 returned HTTP 200 |
+| Public practice catalog | PASS — Reading practice sets returned HTTP 200 |
+| Unauthenticated `/api/auth/me` | PASS — HTTP 401 |
+| Unauthenticated admin API | PASS — HTTP 401 |
+| Anonymous Home browser smoke | PASS — hero, four skills, progress, Én and footer rendered |
+| Anonymous practice browser smoke | PASS — Reading, Listening, Writing, Speaking and catalog rendered |
+| Assessment browser smoke | PASS — four skill entry points rendered |
+| Search browser smoke | PASS — Writing result and practice link rendered for the requested query |
+| Login/Register browser smoke | PASS — lamp-gated forms rendered and unlocked locally |
+| Anonymous admin guard | PASS — `/admin` redirected to Home |
+| Authenticated learner E2E | BLOCKED — no documented local learner credentials; no account created |
+| Authenticated admin E2E | BLOCKED — no documented local admin credentials; no account created |
+| Real Én chat/provider integration | NOT TESTED in this acceptance run — requires authenticated flow/live provider |
+| RAG/grounded chat runtime | NOT TESTED in this acceptance run — requires authenticated flow/live provider |
+| Upload/image attachment runtime | NOT TESTED in this acceptance run — requires authenticated flow |
+| Admin generator/approval runtime | NOT TESTED in this acceptance run — requires authenticated admin |
+| Ownership/role runtime smoke | PARTIAL — unauthenticated guard PASS; authenticated ownership not exercised |
+| Responsive browser screenshots | NOT CAPTURED — no repository Playwright configuration; layout covered by automated tests/source review |
+| `git diff --check` | PASS |
 
-## Remaining limitations
+## Known limitations
 
-- Docker Desktop/PostgreSQL must be restored before claiming backend full pass or runtime acceptance.
-- Required machine-owner action: start Docker Desktop until `docker info` succeeds, then run `docker compose -f backend/docker-compose.yml up -d postgres` and repeat the database-gated checks.
-- Cloudflare credentials are not configured; fallback code is covered by mocks/tests but live Cloudflare behavior is not claimed.
-- Direct Groq connectivity was checked once without printing the key; no Gemini or Cloudflare live call was made.
-- The existing local Search/logo files and user-provided report assets remain uncommitted and preserved in the working tree.
-- Important commits: `23be491` integration, `5a73692` audit/report, `98f60fd` local port contract fix.
+- Authenticated learner/admin acceptance requires legitimate local test
+  credentials or explicit authorization to create QA accounts in the isolated
+  database.
+- Live AI, RAG and attachment acceptance was not claimed in this run.
+- Cloudflare credentials are not configured; mocked fallback coverage remains
+  in the backend suite.
+- Frontend source/config/report assets that were dirty before this run were
+  preserved and not overwritten.
+- Flyway runs with out-of-order mode enabled; the current database is valid and
+  reports V70 as current.
 
 ## Exact local run commands
 
@@ -81,7 +107,6 @@ npm run build
 npm run dev
 ```
 
-Use backend environment variables from `backend/.env.example`; never commit
-real keys. Start the backend on the configured `PORT` and use the frontend
-proxy default or an explicit `VITE_API_PROXY_TARGET` for the selected local
-backend port.
+No product source code was changed during this acceptance run. The backend,
+frontend and PostgreSQL processes remain available for authorized follow-up
+manual acceptance.
