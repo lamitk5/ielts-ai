@@ -1,6 +1,7 @@
 package com.ieltsaitutor.submission;
 
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -128,7 +129,8 @@ public class JdbcPracticeSubmissionRepository implements PracticeSubmissionRepos
                 + "AND (:skill IS NULL OR lower(skill) = lower(:skill)) "
                 + "AND (:status IS NULL OR status = :status)";
         MapSqlParameterSource params = new MapSqlParameterSource().addValue("userId", ownerId)
-                .addValue("skill", skill).addValue("status", status == null ? null : status.name())
+                .addValue("skill", skill, Types.VARCHAR)
+                .addValue("status", status == null ? null : status.name(), Types.VARCHAR)
                 .addValue("limit", size).addValue("offset", (long) page * size);
         List<PracticeSubmission> items = jdbc.query("SELECT id,user_id,skill,practice_id,practice_version_id,published_set_id,"
                         + "publication_revision,status,started_at,last_saved_at,submitted_at,scored_at,autosave_revision,"

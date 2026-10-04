@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 
 import java.time.Instant;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.Map;
 import java.util.UUID;
 
@@ -83,6 +84,23 @@ class PracticeSubmissionRepositoryTest {
         ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
         verify(jdbc).query(sql.capture(), any(MapSqlParameterSource.class), any(RowMapper.class));
         assertTrue(sql.getValue().contains("FROM practice_submissions WHERE"));
+    }
+
+    @Test
+    void historyNullFiltersDeclareJdbcTypesForPostgres() {
+        NamedParameterJdbcTemplate jdbc = mock(NamedParameterJdbcTemplate.class);
+        when(jdbc.query(anyString(), any(MapSqlParameterSource.class), any(RowMapper.class)))
+                .thenReturn(java.util.List.of());
+        when(jdbc.queryForObject(anyString(), any(MapSqlParameterSource.class), any(Class.class)))
+                .thenReturn(0L);
+
+        new JdbcPracticeSubmissionRepository(jdbc)
+                .findHistory(UUID.randomUUID(), null, null, 0, 20);
+
+        ArgumentCaptor<MapSqlParameterSource> params = ArgumentCaptor.forClass(MapSqlParameterSource.class);
+        verify(jdbc).query(anyString(), params.capture(), any(RowMapper.class));
+        assertEquals(Types.VARCHAR, params.getValue().getSqlType("skill"));
+        assertEquals(Types.VARCHAR, params.getValue().getSqlType("status"));
     }
 
     @Test

@@ -2,6 +2,7 @@ package com.ieltsaitutor.practice.attempt;
 
 import java.sql.Types;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -37,7 +38,8 @@ public class JdbcAttemptRepository implements AttemptRepository {
                 INSERT INTO learning_attempts(id,user_id,skill,set_id,score,total,answer_payload,created_at,practice_version_id,attempt_status,idempotency_key)
                 VALUES(:id,:userId,:skill,:setId,0,1,'{}'::jsonb,:createdAt,:practiceVersion,'IN_PROGRESS',:idempotencyKey)
                 """, new MapSqlParameterSource().addValue("id", id).addValue("userId", userId)
-                .addValue("skill", skill.toUpperCase()).addValue("setId", practiceId).addValue("createdAt", now, Types.TIMESTAMP_WITH_TIMEZONE)
+                .addValue("skill", skill.toUpperCase()).addValue("setId", practiceId)
+                .addValue("createdAt", now.atOffset(ZoneOffset.UTC), Types.TIMESTAMP_WITH_TIMEZONE)
                 .addValue("practiceVersion", practiceVersion).addValue("idempotencyKey", idempotencyKey));
         return new PracticeAttempt(id, userId, practiceId, practiceVersion, skill, AttemptStatus.IN_PROGRESS, Map.of(), null, null, now, null, "{}", idempotencyKey);
     }
@@ -57,11 +59,11 @@ public class JdbcAttemptRepository implements AttemptRepository {
     @Override public PracticeAttempt saveSubmitted(PracticeAttempt attempt, Map<String, String> answers) {
         Instant submitted = Instant.now();
         jdbc.update("""
-                UPDATE learning_attempts SET answer_payload = CAST(:answers AS jsonb), score = NULL, total = NULL,
+                UPDATE learning_attempts SET answer_payload = CAST(:answers AS jsonb),
                     result_payload = '{}'::jsonb, attempt_status = 'SUBMITTED', submitted_at = :submittedAt
                 WHERE id = :id AND attempt_status = 'IN_PROGRESS'
                 """, new MapSqlParameterSource().addValue("id", attempt.id()).addValue("answers", json(answers))
-                .addValue("submittedAt", submitted, Types.TIMESTAMP_WITH_TIMEZONE));
+                .addValue("submittedAt", submitted.atOffset(ZoneOffset.UTC), Types.TIMESTAMP_WITH_TIMEZONE));
         return attempt.withSubmitted(answers);
     }
 
@@ -73,7 +75,7 @@ public class JdbcAttemptRepository implements AttemptRepository {
                 WHERE id = :id AND attempt_status = 'IN_PROGRESS'
                 """, new MapSqlParameterSource().addValue("id", attempt.id()).addValue("answers", json(answers))
                 .addValue("score", score).addValue("total", total).addValue("resultPayload", resultPayload == null ? "{}" : resultPayload)
-                .addValue("submittedAt", submitted, Types.TIMESTAMP_WITH_TIMEZONE));
+                .addValue("submittedAt", submitted.atOffset(ZoneOffset.UTC), Types.TIMESTAMP_WITH_TIMEZONE));
         return attempt.withResult(answers, score, total, resultPayload);
     }
 
