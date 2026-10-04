@@ -42,17 +42,21 @@ available.
 | Integrated frontend tests | 98 files / 548 tests passed |
 | Frontend lint | PASS with existing warnings |
 | Frontend build | PASS; Vite emitted chunk-size warning |
-| Integrated backend tests | 717 run / 0 failures / 5 errors / 8 skipped |
+| Integrated backend tests | 718 run / 0 failures / 5 errors / 8 skipped; all 5 errors are Spring context/Flyway connection refusals on `localhost:5432` |
 | Local backend/frontend port contract test | 1/1 passed after fixing the default from 8080 to 8081 |
-| Backend package | Not claimed after the database-gated test failure |
+| Backend package with tests | FAIL: Maven reached the same 5 database-gated context errors; no assertion failures |
+| Backend package with tests skipped | PASS; compilation and JAR packaging completed |
 | Flyway first/second startup | BLOCKED: Docker/PostgreSQL unavailable |
-| Browser E2E/runtime | NOT EXECUTED: backend/database unavailable |
+| Docker/Compose runtime | BLOCKED: Docker client is installed, but Docker Engine named pipe is unavailable; compose could not start `postgres` |
+| Local PostgreSQL runtime | NOT AVAILABLE: no `psql`, `postgres`, `pg_ctl`, or PostgreSQL Windows service found |
+| Browser E2E/runtime | NOT EXECUTED: backend/database unavailable; no Playwright configuration exists in the repository |
 | Real AI provider smoke | NOT EXECUTED during this audit |
 | `git diff --check` | PASS for the current source diff |
 
 ## Remaining limitations
 
 - Docker Desktop/PostgreSQL must be restored before claiming backend full pass or runtime acceptance.
+- Required machine-owner action: start Docker Desktop until `docker info` succeeds, then run `docker compose -f backend/docker-compose.yml up -d postgres` and repeat the database-gated checks.
 - Cloudflare credentials are not configured; fallback code is covered by mocks/tests but live Cloudflare behavior is not claimed.
 - Real provider calls were intentionally not made during this audit.
 - The existing local Search/logo files and user-provided report assets remain uncommitted and preserved in the working tree.
