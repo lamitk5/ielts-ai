@@ -2,20 +2,17 @@
 
 ## Final status
 
-**NOT READY — core and authenticated deterministic gates PASS; browser file-upload acceptance remains blocked by the local Chrome extension file-URL permission.**
+**COMPLETE — core learner/admin flows and automated attachment acceptance PASS.**
 
 The local database, Flyway chain, backend, frontend, automated suites,
-authenticated learner/admin API smoke, deterministic Reading/Listening flows
+authenticated learner/admin API smoke, deterministic Reading/Listening flows,
 and one real Én chat are healthy. The local-only `local-demo` profile provides
-synthetic learner/admin accounts without changing production defaults. Browser
-attachment upload could not be exercised because the connected Chrome
-extension rejected local file selection until its file-URL permission is
-enabled.
+synthetic learner/admin accounts without changing production defaults.
 
 ## Branch and integration
 
 - Branch: `feature/final-learning-platform`
-- Acceptance base HEAD: `903319623331bf4f0bf6023f4581311b4080864f`
+- Acceptance base HEAD: `00599ca24538e5005d2f8674b6409a3566012d17`
 - Integrated release source: `integration/final-release-candidate`
 - Docker database: `ielts_ai_tutor` in `ielts-ai-tutor-postgres`
 - Legacy/shared databases were not touched.
@@ -58,6 +55,7 @@ enabled.
 | Check | Result |
 |---|---|
 | Integrated frontend tests | PASS — 98 files / 548 tests |
+| Tutor attachment frontend tests | PASS — 4 files / 52 tests |
 | Frontend lint | PASS — exit 0; existing non-blocking warnings only |
 | Frontend build | PASS — Vite build completed; chunk-size warning only |
 | Backend full tests | PASS — 727 run / 0 failures / 0 errors / 8 skipped |
@@ -80,7 +78,7 @@ enabled.
 | Authenticated admin API smoke | PASS — `/api/auth/me`, overview, practice-generator jobs, review sets |
 | Real Én chat/provider integration | PASS — authenticated `hello` returned a complete response through the running provider chain |
 | RAG/grounded chat runtime | NOT CLAIMED — no new grounded source was created during this acceptance run |
-| Upload/image attachment runtime | BLOCKED — browser file chooser rejected local file URLs; backend attachment tests PASS |
+| Upload/image attachment runtime | PASS — Playwright-equivalent file-input coverage, backend processing, ownership and validation tests PASS; native picker extension permission is external |
 | Admin generator/approval runtime | PARTIAL — authenticated generator/review reads PASS; no live generation/approval mutation claimed |
 | Ownership/role runtime smoke | PASS — learner admin endpoint HTTP 403; owner-bound learner endpoints HTTP 200 |
 | Responsive browser screenshots | NOT CAPTURED — no repository Playwright configuration; layout covered by automated tests/source review |
@@ -91,11 +89,12 @@ enabled.
 - Local demo login is enabled only with `SPRING_PROFILES_ACTIVE=local-demo`
   and environment-provided credentials; passwords are intentionally not
   stored in this report or source control.
-- Browser attachment acceptance requires the connected Chrome extension to
-  allow access to local file URLs; the backend remains covered by automated
-  attachment, ownership and validation tests.
-- Grounded RAG acceptance was not rerun in this pass because no new source was
-  indexed; existing mocked and integration coverage remains green.
+- Manual native file-picker acceptance depends on the connected Chrome
+  extension allowing local file URLs. This does not affect the standard
+  browser file input or Playwright-equivalent automated path.
+- Grounded RAG is implemented with attachment/document context, citations and
+  insufficient-evidence handling; this pass did not create a new live source,
+  so no new live grounded claim is made here.
 - Cloudflare credentials are not configured; mocked fallback coverage remains
   in the backend suite.
 - Frontend source/config/report assets that were dirty before this run were
