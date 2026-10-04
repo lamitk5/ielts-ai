@@ -23,6 +23,7 @@ public class MockTestService {
     private final MockTestStateMachine stateMachine;
     private final MockTestTimingService timingService;
     private final CanonicalSubmissionService canonicalSubmissionService;
+    private final MockTestCatalogRepository catalogRepository;
 
     public MockTestService(
             MockTestSessionRepository sessionRepository,
@@ -30,7 +31,17 @@ public class MockTestService {
             MockSectionResolver sectionResolver,
             MockTestStateMachine stateMachine,
             MockTestTimingService timingService) {
-        this(sessionRepository, sectionRepository, sectionResolver, stateMachine, timingService, null);
+        this(sessionRepository, sectionRepository, sectionResolver, stateMachine, timingService, null, null);
+    }
+
+    public MockTestService(
+            MockTestSessionRepository sessionRepository,
+            MockTestSectionRepository sectionRepository,
+            MockSectionResolver sectionResolver,
+            MockTestStateMachine stateMachine,
+            MockTestTimingService timingService,
+            @Autowired(required = false) CanonicalSubmissionService canonicalSubmissionService) {
+        this(sessionRepository, sectionRepository, sectionResolver, stateMachine, timingService, canonicalSubmissionService, null);
     }
 
     @Autowired
@@ -40,13 +51,15 @@ public class MockTestService {
             MockSectionResolver sectionResolver,
             MockTestStateMachine stateMachine,
             MockTestTimingService timingService,
-            @Autowired(required = false) CanonicalSubmissionService canonicalSubmissionService) {
+            @Autowired(required = false) CanonicalSubmissionService canonicalSubmissionService,
+            @Autowired(required = false) MockTestCatalogRepository catalogRepository) {
         this.sessionRepository = Objects.requireNonNull(sessionRepository, "sessionRepository must not be null");
         this.sectionRepository = Objects.requireNonNull(sectionRepository, "sectionRepository must not be null");
         this.sectionResolver = Objects.requireNonNull(sectionResolver, "sectionResolver must not be null");
         this.stateMachine = Objects.requireNonNull(stateMachine, "stateMachine must not be null");
         this.timingService = Objects.requireNonNull(timingService, "timingService must not be null");
         this.canonicalSubmissionService = canonicalSubmissionService;
+        this.catalogRepository = catalogRepository;
     }
 
     @Transactional
@@ -61,7 +74,7 @@ public class MockTestService {
 
         Instant now = Instant.now();
         UUID sessionId = UUID.randomUUID();
-        MockTestDefinition def = MockTestDefinition.DEFAULT_MOCK;
+        MockTestDefinition def = definitionFor(testId);
 
         List<MockTestSection> sections = sectionResolver.resolveSections(sessionId, def);
 
@@ -155,5 +168,18 @@ public class MockTestService {
         List<MockTestSection> sections = sectionRepository.findBySessionId(session.id());
         int elapsed = timingService.calculateElapsedSeconds(session);
         return session.withSections(sections).withTiming(elapsed, session.expiresAt());
+    }
+
+    private MockTestDefinition definitionFor(String testId) {
+        if (catalogRepository != null) {
+            var catalog = catalogRepository.findBySlug(testId).filter(MockTestCatalogItem::published);
+            if (catalog.isPresent()) {
+                var item = catalog.get();
+                return new MockTestDefinition(item.slug(), item.title(), item.version(), item.totalTimeLimitSeconds(),
+                        item.sections().stream().map(section -> new MockTestDefinition.MockSectionSpec(section.order(), section.skill(),
+                                section.practiceSetId(), item.version(), section.practiceSetId(), section.timeLimitSeconds())).toList());
+            }
+        }
+        return MockTestDefinition.DEFAULT_MOCK;
     }
 }
