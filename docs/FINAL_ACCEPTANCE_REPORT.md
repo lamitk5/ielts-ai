@@ -50,7 +50,12 @@ available.
 | Docker/Compose runtime | BLOCKED: Docker client is installed, but Docker Engine named pipe is unavailable; compose could not start `postgres` |
 | Local PostgreSQL runtime | NOT AVAILABLE: no `psql`, `postgres`, `pg_ctl`, or PostgreSQL Windows service found |
 | Browser E2E/runtime | NOT EXECUTED: backend/database unavailable; no Playwright configuration exists in the repository |
-| Real AI provider smoke | NOT EXECUTED during this audit |
+| Direct Groq provider smoke | PASS transport-level: HTTP 200 with configured `openai/gpt-oss-120b`; the one-word probe was not an exact `LUMEN` match |
+| Real Én chat/provider integration | BLOCKED: backend could not start without PostgreSQL |
+| RAG/grounded chat runtime | BLOCKED: backend/database unavailable; no live document flow was claimed |
+| Upload/image attachment runtime | NOT EXECUTED: backend/database unavailable; automated provider/attachment boundary tests remain covered |
+| Security runtime/API checks | NOT EXECUTED: backend/database unavailable; automated ownership/authorization tests remain covered |
+| Responsive browser UI smoke | NOT EXECUTED: no browser E2E configuration and backend unavailable |
 | `git diff --check` | PASS for the current source diff |
 
 ## Remaining limitations
@@ -58,7 +63,7 @@ available.
 - Docker Desktop/PostgreSQL must be restored before claiming backend full pass or runtime acceptance.
 - Required machine-owner action: start Docker Desktop until `docker info` succeeds, then run `docker compose -f backend/docker-compose.yml up -d postgres` and repeat the database-gated checks.
 - Cloudflare credentials are not configured; fallback code is covered by mocks/tests but live Cloudflare behavior is not claimed.
-- Real provider calls were intentionally not made during this audit.
+- Direct Groq connectivity was checked once without printing the key; no Gemini or Cloudflare live call was made.
 - The existing local Search/logo files and user-provided report assets remain uncommitted and preserved in the working tree.
 - Important commits: `23be491` integration, `5a73692` audit/report, `98f60fd` local port contract fix.
 
