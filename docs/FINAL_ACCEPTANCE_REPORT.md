@@ -58,6 +58,7 @@ credentials are present and creating accounts was outside this acceptance run.
 | Frontend lint | PASS — exit 0; existing non-blocking warnings only |
 | Frontend build | PASS — Vite build completed; chunk-size warning only |
 | Backend full tests | PASS — 718 run / 0 failures / 0 errors / 8 skipped |
+| Testcontainers PostgreSQL integration | SKIPPED — Java Testcontainers received HTTP 400 from the `docker_cli` named pipe; Docker CLI/Compose PostgreSQL runtime passed separately |
 | Backend package | PASS — tests and executable JAR packaging completed |
 | Backend health | PASS — `GET /api/health` returned HTTP 200 |
 | Frontend proxy health | PASS — `GET /api/health` via port 5173 returned HTTP 200 |
@@ -92,6 +93,9 @@ credentials are present and creating accounts was outside this acceptance run.
   preserved and not overwritten.
 - Flyway runs with out-of-order mode enabled; the current database is valid and
   reports V70 as current.
+- The 8 skipped tests include the Testcontainers PostgreSQL integration group;
+  the local Docker CLI uses a healthy Desktop engine, while this Java runtime's
+  Testcontainers socket discovery still resolves to the `docker_cli` pipe.
 
 ## Exact local run commands
 
