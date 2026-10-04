@@ -27,6 +27,12 @@ function ProgressOverviewSection({ isAuthenticated, state, loading = false, enab
     >
       <div className="progress-inner">
         <TodaysPlanSection enabled={enableTodaysPlan && !loading} />
+        {enableTodaysPlan && !loading ? (
+          <div className="progress-navigation-shortcuts" aria-label="Công cụ học tập">
+            <Link to="/study-plan" className="button button-secondary button-sm">Xem lộ trình đầy đủ</Link>
+            <Link to="/analytics" className="button button-ghost button-sm">Mở phân tích tiến độ</Link>
+          </div>
+        ) : null}
         <SectionTitle
           eyebrow="THEO DÕI TIẾN BỘ"
           title="Tiến độ luyện tập của bạn"

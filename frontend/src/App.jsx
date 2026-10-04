@@ -36,6 +36,11 @@ import AdminLearnersPage from './pages/AdminLearnersPage'
 import AdminUsagePage from './pages/AdminUsagePage'
 import AdminAuditPage from './pages/AdminAuditPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import VocabularyPage from './pages/VocabularyPage'
+import StudyPlanPage from './pages/StudyPlanPage'
+import AnalyticsPage from './pages/AnalyticsPage'
+import MockTestsPage from './pages/MockTestsPage'
+import AdminMockTestsPage from './pages/AdminMockTestsPage'
 
 function App() {
   return (
@@ -47,6 +52,7 @@ function App() {
             <Route path="generator" element={<AdminPracticeGeneratorPage />} />
             <Route path="generator/sets/:setId" element={<AdminPracticeReviewPage />} />
             <Route path="practices" element={<AdminPracticeBankPage />} />
+            <Route path="mock-tests" element={<AdminMockTestsPage />} />
             <Route path="knowledge" element={<AdminKnowledgePage />} />
             <Route path="knowledge/rag" element={<AdminRagPage />} />
             <Route path="reviews" element={<AdminReviewQueuePage />} />
@@ -67,6 +73,10 @@ function App() {
           <Route path="practice/saved" element={<SavedPracticesPage />} />
           <Route path="practice/mock-test" element={<MockTestPage />} />
           <Route path="practice/mock-test/:sessionId" element={<MockTestPage />} />
+          <Route path="mock-tests" element={<MockTestsPage />} />
+          <Route path="vocabulary" element={<VocabularyPage />} />
+          <Route path="study-plan" element={<StudyPlanPage />} />
+          <Route path="analytics" element={<AnalyticsPage />} />
           <Route path="practice/results/:attemptId" element={<PracticeResultPage />} />
           <Route path="practice/history" element={<SubmissionHistoryPage />} />
           <Route path="practice/:skill/:setId/attempt" element={<PracticeAttemptPage />} />

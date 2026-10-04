@@ -64,3 +64,10 @@ export function getMockTestResult(sessionId) {
 export function listMockSessions() {
   return request('/api/mock-tests/sessions')
 }
+
+export function listMockTestCatalog() { return request('/api/mock-tests') }
+export function listAdminMockTests() { return request('/api/admin/mock-tests') }
+export function createAdminMockTest(command) { return request('/api/admin/mock-tests', { method: 'POST', body: JSON.stringify(command) }) }
+export function updateAdminMockTest(id, command) { return request(`/api/admin/mock-tests/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(command) }) }
+export function publishAdminMockTest(id, value) { return request(`/api/admin/mock-tests/${encodeURIComponent(id)}/publish?value=${value}`, { method: 'POST' }) }
+export function deleteAdminMockTest(id) { return request(`/api/admin/mock-tests/${encodeURIComponent(id)}`, { method: 'DELETE' }) }

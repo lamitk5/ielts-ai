@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
-import { BarChart3, BookOpenCheck, ClipboardCheck, FileText, History, LayoutDashboard, Menu, ShieldCheck, Users, X } from 'lucide-react'
+import { BarChart3, BookOpenCheck, ClipboardCheck, FileText, History, LayoutDashboard, Menu, ShieldCheck, Users, X, ClipboardList } from 'lucide-react'
 
 const groups = [
   { label: 'TỔNG QUAN', items: [['Tổng quan', '/admin', LayoutDashboard]] },
-  { label: 'AI & NỘI DUNG', items: [['Trình tạo bài AI', '/admin/generator', FileText], ['Ngân hàng bài luyện', '/admin/practices', BookOpenCheck]] },
+  { label: 'AI & NỘI DUNG', items: [['Trình tạo bài AI', '/admin/generator', FileText], ['Ngân hàng bài luyện', '/admin/practices', BookOpenCheck], ['Bài thi thử', '/admin/mock-tests', ClipboardList]] },
   { label: 'TRI THỨC & AI', items: [['Kho tri thức & Prompt', '/admin/knowledge', ShieldCheck]] },
   { label: 'ĐÁNH GIÁ', items: [['Hàng đợi đánh giá', '/admin/reviews', ClipboardCheck]] },
   { label: 'QUẢN LÝ', items: [['Học viên', '/admin/learners', Users], ['Sử dụng API & Chi phí', '/admin/usage', BarChart3]] },

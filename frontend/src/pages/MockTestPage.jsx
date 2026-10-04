@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import MockTestShell from '../components/mock/MockTestShell'
 import MockTestResult from '../components/mock/MockTestResult'
 import GlassCard from '../components/common/GlassCard'
@@ -14,6 +14,7 @@ import {
 
 export default function MockTestPage() {
   const { sessionId: routeSessionId } = useParams()
+  const [searchParams] = useSearchParams()
   const navigate = useNavigate()
 
   const [session, setSession] = useState(null)
@@ -41,7 +42,7 @@ export default function MockTestPage() {
         if (routeSessionId) {
           sess = await getMockSession(routeSessionId)
         } else {
-          sess = await startOrResumeMockSession()
+          sess = await startOrResumeMockSession({ mockTestId: searchParams.get('mockTestId') || undefined })
         }
 
         if (!isMounted) return
@@ -64,7 +65,7 @@ export default function MockTestPage() {
     return () => {
       isMounted = false
     }
-  }, [routeSessionId])
+  }, [routeSessionId, searchParams])
 
   // Debounced Autosave
   const triggerAutosave = useCallback(async () => {

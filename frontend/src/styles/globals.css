@@ -540,6 +540,56 @@ input:focus-visible {
   .settings-trigger span { display: none; }
   .settings-drawer { width: 100%; border-left: 0; padding-top: env(safe-area-inset-top); }
 }
+
+/* Learning enhancement surfaces */
+.learning-page { width: min(100% - 2rem, 1120px); margin: 0 auto; padding: clamp(3rem, 6vw, 5rem) 0 4rem; }
+.progress-navigation-shortcuts { display: flex; flex-wrap: wrap; gap: .6rem; justify-content: flex-end; margin: -0.35rem 0 1rem; }
+.learning-stat-grid, .analytics-skill-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .8rem; margin: 1.25rem 0; }
+.learning-stat-grid span, .analytics-skill-grid .glass-card { display: grid; gap: .25rem; padding: 1rem; color: var(--text-muted); border: 1px solid var(--border); border-radius: 1rem; background: color-mix(in srgb, var(--surface) 78%, transparent); }
+.learning-stat-grid strong, .analytics-skill-grid strong { color: var(--text); font: 700 1.35rem/1.1 var(--font-display, Georgia); }
+.vocabulary-add-card { margin: 1.25rem 0; }
+.vocabulary-form { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .85rem; align-items: end; }
+.vocabulary-form h2 { grid-column: 1 / -1; display: flex; align-items: center; gap: .45rem; margin: 0; font-size: 1.1rem; }
+.vocabulary-form label { display: grid; gap: .35rem; color: var(--text-muted); font-size: .82rem; }
+.vocabulary-form input, .vocabulary-toolbar input, .vocabulary-toolbar select { min-height: 2.7rem; padding: .6rem .75rem; color: var(--text); background: color-mix(in srgb, var(--surface) 85%, transparent); border: 1px solid var(--border); border-radius: .65rem; }
+.vocabulary-toolbar { display: flex; gap: .75rem; align-items: center; margin: 1.25rem 0; }
+.search-input { display: flex; flex: 1; align-items: center; gap: .45rem; padding: 0 .75rem; color: var(--text-muted); border: 1px solid var(--border); border-radius: .65rem; }
+.search-input input { width: 100%; border: 0; outline: 0; }
+.vocabulary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+.vocabulary-card { position: relative; display: grid; gap: .65rem; padding: 1.15rem; }
+.vocabulary-card-head { display: flex; justify-content: space-between; align-items: center; }
+.vocabulary-word { color: var(--accent, #d5ad5b); font: 700 1.35rem/1.1 var(--font-display, Georgia); }
+.vocabulary-meaning, .vocabulary-example { margin: 0; color: var(--text); }
+.vocabulary-example { color: var(--text-muted); font-size: .9rem; font-style: italic; }
+.vocabulary-card-actions { display: flex; flex-wrap: wrap; gap: .45rem; align-items: center; }
+.icon-button, .text-action { display: inline-flex; align-items: center; gap: .25rem; color: var(--text-muted); background: transparent; border: 0; cursor: pointer; }
+.icon-button:hover, .text-action:hover { color: var(--accent, #d5ad5b); }
+.status-pill { width: fit-content; padding: .2rem .55rem; border-radius: 999px; font-size: .72rem; }
+.status-new { background: color-mix(in srgb, var(--accent, #d5ad5b) 16%, transparent); color: var(--accent, #d5ad5b); }
+.status-learning { background: color-mix(in srgb, #5d8fd8 18%, transparent); color: #8eb4ef; }
+.status-mastered { background: color-mix(in srgb, #5ab88a 18%, transparent); color: #78d5a4; }
+.learning-empty-state { display: grid; justify-items: center; gap: .65rem; padding: 3rem; text-align: center; color: var(--text-muted); }
+.learning-empty-state p, .learning-empty-state h2 { margin: 0; color: var(--text); }
+.study-plan-goal { display: flex; justify-content: space-between; gap: 1rem; padding: 1.35rem; }
+.study-plan-goal > div { display: grid; gap: .35rem; }
+.study-plan-goal strong { color: var(--text); font: 700 1.45rem/1.1 var(--font-display, Georgia); }
+.study-plan-goal svg { color: var(--accent, #d5ad5b); }
+.study-plan-list { display: grid; gap: .8rem; margin-top: 1.5rem; }
+.study-plan-list h2, .analytics-question-types h2 { margin: 0 0 .5rem; color: var(--text); font: 700 1.3rem/1.1 var(--font-display, Georgia); }
+.study-plan-item { display: grid; grid-template-columns: 2.2rem 1fr auto; gap: .8rem; align-items: center; padding: 1rem 1.15rem; }
+.study-plan-number { display: grid; place-items: center; width: 2.1rem; height: 2.1rem; color: var(--accent, #d5ad5b); border: 1px solid var(--accent, #d5ad5b); border-radius: 50%; }
+.study-plan-item h3, .study-plan-item p { margin: 0; }.study-plan-item p { color: var(--text-muted); font-size: .88rem; }.study-plan-item small { color: var(--accent, #d5ad5b); }
+.analytics-skill-grid .glass-card { gap: .35rem; }.analytics-skill-grid span { color: var(--text-muted); font-size: .82rem; }
+.analytics-question-types { display: grid; gap: .8rem; padding: 1.25rem; }
+.analytics-row { display: grid; grid-template-columns: 1fr 3rem; gap: .45rem .8rem; align-items: center; color: var(--text); }.analytics-row strong { text-align: right; color: var(--accent, #d5ad5b); }.analytics-bar { grid-column: 1 / -1; height: .35rem; overflow: hidden; background: color-mix(in srgb, var(--border) 65%, transparent); border-radius: 99px; }.analytics-bar span { display: block; height: 100%; background: var(--accent, #d5ad5b); border-radius: inherit; }.analytics-callout { display: flex; gap: .4rem; align-items: center; margin: .5rem 0 0; color: var(--text-muted); }
+@media (max-width: 760px) { .learning-page { width: min(100% - 1.25rem, 1120px); padding-top: 2.5rem; }.learning-stat-grid, .analytics-skill-grid, .vocabulary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }.vocabulary-form { grid-template-columns: 1fr 1fr; }.vocabulary-form h2 { grid-column: 1 / -1; }.study-plan-goal { align-items: flex-start; flex-direction: column; }.vocabulary-toolbar { align-items: stretch; flex-direction: column; } }
+@media (max-width: 460px) { .learning-stat-grid, .analytics-skill-grid, .vocabulary-grid, .vocabulary-form { grid-template-columns: 1fr; }.vocabulary-form h2 { grid-column: auto; } }
+.admin-row-actions,.admin-form-actions{display:flex;align-items:center;gap:.55rem;flex-wrap:wrap}
+.mock-section-editor{display:grid;gap:.65rem;padding-top:.5rem;border-top:1px solid var(--border-subtle)}
+.mock-section-editor h3{margin:0;font-size:.92rem}
+.mock-section-row{display:grid;grid-template-columns:auto 1fr 1.4fr .7fr;align-items:end;gap:.55rem}
+.mock-section-row label{min-width:0}
+@media (max-width:760px){.mock-section-row{grid-template-columns:auto 1fr}.mock-section-row label:nth-of-type(2),.mock-section-row label:nth-of-type(3){grid-column:span 2}.admin-row{align-items:flex-start;flex-direction:column}.admin-row-actions{width:100%}}
 @media (prefers-reduced-motion: reduce) { .settings-drawer { animation: none; } }
 :root[data-reduced-motion='true'] .settings-drawer { animation: none; }
 
