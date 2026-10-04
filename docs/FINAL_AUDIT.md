@@ -48,6 +48,7 @@ release integration commit.
 ## Priority
 
 - P0: restore Docker/PostgreSQL and rerun the full backend/Flyway/runtime gate.
+- P0: use the aligned local backend default `PORT=8081` (now protected by `LocalRuntimeConfigurationTest`).
 - P1: perform authenticated learner and Admin browser smoke flows against an isolated QA database.
 - P1: perform one controlled real-provider smoke test only with valid configured credentials and bounded retry behavior.
 - P2: clean the existing lint warnings and split the largest frontend chunks if release policy requires warning-free lint/build output.

@@ -43,6 +43,7 @@ available.
 | Frontend lint | PASS with existing warnings |
 | Frontend build | PASS; Vite emitted chunk-size warning |
 | Integrated backend tests | 717 run / 0 failures / 5 errors / 8 skipped |
+| Local backend/frontend port contract test | 1/1 passed after fixing the default from 8080 to 8081 |
 | Backend package | Not claimed after the database-gated test failure |
 | Flyway first/second startup | BLOCKED: Docker/PostgreSQL unavailable |
 | Browser E2E/runtime | NOT EXECUTED: backend/database unavailable |
@@ -55,6 +56,7 @@ available.
 - Cloudflare credentials are not configured; fallback code is covered by mocks/tests but live Cloudflare behavior is not claimed.
 - Real provider calls were intentionally not made during this audit.
 - The existing local Search/logo files and user-provided report assets remain uncommitted and preserved in the working tree.
+- Important commits: `23be491` integration, `5a73692` audit/report, `98f60fd` local port contract fix.
 
 ## Exact local run commands
 
