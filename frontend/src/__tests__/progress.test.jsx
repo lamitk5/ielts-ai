@@ -29,6 +29,7 @@ describe('progress overview', () => {
     expect(
       within(progress).getByRole('img', { name: 'Xem trước tiến độ theo 4 kỹ năng' }),
     ).toBeInTheDocument()
+    expect(within(progress).getByRole('img', { name: 'Xem trước tiến độ theo 4 kỹ năng' }).closest('.progress-guest-preview')).toHaveClass('progress-guest-preview-editorial')
     for (const skill of ['Reading', 'Listening', 'Writing', 'Speaking']) {
       expect(within(progress).getByText(skill)).toBeInTheDocument()
     }
@@ -41,6 +42,7 @@ describe('progress overview', () => {
     renderApp('/?demo=member')
 
     const progress = screen.getByRole('region', { name: 'Tiến độ luyện tập của bạn' })
+    expect(progress.querySelector('.progress-member-layout')).toHaveClass('progress-dashboard-editorial')
 
     expect(within(progress).getByText('Band ước lượng')).toBeInTheDocument()
     for (const item of memberDemo.progress) {
@@ -79,9 +81,35 @@ describe('progress overview', () => {
     vi.useRealTimers()
   })
 
+  test('does not invent a target exam date for a newly authenticated member', () => {
+    render(<ExamCountdownCard />)
+
+    expect(screen.getByText('Chưa đặt ngày thi')).toBeInTheDocument()
+    expect(screen.queryByText('undefined')).not.toBeInTheDocument()
+  })
+
   test('uses the shared skeleton semantics while progress data loads', () => {
     render(<ProgressOverviewSection isAuthenticated state={memberDemo} loading />)
 
     expect(screen.getByRole('status')).toHaveAttribute('aria-busy', 'true')
+  })
+
+  test('keeps empty member progress free of null or fake band values', () => {
+    render(
+      <MemoryRouter>
+        <ProgressOverviewSection
+          isAuthenticated
+          state={{
+            user: { firstName: 'Mai', examDate: null },
+            progress: ['Reading', 'Listening', 'Writing', 'Speaking'].map((skill) => ({ skill, band: null })),
+            mistakes: [],
+          }}
+        />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText('Đánh giá trình độ để mở bảng tiến độ cá nhân')).toBeInTheDocument()
+    expect(screen.queryByText('null')).not.toBeInTheDocument()
+    expect(screen.queryByText('Band ước lượng')).not.toBeInTheDocument()
   })
 })

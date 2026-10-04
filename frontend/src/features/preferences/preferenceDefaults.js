@@ -1,0 +1,17 @@
+export const DEFAULT_PREFERENCES = Object.freeze({
+  themeMode: 'system',
+  accentPreset: 'gold',
+  fontScale: 'default',
+  density: 'default',
+  reduceMotion: 'system',
+  language: 'vi',
+  proactiveAiEnabled: false,
+  crossHighlightEnabled: true,
+  timerDefaultEnabled: false,
+  readingSplitRatio: 40,
+  writingSplitRatio: 40,
+  cursorStyle: 'default',
+  cursorSizePercent: 100,
+  cursorColor: 'accent',
+  cursorEffects: true,
+})

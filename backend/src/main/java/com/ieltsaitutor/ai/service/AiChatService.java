@@ -7,6 +7,11 @@ import com.ieltsaitutor.ai.dto.AiSource;
 import com.ieltsaitutor.ai.model.AiChatCommand;
 import com.ieltsaitutor.ai.model.AiChatResult;
 import com.ieltsaitutor.ai.provider.AiProvider;
+import com.ieltsaitutor.rag.chat.RagChatResult;
+import com.ieltsaitutor.rag.chat.RagChatService;
+import com.ieltsaitutor.auth.AuthPrincipal;
+import com.ieltsaitutor.tutor.TutorOrchestrator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -24,12 +29,34 @@ public class AiChatService {
                     + "(đoạn văn|bài tôi|bài đang làm|passage|exercise).*(sai|đúng|false|true|answer|đáp án)");
 
     private final AiProvider provider;
+    private final RagChatService ragChatService;
+    private final TutorOrchestrator orchestrator;
 
-    public AiChatService(AiProvider provider) {
+    public AiChatService(AiProvider provider) { this(provider, null, null); }
+
+    public AiChatService(AiProvider provider, RagChatService ragChatService) {
+        this(provider, ragChatService, null);
+    }
+
+    private AiChatService(AiProvider provider, RagChatService ragChatService, TutorOrchestrator orchestrator) {
         this.provider = provider;
+        this.ragChatService = ragChatService;
+        this.orchestrator = orchestrator;
+    }
+
+    @Autowired
+    public AiChatService(TutorOrchestrator orchestrator) {
+        this.provider = null;
+        this.ragChatService = null;
+        this.orchestrator = orchestrator;
     }
 
     public AiChatResponse chat(AiChatRequest request) {
+        return chat(null, request);
+    }
+
+    public AiChatResponse chat(AuthPrincipal principal, AiChatRequest request) {
+        if (orchestrator != null) return orchestrator.handle(principal, request);
         String requestId = UUID.randomUUID().toString();
         String message = request.message().trim();
         AiChatContext context = request.context() == null
@@ -39,15 +66,20 @@ public class AiChatService {
                 .skip(Math.max(0, request.history().size() - MAX_HISTORY_MESSAGES))
                 .toList();
 
-        AiChatResult result = hasNoRelevantContext(message, context)
+        boolean insufficientContext = hasNoRelevantContext(message, context);
+        AiChatCommand command = new AiChatCommand(message, context, history, requestId);
+        RagChatResult ragResult = insufficientContext
+                ? null
+                : ragChatService == null ? null : ragChatService.chat(command);
+        AiChatResult result = insufficientContext
                 ? AiChatResult.insufficientContext(INSUFFICIENT_CONTEXT_ANSWER)
-                : provider.chat(new AiChatCommand(message, context, history, requestId));
+                : ragResult == null ? provider.chat(command) : new AiChatResult(ragResult.status(), ragResult.answer());
 
         return new AiChatResponse(
                 result.status(),
                 result.answer(),
-                List.<AiSource>of(),
-                new com.ieltsaitutor.ai.dto.AiGrounding("NOT_ENABLED", false),
+                ragResult == null ? List.<AiSource>of() : ragResult.sources(),
+                ragResult == null ? new com.ieltsaitutor.ai.dto.AiGrounding("NOT_ENABLED", false) : ragResult.grounding(),
                 new AiChatResponse.Meta(requestId),
                 Instant.now());
     }

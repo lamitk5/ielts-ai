@@ -5,9 +5,20 @@ import SkeletonBlock from '../common/SkeletonBlock'
 import BandRadarChart from '../charts/BandRadarChart'
 import CommonMistakesWidget from './CommonMistakesWidget'
 import ExamCountdownCard from './ExamCountdownCard'
+import TodaysFocusCard from '../learning/TodaysFocusCard'
+import RoadmapWidget from '../learning/RoadmapWidget'
+import StreakCard from '../learning/StreakCard'
+import SkillEnergyGrid from '../learning/SkillEnergyGrid'
+import { calculateMeaningfulStreak } from '../../features/learning/streakRules'
 import { Link } from 'react-router-dom'
+import TodaysPlanSection from '../learning/TodaysPlanSection'
 
-function ProgressOverviewSection({ isAuthenticated, state, loading = false }) {
+function ProgressOverviewSection({ isAuthenticated, state, loading = false, enableTodaysPlan = false }) {
+  const hasMeasuredProgress = Array.isArray(state?.progress)
+    && state.progress.some(({ band }) => Number.isFinite(band))
+  const showMemberProgress = isAuthenticated && hasMeasuredProgress
+  const streakInfo = calculateMeaningfulStreak(state?.activity || [])
+
   return (
     <AnimatedSection
       id="progress"
@@ -15,11 +26,12 @@ function ProgressOverviewSection({ isAuthenticated, state, loading = false }) {
       aria-label="Tiến độ luyện tập của bạn"
     >
       <div className="progress-inner">
+        <TodaysPlanSection enabled={enableTodaysPlan && !loading} />
         <SectionTitle
           eyebrow="THEO DÕI TIẾN BỘ"
           title="Tiến độ luyện tập của bạn"
           description={
-            isAuthenticated
+            showMemberProgress
               ? 'Một góc nhìn bình tĩnh về bốn kỹ năng để bạn biết nên tập trung vào đâu tiếp theo.'
               : 'Bắt đầu bằng một bài đánh giá để mở bảng theo dõi cá nhân và luyện tập có định hướng.'
           }
@@ -29,29 +41,37 @@ function ProgressOverviewSection({ isAuthenticated, state, loading = false }) {
           <GlassCard className="progress-loading-card">
             <SkeletonBlock label="Đang tải tiến độ luyện tập" />
           </GlassCard>
-        ) : isAuthenticated && state?.progress ? (
-          <div className="progress-layout">
-            <GlassCard className="progress-radar-card">
-              <div className="progress-card-heading">
-                <div>
-                  <p className="progress-card-kicker">TỔNG QUAN 4 KỸ NĂNG</p>
-                  <h3 className="font-display">Band theo từng kỹ năng</h3>
-                </div>
-                <span className="progress-estimate">Band ước lượng</span>
+        ) : showMemberProgress ? (
+          <div className="progress-member-layout progress-dashboard-editorial">
+            <TodaysFocusCard roadmap={state.roadmap} />
+            <div className="progress-layout">
+              <div className="progress-main-column">
+                <GlassCard className="progress-radar-card">
+                  <div className="progress-card-heading">
+                    <div>
+                      <p className="progress-card-kicker">TỔNG QUAN 4 KỸ NĂNG</p>
+                      <h3 className="font-display">Band theo từng kỹ năng</h3>
+                    </div>
+                    <span className="progress-estimate">Band ước lượng</span>
+                  </div>
+                  <BandRadarChart data={state.progress} />
+                  <ul className="progress-band-list">
+                    {state.progress.map(({ skill, band }) => (
+                      <li key={skill}>
+                        <span>{skill}</span>
+                        <strong>{Number.isFinite(band) ? band : 'Chưa có dữ liệu'}</strong>
+                      </li>
+                    ))}
+                  </ul>
+                </GlassCard>
+                <SkillEnergyGrid skills={state.skills || state.progress} />
               </div>
-              <BandRadarChart data={state.progress} />
-              <ul className="progress-band-list">
-                {state.progress.map(({ skill, band }) => (
-                  <li key={skill}>
-                    <span>{skill}</span>
-                    <strong>{band}</strong>
-                  </li>
-                ))}
-              </ul>
-            </GlassCard>
-            <div className="progress-side-column">
-              <ExamCountdownCard examDate={state.user?.examDate} />
-              <CommonMistakesWidget mistakes={state.mistakes} />
+              <div className="progress-side-column">
+                <StreakCard streakInfo={streakInfo} />
+                <RoadmapWidget roadmap={state.roadmap} />
+                <ExamCountdownCard examDate={state.user?.examDate} />
+                <CommonMistakesWidget mistakes={state.mistakes} />
+              </div>
             </div>
           </div>
         ) : (
@@ -67,7 +87,7 @@ function ProgressOverviewSection({ isAuthenticated, state, loading = false }) {
             <Link className="button btn-liquid button-primary button-md" to="/assessment">
               <span className="button-label">Bắt đầu đánh giá</span>
             </Link>
-            <div className="progress-guest-preview">
+            <div className="progress-guest-preview progress-guest-preview-editorial">
               <div className="progress-guest-preview-heading">
                 <p className="progress-card-kicker">XEM TRƯỚC LỘ TRÌNH</p>
                 <span>4 kỹ năng</span>

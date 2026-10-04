@@ -1,0 +1,43 @@
+{
+  "nodes": [
+    "ai",
+    "application",
+    "domain",
+    "infrastructure",
+    "presentation",
+    "shared"
+  ],
+  "edges": [
+    ["ai", "infrastructure"],
+    ["ai", "shared"],
+    ["application", "ai"],
+    ["application", "domain"],
+    ["application", "infrastructure"],
+    ["application", "shared"],
+    ["domain", "ai"],
+    ["domain", "infrastructure"],
+    ["domain", "shared"],
+    ["infrastructure", "shared"],
+    ["presentation", "application"],
+    ["presentation", "shared"]
+  ],
+  "weights": {
+    "ai->infrastructure": 1,
+    "ai->shared": 7,
+    "application->ai": 1,
+    "application->domain": 1,
+    "application->infrastructure": 1,
+    "application->shared": 1,
+    "domain->ai": 1,
+    "domain->infrastructure": 1,
+    "domain->shared": 6,
+    "infrastructure->shared": 1,
+    "presentation->application": 1,
+    "presentation->shared": 1
+  },
+  "stats": {
+    "total_files": 45,
+    "total_edges": 12,
+    "total_modules": 6
+  }
+}

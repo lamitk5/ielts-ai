@@ -8,7 +8,9 @@ import {
 } from 'recharts'
 
 function BandRadarChart({ data = [] }) {
-  const summary = data.map(({ skill, band }) => `${skill}: ${band}`).join(' · ')
+  const summary = data
+    .map(({ skill, band }) => `${skill}: ${Number.isFinite(band) ? band : 'chưa có dữ liệu'}`)
+    .join(' · ')
 
   return (
     <div className="band-radar-chart" role="img" aria-label="Band ước lượng theo kỹ năng">

@@ -1,24 +1,67 @@
-import { Menu, X } from 'lucide-react'
-import { useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { ChevronDown, Menu, UserCircle, X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Link, NavLink, useLocation } from 'react-router-dom'
+import { useAuth } from '../../features/auth/AuthProvider'
+import { PreferenceProvider, applyPreferenceTokens, useOptionalPreferences } from '../../features/preferences/PreferenceProvider'
+import { DEFAULT_PREFERENCES } from '../../features/preferences/preferenceDefaults'
+import SettingsButton from '../settings/SettingsButton'
+import SettingsDrawer from '../settings/SettingsDrawer'
+import LumenLogo from './LumenLogo'
 
 const links = [
-  { label: 'Trang chủ', to: '/' },
-  { label: '4 kỹ năng', to: '/#skills' },
-  { label: 'Trợ giảng AI', to: '/#ai-tutor' },
-  { label: 'Tiến độ', to: '/?demo=member#progress' },
+  { key: 'navHome', label: 'Trang chủ', to: '/' },
+  { key: 'navSkills', label: '4 kỹ năng', to: '/#skills' },
+  { key: 'navTutor', label: 'Én', to: '/#ai-tutor' },
+  { key: 'navProgress', label: 'Tiến độ', to: '/#progress' },
 ]
+
+function isAnchorActive(link, location) {
+  const [path, hash] = link.to.split('#')
+  if (hash) return location.pathname === path && location.hash === `#${hash}`
+  return location.pathname === path && !location.hash
+}
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isAccountOpen, setIsAccountOpen] = useState(false)
+  const [settingsRoute, setSettingsRoute] = useState(null)
+  const [isScrolled, setIsScrolled] = useState(() => window.scrollY > 12)
+  const settingsOpenerRef = useRef(null)
+  const { isAuthenticated, user, logout } = useAuth()
+  const preferenceContext = useOptionalPreferences()
+  const translate = preferenceContext?.translate ?? ((_key, fallback) => fallback)
+  const location = useLocation()
+  const isSettingsOpen = settingsRoute === location.key
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 12)
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll()
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const closeMenu = () => setIsMenuOpen(false)
 
+  useEffect(() => {
+    if (!isMenuOpen) return undefined
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') closeMenu()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isMenuOpen])
+
+  const handleLogout = async () => {
+    closeMenu()
+    setIsAccountOpen(false)
+    try { await logout() } finally { applyPreferenceTokens(DEFAULT_PREFERENCES) }
+  }
+
   return (
-    <header className="site-header">
-      <nav className="site-nav" aria-label="Primary navigation">
-        <NavLink className="brand" to="/" onClick={closeMenu}>
-          IELTS AI Tutor
+    <header className={`site-header site-header-glass ${isScrolled ? 'site-header-scrolled' : ''}`.trim()}>
+      <nav className="site-nav" aria-label="Primary navigation" data-menu-open={isMenuOpen ? 'true' : 'false'}>
+        <NavLink className="brand brand-interactive" to="/" aria-label="LUMEN IELTS AI Tutor" onClick={closeMenu}>
+          <LumenLogo />
         </NavLink>
 
         <button
@@ -35,26 +78,70 @@ function Navbar() {
         <div
           id="primary-navigation"
           className={`nav-content ${isMenuOpen ? 'nav-content-open' : ''}`.trim()}
-        >
+          >
           <div className="nav-links">
             {links.map((link) => (
-              <NavLink
+              <Link
                 key={link.label}
-                className={({ isActive }) =>
-                  `nav-link ${isActive ? 'nav-link-active' : ''}`.trim()
-                }
+                className={`nav-link ${isAnchorActive(link, location) ? 'nav-link-active' : ''}`.trim()}
+                aria-current={isAnchorActive(link, location) ? 'page' : undefined}
                 to={link.to}
                 onClick={closeMenu}
               >
-                {link.label}
-              </NavLink>
+                {translate(link.key, link.label)}
+              </Link>
             ))}
           </div>
-          <NavLink className="signin-link" to="/login" onClick={closeMenu}>
-            Đăng nhập
-          </NavLink>
+          <div className="nav-settings">
+            <SettingsButton
+              openerRef={settingsOpenerRef}
+              expanded={isSettingsOpen}
+              onClick={() => { setIsMenuOpen(false); setSettingsRoute(location.key) }}
+            />
+          </div>
+          {user?.role === 'ADMIN' ? <Link className="nav-link admin-nav-entry" to="/admin" onClick={closeMenu}>Quản trị</Link> : null}
+          {isAuthenticated ? (
+            <div className="account-menu">
+              <button
+                type="button"
+                className="account-trigger"
+                aria-expanded={isAccountOpen}
+                aria-haspopup="menu"
+                aria-label="Mở menu tài khoản"
+                onClick={() => setIsAccountOpen((open) => !open)}
+              >
+                <UserCircle aria-hidden="true" />
+                <span>{translate('account', 'Tài khoản')}</span>
+                <ChevronDown aria-hidden="true" className={isAccountOpen ? 'account-chevron-open' : ''} />
+              </button>
+              {isAccountOpen ? (
+                <div className="account-panel" role="menu" aria-label="Menu tài khoản">
+                  <span className="account-email" role="presentation">Tài khoản học tập</span>
+                  <Link className="account-menu-item" role="menuitem" to="/profile" onClick={() => { closeMenu(); setIsAccountOpen(false) }}>
+                    Hồ sơ cá nhân
+                  </Link>
+                  <Link className="account-menu-item" role="menuitem" to="/practice/saved" onClick={() => { closeMenu(); setIsAccountOpen(false) }}>
+                    Bài đã lưu
+                  </Link>
+                  {user?.role === 'ADMIN' ? <Link className="account-menu-item" role="menuitem" to="/admin" onClick={() => { closeMenu(); setIsAccountOpen(false) }}>Quản trị</Link> : null}
+                  <button className="account-menu-item" role="menuitem" type="button" onClick={handleLogout}>
+                    Đăng xuất
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          ) : (
+            <NavLink className="signin-link" to="/login" onClick={closeMenu}>
+              {translate('signIn', 'Đăng nhập')}
+            </NavLink>
+          )}
         </div>
       </nav>
+      {isSettingsOpen ? (
+        <PreferenceProvider>
+          <SettingsDrawer open onClose={() => setSettingsRoute(null)} openerRef={settingsOpenerRef} />
+        </PreferenceProvider>
+      ) : null}
     </header>
   )
 }

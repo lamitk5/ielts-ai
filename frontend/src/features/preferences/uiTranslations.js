@@ -1,0 +1,56 @@
+const translations = {
+  vi: {
+    navHome: 'Trang chủ', navSkills: '4 kỹ năng', navTutor: 'Én', navProgress: 'Tiến độ',
+    signIn: 'Đăng nhập', account: 'Tài khoản', settings: 'Cài đặt', closeSettings: 'Đóng cài đặt',
+    settingsIntro: 'Tùy chỉnh trải nghiệm học của bạn.', preview: 'Xem trước', themePreview: 'Xem trước giao diện', accentSwatches: 'Các màu nhấn', accentChoose: 'Chọn màu nhấn', retry: 'Thử lại',
+    appearance: 'Giao diện & Hiển thị', motion: 'Chuyển động & Trợ năng', learning: 'Không gian học tập & Én',
+    theme: 'Giao diện', accent: 'Màu nhấn', density: 'Mật độ hiển thị', animation: 'Cho phép hiệu ứng giao diện (Animation)',
+    themeDark: 'Tối', themeLight: 'Sáng', themeSystem: 'Theo hệ thống',
+    cursorStyle: 'Kiểu con trỏ', cursorStyleOptions: 'Các kiểu con trỏ', cursorDefault: 'Mặc định', cursorChampagne: 'Champagne Gold', cursorScholarPen: 'Scholar Pen', cursorEnFeather: 'Én Feather', cursorPixelScholar: 'Pixel Scholar', cursorSize: 'Kích thước con trỏ', cursorSmall: 'Nhỏ', cursorMedium: 'Vừa', cursorLarge: 'Lớn', cursorColor: 'Màu con trỏ', cursorColorOptions: 'Các màu con trỏ', cursorAccent: 'Theo màu nhấn', cursorIvory: 'Ivory', cursorSapphire: 'Sapphire', cursorEmerald: 'Emerald', cursorBurgundy: 'Burgundy', cursorViolet: 'Violet', cursorEffects: 'Hiệu ứng con trỏ',
+    densitySpacious: 'Thoáng', densityDefault: 'Tiêu chuẩn', densityCompact: 'Gọn',
+    fontDecrease: 'A-', fontIncrease: 'A+',
+    fontSize: 'Cỡ chữ', fontSmall: 'Nhỏ', fontDefault: 'Mặc định', fontLarge: 'Lớn', language: 'Ngôn ngữ', vietnamese: 'Tiếng Việt', english: 'English',
+    proactive: 'Bật gợi ý chủ động từ Én', crossHighlight: 'Bật hiệu ứng sáng vùng lỗi sai (Cross-highlighting)',
+    countdown: 'Hiển thị đồng hồ đếm ngược', readingSplit: 'Tỷ lệ chia Reading', writingSplit: 'Tỷ lệ chia Writing',
+    reset: 'Khôi phục mặc định', resetLegend: 'Đặt lại',
+    heroEyebrow: 'IELTS 4 KỸ NĂNG • AI TUTOR 24/7', heroTitleLine1: 'Bứt phá Band điểm IELTS', heroTitleLine2: 'cùng', heroTitlePhrase: 'Én', heroTitleLine3: 'Độc quyền', heroDescription: 'Luyện tập Reading, Listening, Writing và Speaking trên một nền tảng duy nhất. Nhận phản hồi theo ngữ cảnh và cải thiện từng kỹ năng cùng Én.',
+    assessment: 'Làm bài Test đánh giá năng lực', exploreSkills: 'Khám phá 4 kỹ năng',
+    login: 'Đăng nhập', register: 'Tạo tài khoản', loginCopy: 'Tiếp tục lộ trình bốn kỹ năng và xem tiến bộ của bạn.',
+    registerCopy: 'Lưu bài luyện và theo dõi tiến bộ bốn kỹ năng trong một lộ trình riêng.',
+    displayName: 'Tên hiển thị', password: 'Mật khẩu', confirmPassword: 'Xác nhận mật khẩu',
+    showPassword: 'Hiện', hidePassword: 'Ẩn', passwordConfirmationVisibility: 'mật khẩu xác nhận',
+    noAccount: 'Chưa có tài khoản?', hasAccount: 'Đã có tài khoản?', createAccount: 'Tạo tài khoản',
+    statusIdle: 'Chưa thay đổi', statusLoading: 'Đang tải', statusSaving: 'Đang lưu', statusSynced: 'Đã đồng bộ', statusUnsynced: 'Chưa đồng bộ', statusConflict: 'Đã cập nhật từ tài khoản',
+    closeByBackdrop: 'Đóng cài đặt bằng nền', confirmReset: 'Xác nhận khôi phục', confirmResetCopy: 'Vui lòng xác nhận khôi phục tất cả thiết lập mặc định.', confirmResetGroup: 'Xác nhận khôi phục', cancel: 'Hủy',
+  },
+  en: {
+    navHome: 'Home', navSkills: '4 skills', navTutor: 'Én', navProgress: 'Progress',
+    signIn: 'Sign in', account: 'Account', settings: 'Settings', closeSettings: 'Close settings',
+    settingsIntro: 'Customize your learning experience.', preview: 'Preview', themePreview: 'Theme preview', accentSwatches: 'Accent colors', accentChoose: 'Choose accent color', retry: 'Retry',
+    appearance: 'Appearance & Display', motion: 'Motion & Accessibility', learning: 'Learning Space & Én',
+    theme: 'Theme', accent: 'Accent color', density: 'Display density', animation: 'Allow interface effects (Animation)',
+    themeDark: 'Dark', themeLight: 'Light', themeSystem: 'System',
+    cursorStyle: 'Cursor style', cursorStyleOptions: 'Cursor style options', cursorDefault: 'Default', cursorChampagne: 'Champagne Gold', cursorScholarPen: 'Scholar Pen', cursorEnFeather: 'Én Feather', cursorPixelScholar: 'Pixel Scholar', cursorSize: 'Cursor size', cursorSmall: 'Small', cursorMedium: 'Medium', cursorLarge: 'Large', cursorColor: 'Cursor color', cursorColorOptions: 'Cursor color options', cursorAccent: 'Accent color', cursorIvory: 'Ivory', cursorSapphire: 'Sapphire', cursorEmerald: 'Emerald', cursorBurgundy: 'Burgundy', cursorViolet: 'Violet', cursorEffects: 'Cursor effects',
+    densitySpacious: 'Spacious', densityDefault: 'Standard', densityCompact: 'Compact',
+    fontDecrease: 'A-', fontIncrease: 'A+',
+    fontSize: 'Font size', fontSmall: 'Small', fontDefault: 'Default', fontLarge: 'Large', language: 'Language', vietnamese: 'Vietnamese', english: 'English',
+    proactive: 'Enable proactive suggestions from Én', crossHighlight: 'Enable error highlighting (Cross-highlighting)',
+    countdown: 'Show practice countdown', readingSplit: 'Reading split ratio', writingSplit: 'Writing split ratio',
+    reset: 'Restore defaults', resetLegend: 'Reset',
+    heroEyebrow: '4 IELTS SKILLS • AI TUTOR 24/7', heroTitleLine1: 'Break through your IELTS band', heroTitleLine2: 'with', heroTitlePhrase: 'Én', heroTitleLine3: 'Exclusive', heroDescription: 'Practice Reading, Listening, Writing and Speaking on one focused platform. Get contextual feedback and improve every skill with Én.',
+    assessment: 'Take your placement test', exploreSkills: 'Explore 4 skills',
+    login: 'Sign in', register: 'Create account', loginCopy: 'Continue your four-skill journey and see your progress.',
+    registerCopy: 'Save practice work and follow your four-skill progress in one focused path.',
+    displayName: 'Display name', password: 'Password', confirmPassword: 'Confirm password',
+    showPassword: 'Show', hidePassword: 'Hide', passwordConfirmationVisibility: 'confirmation password',
+    noAccount: "Don't have an account?", hasAccount: 'Already have an account?', createAccount: 'Create account',
+    statusIdle: 'No changes', statusLoading: 'Loading', statusSaving: 'Saving', statusSynced: 'Synced', statusUnsynced: 'Not synced', statusConflict: 'Updated from account',
+    closeByBackdrop: 'Close settings with backdrop', confirmReset: 'Confirm reset', confirmResetCopy: 'Please confirm that you want to restore all default settings.', confirmResetGroup: 'Confirm reset', cancel: 'Cancel',
+  },
+}
+
+export function translate(language, key, fallback = key) {
+  return translations[language]?.[key] ?? translations.vi[key] ?? fallback
+}
+
+export default translations

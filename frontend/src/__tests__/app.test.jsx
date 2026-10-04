@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, test } from 'vitest'
@@ -31,13 +31,13 @@ describe('app shell and routing', () => {
     expect(screen.getByRole('button', { name: 'Làm bài Test đánh giá năng lực' })).toBeEnabled()
   })
 
-  test('assessment entry navigates to the safe assessment placeholder', async () => {
+  test('assessment entry navigates to the assessment entry flow', async () => {
     const user = userEvent.setup()
     renderApp('/')
 
     await user.click(screen.getByRole('button', { name: 'Làm bài Test đánh giá năng lực' }))
 
-    expect(screen.getByRole('heading', { name: /Assessment/ })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Đánh giá năng lực IELTS' })).toBeInTheDocument()
   })
 
   test('member demo query keeps the home route usable without exposing mode labels', () => {
@@ -46,7 +46,7 @@ describe('app shell and routing', () => {
     expect(screen.queryByText(/member demo/i)).not.toBeInTheDocument()
     expect(
       screen.getByRole('heading', {
-        name: 'Bứt phá Band điểm IELTS cùng Trợ giảng AI Độc quyền',
+        name: 'Bứt phá Band điểm IELTS cùng Én Độc quyền',
       }),
     ).toBeInTheDocument()
     expect(memberDemo.user.firstName).toBe('Đăng')
@@ -79,5 +79,63 @@ describe('app shell and routing', () => {
 
     expect(screen.getByRole('heading', { name: /Practice area unavailable/ })).toBeInTheDocument()
     expect(screen.getByText(/unknown/)).toBeInTheDocument()
+  })
+
+  test('provider composition exposes accessible standalone Settings drawer for guest and authenticated learners', async () => {
+    renderApp('/')
+
+    expect(screen.getByRole('button', { name: 'Cài đặt' })).toBeInTheDocument()
+  })
+
+  test('guest opening Tutor on writing practice sees personalized auth guidance with returnTo path', async () => {
+    const user = userEvent.setup()
+    renderApp('/practice/writing')
+
+    const tutorBtn = screen.getByRole('button', { name: 'Mở Én' })
+    await user.click(tutorBtn)
+
+    await waitFor(() => expect(screen.getByRole('dialog', { name: 'Én' })).toBeInTheDocument())
+    const dialog = screen.getByRole('dialog', { name: 'Én' })
+    expect(dialog).toBeInTheDocument()
+    expect(within(dialog).getByRole('link', { name: 'Đăng nhập' })).toBeInTheDocument()
+    expect(screen.queryByRole('textbox', { name: 'Tin nhắn cho Én' })).not.toBeInTheDocument()
+  })
+
+  test('mobile navigation keeps the standalone settings utility usable', async () => {
+    const user = userEvent.setup()
+    renderApp('/')
+
+    const menuToggle = screen.getByRole('button', { name: /open navigation menu/i })
+    await user.click(menuToggle)
+    expect(menuToggle).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByRole('button', { name: 'Cài đặt' })).toBeInTheDocument()
+  })
+
+  test('authenticated learners get a compact account menu with logout inside it', async () => {
+    const user = userEvent.setup()
+    localStorage.setItem('ielts-ai-tutor.session', JSON.stringify({
+      token: 'member-token', user: { id: 'user-1', email: 'student@example.com', firstName: 'Mai' },
+    }))
+    renderApp('/')
+
+    const accountButton = screen.getByRole('button', { name: 'Mở menu tài khoản' })
+    expect(accountButton).toBeInTheDocument()
+    await user.click(accountButton)
+    expect(screen.getByRole('menu')).toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: 'Hồ sơ cá nhân' })).toHaveAttribute('href', '/profile')
+    expect(screen.getByRole('menuitem', { name: 'Bài đã lưu' })).toHaveAttribute('href', '/practice/saved')
+    expect(screen.queryByRole('menuitem', { name: 'Cài đặt' })).not.toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: 'Đăng xuất' })).toBeInTheDocument()
+  })
+
+  test('shell keeps theme, motion, landmarks, and overlay cleanup keyboard-safe', async () => {
+    renderApp('/')
+    expect(screen.getByRole('link', { name: 'Bỏ qua đến nội dung chính' })).toHaveAttribute('href', '#main-content')
+    expect(screen.getByRole('banner')).toBeInTheDocument()
+    expect(screen.getByRole('main')).toHaveAttribute('id', 'main-content')
+    expect(screen.getByRole('contentinfo')).toBeInTheDocument()
+
+    expect(screen.getByRole('button', { name: 'Cài đặt' })).toBeInTheDocument()
+    expect(document.body.style.overflow).toBe('')
   })
 })

@@ -3,9 +3,12 @@ package com.ieltsaitutor.ai.controller;
 import com.ieltsaitutor.ai.dto.AiChatRequest;
 import com.ieltsaitutor.ai.dto.AiChatResponse;
 import com.ieltsaitutor.ai.service.AiChatService;
+import com.ieltsaitutor.auth.AuthInterceptor;
+import com.ieltsaitutor.auth.AuthPrincipal;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,7 +22,9 @@ public class AiChatController {
     }
 
     @PostMapping("/chat")
-    public AiChatResponse chat(@Valid @RequestBody AiChatRequest request) {
-        return service.chat(request);
+    public AiChatResponse chat(
+            @Valid @RequestBody AiChatRequest request,
+            @RequestAttribute(value = AuthInterceptor.PRINCIPAL_ATTRIBUTE, required = false) AuthPrincipal principal) {
+        return principal == null ? service.chat(request) : service.chat(principal, request);
     }
 }

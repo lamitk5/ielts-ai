@@ -21,6 +21,8 @@ describe('four-skill cards section', () => {
     expect(section).toHaveAttribute('id', 'skills')
     expect(within(section).getByText('4 KỸ NĂNG IELTS')).toBeInTheDocument()
     expect(within(section).getByRole('heading', { name: 'Luyện tập theo 4 kỹ năng' })).toBeInTheDocument()
+    expect(within(section).getByRole('heading', { name: 'Luyện tập theo 4 kỹ năng' }).closest('.skills-section')).toHaveClass('skills-section')
+    expect(section.querySelector('.skills-grid')).toHaveClass('skills-grid-equal')
 
     for (const skill of ['Reading', 'Listening', 'Writing', 'Speaking']) {
       expect(within(section).getByRole('heading', { name: skill })).toBeInTheDocument()
@@ -49,6 +51,7 @@ describe('four-skill cards section', () => {
     const cards = screen.getAllByRole('article')
     expect(cards).toHaveLength(4)
     expect(new Set(cards.map((card) => card.className)).size).toBe(1)
+    expect(cards.every((card) => card.classList.contains('skill-card-editorial'))).toBe(true)
 
     for (const skill of skillCards) {
       const card = screen.getByRole('article', { name: skill.name })

@@ -10,12 +10,12 @@ const previewPrompts = [
 
 function TutorPreviewSection() {
   return (
-    <AnimatedSection id="ai-tutor" className="tutor-preview-section" aria-label="Trợ giảng AI">
+    <AnimatedSection id="ai-tutor" className="tutor-preview-section" aria-label="Én">
       <div className="tutor-preview-inner">
         <SectionTitle
           eyebrow="TRỢ GIẢNG THEO NGỮ CẢNH"
           title="Học sâu hơn với phản hồi đúng lúc"
-          description="Trợ giảng AI giúp bạn hiểu vì sao một đáp án đúng, nhìn rõ lỗi trong bài viết và chuẩn bị tự tin hơn cho phần Speaking."
+          description="Én giúp bạn hiểu vì sao một đáp án đúng, nhìn rõ lỗi trong bài viết và chuẩn bị tự tin hơn cho phần Speaking."
         />
         <GlassCard className="tutor-preview-card">
           <div className="tutor-preview-orb" aria-hidden="true" />
@@ -24,7 +24,7 @@ function TutorPreviewSection() {
             <h3 className="font-display">Một người bạn học luôn nhớ ngữ cảnh bài luyện</h3>
             <p>Hỏi ngắn, nhận gợi ý rõ ràng và tiếp tục luyện tập mà không rời khỏi mạch học.</p>
           </div>
-          <div className="tutor-preview-prompts" aria-label="Ví dụ câu hỏi cho Trợ giảng AI">
+          <div className="tutor-preview-prompts" aria-label="Ví dụ câu hỏi cho Én">
             {previewPrompts.map((prompt) => <span key={prompt}>{prompt}</span>)}
           </div>
         </GlassCard>

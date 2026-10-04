@@ -24,7 +24,7 @@ function Button({
   return (
     <button
       type={type}
-      className={`button btn-liquid ${selectedVariant} ${selectedSize} ${className}`.trim()}
+      className={`button button-interactive btn-liquid ${selectedVariant} ${selectedSize} ${className}`.trim()}
       {...props}
     >
       <span className="button-label">{children}</span>

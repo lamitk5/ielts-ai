@@ -1,6 +1,6 @@
 function TutorGroundingBadge({ status, sourceCount = 0 }) {
   const isGrounded = status === 'grounded'
-  const isInsufficient = status === 'insufficient_context'
+  const isInsufficient = ['insufficient_context', 'insufficient_evidence'].includes(status)
 
   if (!isGrounded && !isInsufficient) return null
 

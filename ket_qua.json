@@ -1,0 +1,40 @@
+{
+  "eigenvalues": [
+    0.0,
+    2.1746,
+    5.1131,
+    6.0,
+    10.4367,
+    22.2756
+  ],
+  "lambda2": 2.1746,
+  "fiedler_vector": {
+    "ai": -0.2062,
+    "application": -0.0,
+    "domain": -0.2127,
+    "infrastructure": -0.3145,
+    "presentation": 0.8884,
+    "shared": -0.1552
+  },
+  "best_k": 4,
+  "modularity_q": 0.0085,
+  "clusters": {
+    "0": [
+      "infrastructure"
+    ],
+    "1": [
+      "ai",
+      "domain",
+      "shared"
+    ],
+    "2": [
+      "application"
+    ],
+    "3": [
+      "presentation"
+    ]
+  },
+  "violations": [],
+  "god_module": "shared",
+  "cyclic_dependencies": []
+}

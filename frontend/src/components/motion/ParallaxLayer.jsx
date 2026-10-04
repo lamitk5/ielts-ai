@@ -1,7 +1,8 @@
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
+import { motion, useScroll, useTransform } from 'framer-motion'
+import { useEffectiveReducedMotion } from '../../features/preferences/PreferenceProvider'
 
 function ParallaxLayer({ children, distance = 18, className = '', ...props }) {
-  const prefersReducedMotion = useReducedMotion()
+  const prefersReducedMotion = useEffectiveReducedMotion()
   const { scrollYProgress } = useScroll()
   const y = useTransform(scrollYProgress, [0, 1], [0, distance])
   const layerClassName = `parallax-layer ${className}`.trim()

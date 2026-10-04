@@ -3,8 +3,10 @@ import { describe, expect, test, vi } from 'vitest'
 import AnimatedSection from '../components/common/AnimatedSection'
 import Button from '../components/common/Button'
 import GlassCard from '../components/common/GlassCard'
+import PageContainer from '../components/common/PageContainer'
 import SectionTitle from '../components/common/SectionTitle'
 import SkeletonBlock from '../components/common/SkeletonBlock'
+import Surface from '../components/common/Surface'
 import ParallaxLayer from '../components/motion/ParallaxLayer'
 
 function enableReducedMotion() {
@@ -57,6 +59,28 @@ describe('shared UI primitives', () => {
 
     expect(screen.getByTestId('static-card')).not.toHaveClass('glass-card-interactive')
     expect(screen.getByTestId('interactive-card')).toHaveClass('glass-card-interactive')
+  })
+
+  test('PageContainer and Surface expose token-backed layout primitives', () => {
+    render(
+      <PageContainer data-testid="page-container">
+        <Surface data-testid="base-surface">Base</Surface>
+        <Surface as="article" variant="elevated" data-testid="elevated-surface">Elevated</Surface>
+        <Surface variant="interactive" data-testid="interactive-surface">Interactive</Surface>
+      </PageContainer>,
+    )
+
+    expect(screen.getByTestId('page-container')).toHaveClass('page-container')
+    expect(screen.getByTestId('base-surface')).toHaveClass('surface', 'surface-base')
+    expect(screen.getByTestId('elevated-surface').tagName).toBe('ARTICLE')
+    expect(screen.getByTestId('elevated-surface')).toHaveClass('surface-elevated')
+    expect(screen.getByTestId('interactive-surface')).toHaveClass('surface-interactive')
+  })
+
+  test('shared type and focus scales use the Academic Luxury utility classes', () => {
+    render(<><SectionTitle title="Scale" /><Button>Focus</Button></>)
+    expect(screen.getByRole('heading', { name: 'Scale' })).toHaveClass('font-display')
+    expect(screen.getByRole('button', { name: 'Focus' })).toHaveClass('btn-liquid')
   })
 
   test('SkeletonBlock exposes a quiet accessible loading state', () => {
