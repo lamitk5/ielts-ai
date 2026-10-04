@@ -84,6 +84,20 @@ class GroqAiProviderTest {
     }
 
     @Test
+    void requestsJsonObjectForWritingAssessment() {
+        server.createContext("/openai/v1/chat/completions", exchange -> respond(exchange, 200,
+                "{\"choices\":[{\"message\":{\"content\":\"{}\"}}]}"));
+        server.start();
+
+        provider.chat(new AiChatCommand(
+                "Assess this IELTS writing response. Return JSON only with overallBandEstimate, criteria, strengths, issues, suggestions.",
+                new AiChatContext("WRITING", null, "task-1-academic-01", null, "TASK_1", null, "A writing response."),
+                List.of()));
+
+        assertThat(body.get()).contains("\"response_format\":{\"type\":\"json_object\"}");
+    }
+
+    @Test
     void advertisesTextDocumentContextCapability() {
         assertThat(provider.capabilities()).contains(ProviderCapability.CHAT, ProviderCapability.DOCUMENT_CONTEXT);
     }

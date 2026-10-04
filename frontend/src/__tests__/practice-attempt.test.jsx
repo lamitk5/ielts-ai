@@ -12,7 +12,7 @@ beforeEach(() => {
     if (url.includes('/api/practice/reading/sets/')) return { ok: true, json: async () => set }
     if (url === '/api/attempts' && options.method === 'POST') return { ok: true, json: async () => attempt }
     if (url.endsWith('/answers')) return { ok: true, json: async () => ({ ...attempt, answers: { q1: 'A' } }) }
-    if (url.endsWith('/submit')) return { ok: true, json: async () => ({ ...attempt, status: 'FEEDBACK_READY', answers: { q1: 'A' }, score: 1, total: 1 }) }
+    if (url === '/api/practice/reading/attempts/attempt-1/submit') return { ok: true, json: async () => ({ ...attempt, status: 'FEEDBACK_READY', answers: { q1: 'A' }, score: 1, total: 1 }) }
     return { ok: true, json: async () => attempt }
   }))
 })
@@ -21,12 +21,18 @@ afterEach(() => { vi.unstubAllGlobals() })
 describe('durable practice attempt', () => {
   test('starts, saves an answer, and submits without leaving loading state', async () => {
     const user = userEvent.setup()
-    render(<MemoryRouter initialEntries={['/practice/reading/reading-1']}><Routes><Route path="/practice/:skill/:setId" element={<PracticeAttemptPage />} /></Routes></MemoryRouter>)
+    render(<MemoryRouter initialEntries={['/practice/reading/reading-1']}><Routes>
+      <Route path="/practice/:skill/:setId" element={<PracticeAttemptPage />} />
+      <Route path="/practice/results/:attemptId" element={<p>RESULT_ROUTE</p>} />
+    </Routes></MemoryRouter>)
 
     await screen.findByText('Choose one')
     await user.click(screen.getByLabelText('A'))
     await waitFor(() => expect(fetch).toHaveBeenCalledWith('/api/attempts/attempt-1/answers', expect.objectContaining({ method: 'PUT' })))
     await user.click(screen.getByRole('button', { name: 'Nộp bài' }))
-    await waitFor(() => expect(screen.getByText(/FEEDBACK_READY|Đã nộp/i)).toBeInTheDocument())
+    await waitFor(() => expect(fetch).toHaveBeenCalledWith('/api/practice/reading/attempts/attempt-1/submit', expect.objectContaining({ method: 'POST' })))
+    const submitCall = fetch.mock.calls.find(([url]) => url === '/api/practice/reading/attempts/attempt-1/submit')
+    expect(JSON.parse(submitCall[1].body)).toMatchObject({ idempotencyKey: 'attempt-reading-1' })
+    await waitFor(() => expect(screen.getByText('RESULT_ROUTE')).toBeInTheDocument())
   })
 })

@@ -119,6 +119,9 @@ public class GroqAiProvider implements AiProviderAdapter {
     private String buildRequest(AiChatCommand command) {
         ObjectNode root = objectMapper.createObjectNode();
         root.put("model", properties.getChatModel());
+        if (isWritingAssessment(command)) {
+            root.putObject("response_format").put("type", "json_object");
+        }
         if (command.context() != null && "practice-generation".equals(command.context().taskType())) {
             root.put("max_completion_tokens", 6000);
         }
@@ -129,6 +132,14 @@ public class GroqAiProvider implements AiProviderAdapter {
                 .put("content", history.content()));
         messages.addObject().put("role", "user").put("content", buildUserPrompt(command));
         return root.toString();
+    }
+
+    private boolean isWritingAssessment(AiChatCommand command) {
+        return command != null
+                && command.context() != null
+                && "WRITING".equalsIgnoreCase(command.context().skill())
+                && command.message() != null
+                && command.message().startsWith("Assess this IELTS writing response.");
     }
 
     private String buildUserPrompt(AiChatCommand command) {

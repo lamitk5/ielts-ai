@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
 import { useOptionalAuth } from '../auth/AuthProvider'
+import { getStoredSession } from '../../services/authApi'
 import { DEFAULT_PREFERENCES } from './preferenceDefaults'
 import { LOCAL_ONLY_PREFERENCE_KEYS, mergeLocalPreferences, normalizePreferences } from './preferenceSchema'
 import { createCursorAsset, getCursorEffectColor, normalizeCursorSizePercent, resolveCursorColor } from './cursorAsset'
@@ -135,6 +136,10 @@ function PreferenceRootProvider({ children }) {
   identityRef.current = userId
   const [systemDark, setSystemDark] = useState(() => window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false)
   const [systemReduced, setSystemReduced] = useState(() => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false)
+  const isStoredIdentityCurrent = (expectedUserId) => {
+    if (!expectedUserId) return !getStoredSession()?.user?.id
+    return getStoredSession()?.user?.id === expectedUserId
+  }
 
   useEffect(() => {
     mountedRef.current = true
@@ -149,7 +154,10 @@ function PreferenceRootProvider({ children }) {
     confirmedRef.current = null
     setConfirmedPreferences(null)
     setStatus(userId ? 'loading' : 'idle')
-    const current = () => mountedRef.current && epochRef.current === epoch && identityRef.current === userId
+    const current = () => mountedRef.current
+      && epochRef.current === epoch
+      && identityRef.current === userId
+      && isStoredIdentityCurrent(userId)
     let automaticHydrationRetries = 0
     const hydrate = async (editAtRequest) => {
       try {
@@ -276,7 +284,10 @@ function PreferenceRootProvider({ children }) {
       const initiatingUserId = userId
       const epoch = epochRef.current
       const editAtRequest = editRef.current
-      const isCurrent = () => mountedRef.current && identityRef.current === initiatingUserId && epochRef.current === epoch
+      const isCurrent = () => mountedRef.current
+        && identityRef.current === initiatingUserId
+        && epochRef.current === epoch
+        && isStoredIdentityCurrent(initiatingUserId)
       setStatus('loading')
       getPreferences().then((record) => {
         if (!isCurrent()) return

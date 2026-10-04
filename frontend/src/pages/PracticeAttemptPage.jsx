@@ -4,7 +4,8 @@ import GlassCard from '../components/common/GlassCard'
 import PracticeAttemptStatus from '../components/practice/PracticeAttemptStatus'
 import PracticeErrorState from '../components/practice/PracticeErrorState'
 import { getPracticeSet } from '../services/practiceCatalogApi'
-import { saveAttemptAnswers, startAttempt, submitAttempt } from '../services/attemptsApi'
+import { saveAttemptAnswers, startAttempt } from '../services/attemptsApi'
+import { submitListeningAttempt, submitReadingAttempt } from '../features/reading/practiceApi'
 
 function PracticeAttemptPage() {
   const { skill, setId } = useParams()
@@ -35,7 +36,9 @@ function PracticeAttemptPage() {
     event.preventDefault()
     if (!attempt?.id) return
     try {
-      const result = await submitAttempt(attempt.id, answers, Object.keys(answers).length, questions.length, attempt.idempotencyKey)
+      const submitObjectiveAttempt = String(skill).toLowerCase() === 'listening' ? submitListeningAttempt : submitReadingAttempt
+      const idempotencyKey = attempt.idempotencyKey ?? `attempt-${setId}`
+      const result = await submitObjectiveAttempt(String(skill).toLowerCase(), setId, attempt.id, answers, idempotencyKey)
       setAttempt(result)
       setSubmitted(true)
       if (result.status === 'FEEDBACK_READY') navigate(`/practice/results/${result.id}`)
