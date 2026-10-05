@@ -28,7 +28,15 @@ public class AttemptService {
             var existing = repository.findByUserAndIdempotencyKey(userId, idempotencyKey);
             if (existing.isPresent()) return existing.get();
         }
-        return repository.create(userId, practiceId, practiceVersion, skill, idempotencyKey);
+        try {
+            return repository.create(userId, practiceId, practiceVersion, skill, idempotencyKey);
+        } catch (org.springframework.dao.DuplicateKeyException ex) {
+            if (idempotencyKey != null && !idempotencyKey.isBlank()) {
+                var existing = repository.findByUserAndIdempotencyKey(userId, idempotencyKey);
+                if (existing.isPresent()) return existing.get();
+            }
+            throw ex;
+        }
     }
 
     public PracticeAttempt get(UUID userId, UUID attemptId) {

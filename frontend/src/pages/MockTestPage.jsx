@@ -126,6 +126,7 @@ export default function MockTestPage() {
     if (!session) return
     try {
       await triggerAutosave()
+      await executeMockCommand(session.id, 'NEXT_SECTION')
       const nextIndex = currentSectionIndex + 1
       if (session.sections && nextIndex < session.sections.length) {
         setCurrentSectionIndex(nextIndex)

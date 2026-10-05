@@ -97,4 +97,32 @@ describe('Mock Test Flow and Recovery Acceptance', () => {
       expect(screen.getAllByText('7.0').length).toBeGreaterThan(0)
     })
   })
+
+  it('persists the selected section so a resumed session reopens at that section', async () => {
+    mockTestApi.startOrResumeMockSession.mockResolvedValue(mockSession)
+    mockTestApi.autosaveMockSectionDraft.mockResolvedValue({ revision: 1 })
+    mockTestApi.executeMockCommand.mockResolvedValue({
+      ...mockSession,
+      currentSectionIndex: 1,
+    })
+
+    render(
+      <MemoryRouter initialEntries={['/practice/mock-test']}>
+        <Routes>
+          <Route path="/practice/mock-test" element={<MockTestPage />} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('IELTS Listening Section')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /Hoàn thành phần này & Chuyển tiếp/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText('IELTS Reading Section')).toBeInTheDocument()
+    })
+    expect(mockTestApi.executeMockCommand).toHaveBeenCalledWith('mock-session-001', 'NEXT_SECTION')
+  })
 })

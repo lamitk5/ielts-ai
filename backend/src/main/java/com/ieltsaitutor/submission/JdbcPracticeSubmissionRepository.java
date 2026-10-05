@@ -145,8 +145,8 @@ public class JdbcPracticeSubmissionRepository implements PracticeSubmissionRepos
     public SubmissionHistoryPage findAllHistory(AdminSubmissionQuery query) {
         String filters = "WHERE (:skill IS NULL OR lower(skill) = lower(:skill)) "
                 + "AND (:status IS NULL OR status = :status)";
-        MapSqlParameterSource params = new MapSqlParameterSource().addValue("skill", query.skill())
-                .addValue("status", query.status() == null ? null : query.status().name())
+        MapSqlParameterSource params = new MapSqlParameterSource().addValue("skill", query.skill(), Types.VARCHAR)
+                .addValue("status", query.status() == null ? null : query.status().name(), Types.VARCHAR)
                 .addValue("limit", query.size()).addValue("offset", (long) query.page() * query.size());
         List<PracticeSubmission> items = jdbc.query("SELECT id,user_id,skill,practice_id,practice_version_id,published_set_id,"
                         + "publication_revision,status,started_at,last_saved_at,submitted_at,scored_at,autosave_revision,"

@@ -29,7 +29,11 @@ public class PracticeController {
 
     @GetMapping("/{skill}/sets")
     public List<PracticeSetView> sets(@PathVariable String skill) {
-        return service.sets(skill).stream().map(PracticeSetView::from).toList();
+        try {
+            return service.sets(skill).stream().map(PracticeSetView::from).toList();
+        } catch (IllegalArgumentException ex) {
+            return List.of();
+        }
     }
 
     @GetMapping("/{skill}/sets/{id}")
