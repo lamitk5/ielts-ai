@@ -2,7 +2,7 @@
 
 ## Run metadata
 
-- Date: 2026-10-04
+- Date: 2026-10-05
 - Branch: `fix/final-browser-e2e`
 - Starting HEAD: `eafa24ce2fc13231c969559d592e80c5903773b2`
 - Frontend: `http://127.0.0.1:5173/`
@@ -13,7 +13,7 @@
 
 **WEB TEST STATUS: PASS — no confirmed core product defect remains.**
 
-Attachment automation, the final Mock Test resume rerun, and exact viewport/screenshot capture remain environment-blocked and are listed separately below.
+Attachment automation and exact viewport/screenshot capture remain environment-blocked and are listed separately below.
 
 The core learner, admin, authentication, practice, result, Tutor, and Mock Test entry flows were exercised. One real Mock Test startup defect was found and fixed on this branch; the targeted regression and full backend suite pass.
 
@@ -30,7 +30,7 @@ The core learner, admin, authentication, practice, result, Tutor, and Mock Test 
 | Listening | PASS | Real attempt, answers, submit, and result were verified; UI truthfully states audio is not configured. |
 | Writing | PASS | Draft autosave and submit produced a truthful `Band ước lượng` result with the non-official-score disclaimer. |
 | Speaking | PASS | Text answer save worked; UI truthfully states STT/transcription and band scoring are not configured. |
-| Mock Test | FIXED / PASS | Start previously returned 502; after the fix the real browser opened the published four-section mock with timer and navigation. Resume was not rerun in the final attempt because Docker/PostgreSQL became unavailable; no resume defect was demonstrated. |
+| Mock Test | FIXED / PASS | Start previously returned 502; after the fix the real browser opened the published four-section mock with timer and navigation. The browser advanced to section 2, left the page, and reopened the same active session at section 2 after the final persistence fix. |
 | Vocabulary | PASS | Real empty/search/status UI rendered; external Tutor-dependent loading displayed the existing unavailable state. |
 | Study plan | BLOCKED | Page rendered, but plan generation remained in the existing provider-unavailable state. |
 | Analytics | PASS | Empty/insufficient-data states were truthful and did not fabricate scores. |
@@ -50,6 +50,8 @@ Changed product files:
 
 - `backend/src/main/java/com/ieltsaitutor/mock/MockTestService.java`
 - `backend/src/test/java/com/ieltsaitutor/mock/MockTestServiceTest.java`
+- `frontend/src/pages/MockTestPage.jsx`
+- `frontend/src/__tests__/mock-test-flow.test.jsx`
 
 ## Responsive and visual evidence
 
@@ -61,24 +63,28 @@ Changed product files:
 ## External / environment blockers
 
 - Browser attachment upload could not be completed through the available file-chooser automation surface.
-- The final browser rerun was stopped by Docker Desktop failing to bring its engine back online; PostgreSQL port 5432 was refused by Flyway. The earlier real-browser Mock Test start evidence remains valid for the unchanged fix.
 - Study-plan AI loading remained provider-dependent and unavailable during the run.
 - Listening audio and Speaking STT are intentionally not configured; the UI does not claim those capabilities are active.
-- Testcontainers integration was skipped by the existing test guard because its Docker named-pipe probe returned HTTP 400, although Docker CLI and the project PostgreSQL container were healthy.
+- The existing Testcontainers guard may skip its integration test when its named-pipe probe returns HTTP 400; this does not affect the healthy project PostgreSQL container used for the runtime check.
 
 ## Verification
 
 - Backend tests: **735 run, 0 failures, 0 errors, 8 skipped**
 - Backend package: **PASS**
-- Frontend tests: **99 files, 550 tests passed**
+- Frontend tests: **99 files, 551 tests passed**
 - Frontend lint: **PASS** (pre-existing warnings only)
 - Frontend build: **PASS**
 - `git diff --check`: **PASS**
 - Runtime backend: **PASS**, `/api/health` returned `{"status":"UP"}` on port 8081
 - Runtime frontend: **PASS**, port 5173 served the application
+- PostgreSQL runtime: **PASS**, `ielts-ai-tutor-postgres` was healthy and `pg_isready` accepted connections on port 5432
+- Flyway runtime: **PASS**, schema version 72 was current and no migration was required
+- Mock Test targeted regression: **PASS**, 2 tests passed including the section-persistence regression
+- Mock Test browser start/resume: **PASS**, section 2 remained selected after leaving and reopening the active session
+- Attachment browser practical check: **BLOCKED BY TEST TOOL**, file chooser returned an empty input and no preview; no product defect asserted
 
-The final rerun could not restart the backend after Docker became unavailable; this is an environment blocker, not a new product failure.
+The final recovery rerun used the existing healthy PostgreSQL container; no container recreation or database reset was performed.
 
 ## Working state
 
-No merge, push, or deployment was performed. The branch contains only the focused Mock Test fix, its regression test, and this report pending the final commit.
+No merge, push, or deployment was performed. The branch contains the focused Mock Test fixes, regression tests, and this report. Final verification is complete before the verification commit.
