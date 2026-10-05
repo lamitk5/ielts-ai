@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.ieltsaitutor.practice.catalog.ApprovedPracticeCatalogService;
+import com.ieltsaitutor.submission.CanonicalSubmissionService;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -77,6 +80,34 @@ class MockTestServiceTest {
         assertThat(result.sections().get(2).skill()).isEqualTo("WRITING");
         assertThat(result.sections().get(3).skill()).isEqualTo("SPEAKING");
 
+        verify(sessionRepository).save(any());
+        verify(sectionRepository).saveAll(any());
+    }
+
+    @Test
+    @DisplayName("startOrResume skips canonical submissions when a mock section is not published")
+    void skipsUnavailableCanonicalSubmission() {
+        CanonicalSubmissionService canonical = mock(CanonicalSubmissionService.class);
+        MockTestCatalogRepository mockCatalog = mock(MockTestCatalogRepository.class);
+        ApprovedPracticeCatalogService catalog = mock(ApprovedPracticeCatalogService.class);
+        when(sessionRepository.findActiveByUser(userId)).thenReturn(Optional.empty());
+        when(catalog.findActive(any())).thenReturn(Optional.empty());
+
+        service = new MockTestService(
+                sessionRepository,
+                sectionRepository,
+                sectionResolver,
+                stateMachine,
+                timingService,
+                canonical,
+                mockCatalog,
+                catalog
+        );
+
+        MockTestSession result = service.startOrResume(userId, "mock-test-academic-01");
+
+        assertThat(result.sections()).allMatch(section -> section.submissionId() == null);
+        verifyNoInteractions(canonical);
         verify(sessionRepository).save(any());
         verify(sectionRepository).saveAll(any());
     }

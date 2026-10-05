@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.ieltsaitutor.submission.CanonicalSubmissionService;
 import com.ieltsaitutor.submission.PracticeSubmission;
 import com.ieltsaitutor.submission.SubmissionStartCommand;
+import com.ieltsaitutor.practice.catalog.ApprovedPracticeCatalogService;
 
 @Service
 public class MockTestService {
@@ -24,6 +25,7 @@ public class MockTestService {
     private final MockTestTimingService timingService;
     private final CanonicalSubmissionService canonicalSubmissionService;
     private final MockTestCatalogRepository catalogRepository;
+    private final ApprovedPracticeCatalogService approvedPracticeCatalogService;
 
     public MockTestService(
             MockTestSessionRepository sessionRepository,
@@ -31,7 +33,7 @@ public class MockTestService {
             MockSectionResolver sectionResolver,
             MockTestStateMachine stateMachine,
             MockTestTimingService timingService) {
-        this(sessionRepository, sectionRepository, sectionResolver, stateMachine, timingService, null, null);
+        this(sessionRepository, sectionRepository, sectionResolver, stateMachine, timingService, null, null, null);
     }
 
     public MockTestService(
@@ -41,7 +43,19 @@ public class MockTestService {
             MockTestStateMachine stateMachine,
             MockTestTimingService timingService,
             @Autowired(required = false) CanonicalSubmissionService canonicalSubmissionService) {
-        this(sessionRepository, sectionRepository, sectionResolver, stateMachine, timingService, canonicalSubmissionService, null);
+        this(sessionRepository, sectionRepository, sectionResolver, stateMachine, timingService, canonicalSubmissionService, null, null);
+    }
+
+    public MockTestService(
+            MockTestSessionRepository sessionRepository,
+            MockTestSectionRepository sectionRepository,
+            MockSectionResolver sectionResolver,
+            MockTestStateMachine stateMachine,
+            MockTestTimingService timingService,
+            @Autowired(required = false) CanonicalSubmissionService canonicalSubmissionService,
+            @Autowired(required = false) MockTestCatalogRepository catalogRepository) {
+        this(sessionRepository, sectionRepository, sectionResolver, stateMachine, timingService,
+                canonicalSubmissionService, catalogRepository, null);
     }
 
     @Autowired
@@ -52,7 +66,8 @@ public class MockTestService {
             MockTestStateMachine stateMachine,
             MockTestTimingService timingService,
             @Autowired(required = false) CanonicalSubmissionService canonicalSubmissionService,
-            @Autowired(required = false) MockTestCatalogRepository catalogRepository) {
+            @Autowired(required = false) MockTestCatalogRepository catalogRepository,
+            @Autowired(required = false) ApprovedPracticeCatalogService approvedPracticeCatalogService) {
         this.sessionRepository = Objects.requireNonNull(sessionRepository, "sessionRepository must not be null");
         this.sectionRepository = Objects.requireNonNull(sectionRepository, "sectionRepository must not be null");
         this.sectionResolver = Objects.requireNonNull(sectionResolver, "sectionResolver must not be null");
@@ -60,6 +75,7 @@ public class MockTestService {
         this.timingService = Objects.requireNonNull(timingService, "timingService must not be null");
         this.canonicalSubmissionService = canonicalSubmissionService;
         this.catalogRepository = catalogRepository;
+        this.approvedPracticeCatalogService = approvedPracticeCatalogService;
     }
 
     @Transactional
@@ -82,6 +98,7 @@ public class MockTestService {
         if (canonicalSubmissionService != null) {
             for (int i = 0; i < sections.size(); i++) {
                 MockTestSection sec = sections.get(i);
+                if (!hasActivePublication(sec)) continue;
                 try {
                     String idempotencyKey = "mock-" + sessionId + "-" + sec.skill() + "-" + sec.sectionOrder();
                     PracticeSubmission sub = canonicalSubmissionService.start(userId, new SubmissionStartCommand(sec.publishedSetId(), sec.skill(), idempotencyKey));
@@ -113,6 +130,13 @@ public class MockTestService {
         sectionRepository.saveAll(sections);
 
         return session;
+    }
+
+    private boolean hasActivePublication(MockTestSection section) {
+        if (approvedPracticeCatalogService == null) return true;
+        return approvedPracticeCatalogService.findActive(section.publishedSetId())
+                .filter(publication -> publication.skill().equalsIgnoreCase(section.skill()))
+                .isPresent();
     }
 
     public MockTestSession getSession(UUID userId, UUID sessionId) {
